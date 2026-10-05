@@ -1,0 +1,30 @@
+# Bí mật
+.env
+*.secret
+server/.env
+server/cloudflared/*.json
+
+# Firmware build / cấu hình cục bộ (chứa bí mật như CF Access token)
+firmware/build/
+firmware/sdkconfig
+firmware/sdkconfig.old
+firmware/managed_components/
+firmware/dependencies.lock
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Dữ liệu/model lớn
+*.tflite.tmp
+tools/wakeword/data/
+tools/tests/**/recordings/
+server/models/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
