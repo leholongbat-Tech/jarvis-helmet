@@ -1,0 +1,11 @@
+{
+  "name": "invalid_sound_name_trailing_newline",
+  "steps": [
+    {"sound": {"name": "beep\n"}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "sound",
+  "estimated_ms": null,
+  "note": "Ký tự xuống dòng cuối tên: Python \"$\" từng chấp nhận, firmware từ chối (D29)."
+}

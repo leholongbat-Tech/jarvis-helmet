@@ -79,7 +79,7 @@ EYE_EFFECTS = ("breathe", "blink", "flicker", "power_up", "fade_out")
 MASK_ACTIONS = ("open", "close")
 STEP_TYPES = ("mask", "servo", "eyes", "output", "delay", "display", "sound")
 
-TASK_ID_RE = re.compile(r"^[a-z0-9_]+$")
+TASK_ID_RE = re.compile(r"[a-z0-9_]+")  # use fullmatch: "$" would accept a trailing newline
 TASK_ID_MAX_LEN = 59            # "task_" + id must fit the 64-char LLM function name limit
 TASK_KEYS = ("description", "quick_phrases", "reply", "sync_to_device", "steps")
 TOP_KEYS = ("version", "tasks")
@@ -87,7 +87,7 @@ DESCRIPTION_MAX_CHARS = 1000
 PHRASE_MAX_CHARS = 100
 REPLY_MAX_CHARS = 300
 REPLY_LANGS = ("vi", "en")
-SOUND_NAME_RE = re.compile(r"^[a-z0-9_]{1,32}$")
+SOUND_NAME_RE = re.compile(r"[a-z0-9_]{1,32}")  # fullmatch, like the firmware
 
 FIXTURE_KEYS = ("name", "steps", "valid", "error_step", "error_contains", "estimated_ms", "note")
 
@@ -303,7 +303,7 @@ def _check_sound(i: int, value: Any) -> int:
     obj = _object(i, "sound", value)
     _allowed(i, "sound", obj, ("name",))
     name = _require(i, "sound", obj, "name")
-    if not isinstance(name, str) or not SOUND_NAME_RE.match(name):
+    if not isinstance(name, str) or not SOUND_NAME_RE.fullmatch(name):
         raise StepError(i, f"sound.name must match [a-z0-9_]{{1,{SOUND_NAME_MAX_LEN}}}",
                         ("sound", "name"))
     return 0
@@ -694,7 +694,7 @@ def _validate_document(data: Any, col: _Collector) -> List[Task]:
     for tid, spec in tasks.items():
         base = ("tasks", tid)
         ok = True
-        if not TASK_ID_RE.match(tid):
+        if not TASK_ID_RE.fullmatch(tid):
             col.add(base, f"task id '{tid}' must match [a-z0-9_]+ (lowercase letters, digits, _)")
             ok = False
         elif len(tid) > TASK_ID_MAX_LEN:

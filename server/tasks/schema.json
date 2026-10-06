@@ -16,14 +16,15 @@
       "description": "Bảng tác vụ: id -> tác vụ. Mỗi tác vụ thành một function task_<id> cho LLM.",
       "type": "object",
       "propertyNames": {
-        "pattern": "^[a-z0-9_]+$",
+        "$comment": "(?![\\s\\S]) = end of string in both ECMA and Python regex ($ also matches before a final newline in Python).",
+        "pattern": "^[a-z0-9_]+(?![\\s\\S])",
         "maxLength": 59
       },
       "patternProperties": {
-        "^[a-z0-9_]{1,11}$": {
+        "^[a-z0-9_]{1,11}(?![\\s\\S])": {
           "$ref": "#/$defs/task"
         },
-        "^[a-z0-9_]{12,}$": {
+        "^[a-z0-9_]{12,}(?![\\s\\S])": {
           "$comment": "sync_to_device lưu vào NVS khóa seq_<id>: id phải <= 11 ký tự.",
           "allOf": [
             { "$ref": "#/$defs/task" },
@@ -202,7 +203,7 @@
       "additionalProperties": false,
       "required": ["name"],
       "properties": {
-        "name": { "type": "string", "pattern": "^[a-z0-9_]{1,32}$" }
+        "name": { "type": "string", "pattern": "^[a-z0-9_]{1,32}(?![\\s\\S])" }
       }
     }
   }

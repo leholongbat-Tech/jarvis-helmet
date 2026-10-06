@@ -369,6 +369,24 @@ def test_duplicate_task_id_reports_both_lines():
     assert dup and dup[0].line == 10 and "line 3" in dup[0].message
 
 
+def test_task_id_with_trailing_newline_is_rejected():
+    # Python's "$" also matches before a final "\n": ids must be checked with fullmatch (D29).
+    text = MINIMAL + """\
+  "abc\\n":
+    description: "trailing newline in the id"
+    steps:
+      - delay: 100
+"""
+    err = errors_of(text)
+    assert any("abc" in i.message for i in err.issues), [i.message for i in err.issues]
+
+
+def test_sound_name_with_trailing_newline_is_rejected():
+    with pytest.raises(taskslib.StepError) as info:
+        taskslib.validate_steps([{"sound": {"name": "beep\n"}}])
+    assert info.value.index == 1 and "sound" in info.value.message
+
+
 def test_unknown_field_suggests_fix():
     err = errors_of(MINIMAL.replace("quick_phrases:", "quick_phrase:"))
     msg = err.issues[0].message
