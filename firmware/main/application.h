@@ -13,6 +13,7 @@
 #include <functional>
 #include <cstdint>
 #include <vector>
+#include <atomic>
 
 #include "protocol.h"
 #include "ota.h"
@@ -118,6 +119,9 @@ public:
     AecMode GetAecMode() const { return aec_mode_; }
     void PlaySound(const std::string_view& sound);
     AudioService& GetAudioService() { return audio_service_; }
+    // [jarvis] True once an OTA version check of this boot got an answer from the server
+    // (the check is retried with growing delays while it fails). Thread-safe, read-only.
+    bool OtaCheckSucceeded() const { return ota_check_succeeded_.load(std::memory_order_relaxed); }
     
     /**
      * Reset protocol resources (thread-safe)
@@ -153,6 +157,7 @@ private:
     bool pending_listening_start_ = false;  // Waiting for playback to drain before starting listening (auto mode)
     int clock_ticks_ = 0;
     TaskHandle_t activation_task_handle_ = nullptr;
+    std::atomic<bool> ota_check_succeeded_{false};  // [jarvis] see OtaCheckSucceeded()
 
 
     // Event handlers

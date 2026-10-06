@@ -2,6 +2,7 @@
 #include "system_info.h"
 #include "settings.h"
 #include "assets/lang_config.h"
+#include "extra_headers.h"
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -67,6 +68,11 @@ std::unique_ptr<Http> Ota::SetupHttp() {
     http->SetHeader("User-Agent", user_agent);
     http->SetHeader("Accept-Language", Lang::CODE);
     http->SetHeader("Content-Type", "application/json");
+    // Host-scoped extra headers registered by the board (e.g. Cloudflare Access).
+    ExtraHeaders::GetInstance().ForEach(
+        GetCheckVersionUrl(), [&http](const std::string& name, const std::string& value) {
+            http->SetHeader(name, value);
+        });
 
     return http;
 }
@@ -282,6 +288,11 @@ bool Ota::Upgrade(const std::string& firmware_url, std::function<void(int progre
 
     auto network = Board::GetInstance().GetNetwork();
     auto http = network->CreateHttp(0);
+    // Host-scoped extra headers registered by the board (e.g. Cloudflare Access).
+    ExtraHeaders::GetInstance().ForEach(
+        firmware_url, [&http](const std::string& name, const std::string& value) {
+            http->SetHeader(name, value);
+        });
     if (auto opened = http->Open("GET", firmware_url); !opened) {
         ESP_LOGE(TAG, "Failed to open HTTP connection: %s", opened.error().ToString().c_str());
         return false;

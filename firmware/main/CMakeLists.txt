@@ -33,6 +33,7 @@ set(SOURCES "audio/audio_codec.cc"
             "protocols/text_glyph_payload.cc"
             "protocols/mqtt_protocol.cc"
             "protocols/websocket_protocol.cc"
+            "protocols/extra_headers.cc"
             "mcp_server.cc"
             "system_info.cc"
             "application.cc"
@@ -573,6 +574,11 @@ elseif(CONFIG_BOARD_TYPE_ESP32_S31_KORVO_1)
     set(DEFAULT_EMOJI_COLLECTION noto-color-emoji_64)
 elseif(CONFIG_BOARD_TYPE_BREAD_COMPACT_WIFI_LCD)
     set(BOARD_DIR "bread-compact-wifi-lcd")
+    set(BUILTIN_TEXT_FONT font_noto_sans_basic_16_4)
+    set(BUILTIN_ICON_FONT font_material_symbols_16_4)
+    set(DEFAULT_EMOJI_COLLECTION noto-color-emoji_32)
+elseif(CONFIG_BOARD_TYPE_JARVIS_HELMET)
+    set(BOARD_DIR "jarvis-helmet")
     set(BUILTIN_TEXT_FONT font_noto_sans_basic_16_4)
     set(BUILTIN_ICON_FONT font_material_symbols_16_4)
     set(DEFAULT_EMOJI_COLLECTION noto-color-emoji_32)

@@ -1,6 +1,7 @@
 #include "websocket_protocol.h"
 #include "application.h"
 #include "board.h"
+#include "extra_headers.h"
 #include "settings.h"
 #include "system_info.h"
 
@@ -104,6 +105,15 @@ bool WebsocketProtocol::OpenAudioChannel() {
     websocket_->SetHeader("Protocol-Version", std::to_string(version_).c_str());
     websocket_->SetHeader("Device-Id", SystemInfo::GetMacAddress().c_str());
     websocket_->SetHeader("Client-Id", Board::GetInstance().GetUuid().c_str());
+#if CONFIG_BOARD_TYPE_JARVIS_HELMET
+    // Cloudflare's Browser Integrity Check challenges requests without a User-Agent.
+    websocket_->SetHeader("User-Agent", SystemInfo::GetUserAgent().c_str());
+#endif
+    // Host-scoped extra headers registered by the board (e.g. Cloudflare Access).
+    ExtraHeaders::GetInstance().ForEach(url, [this](const std::string& name,
+                                                    const std::string& value) {
+        websocket_->SetHeader(name.c_str(), value.c_str());
+    });
 
     websocket_->OnData([this](const char* data, size_t len, bool binary) {
         if (binary) {
@@ -188,6 +198,15 @@ bool WebsocketProtocol::OpenAudioChannel() {
         SetError(Lang::Strings::SERVER_TIMEOUT);
         return false;
     }
+
+#if CONFIG_BOARD_TYPE_JARVIS_HELMET
+    // Report the successful connection like MqttProtocol does. Application only clears
+    // its last server error (DismissAlert) from OnConnected, so without this a single
+    // failed attempt kept the error state until reboot. Runs on the main task.
+    if (on_connected_ != nullptr) {
+        on_connected_();
+    }
+#endif
 
     if (on_audio_channel_opened_ != nullptr) {
         on_audio_channel_opened_();

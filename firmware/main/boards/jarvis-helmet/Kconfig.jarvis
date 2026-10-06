@@ -1,0 +1,103 @@
+# Jarvis Helmet board options (sourced from main/Kconfig.projbuild).
+# Visible only when the "Jarvis Helmet" target board is selected.
+
+menu "Jarvis Helmet"
+    depends on BOARD_TYPE_JARVIS_HELMET
+
+    config JARVIS_HUD
+        bool "Iron Man HUD display"
+        default y
+        help
+            Draw the Jarvis HUD (arc reactor, status bar, Vietnamese font) on top of the
+            stock LCD UI. Disable to fall back to the stock SpiLcdDisplay for debugging.
+
+    config JARVIS_PTT_HOLD_MS
+        int "PTT hold threshold (ms)"
+        range 200 1500
+        default 400
+        help
+            Presses on the PTT button shorter than this are clicks (start/stop a
+            conversation, interrupt Jarvis); longer presses are push-to-talk.
+
+    config JARVIS_EYES_ON_AT_BOOT
+        bool "Turn the eye lights on at boot"
+        default n
+
+    config JARVIS_EYES_FOLLOW_STATE
+        bool "Eye lights follow the assistant state"
+        default n
+        help
+            Full brightness while listening, pulse with the voice while speaking and the
+            default brightness while idle (only while the eyes are on).
+
+    config JARVIS_WIFI_FAST_RESCAN
+        bool "Fast Wi-Fi rescan"
+        default y
+        help
+            Rescan for saved networks every 3 s (backing off to 30 s) instead of the
+            esp-wifi-connect default of 10 s to 300 s, so the helmet moves to the phone
+            hotspot quickly when the home network disappears.
+
+    config JARVIS_WAKE_WORD_BARGE_IN
+        bool "Allow interrupting speech with the wake word"
+        default n
+        help
+            Upstream keeps wake word detection running while the device is speaking.
+            Without echo cancellation the helmet's own voice can trigger it, so this is
+            disabled by default (use the PTT button to interrupt).
+
+    config JARVIS_LOCAL_MCP_WS
+        bool "Local MCP WebSocket server (servo calibration)"
+        default y
+        select HTTPD_WS_SUPPORT
+        select HTTPD_WS_PRE_HANDSHAKE_CB_SUPPORT
+        help
+            Serve the device MCP tools, including user-only tools such as
+            self.servo.calibrate, on ws://<helmet-ip>:<port>/ws once Wi-Fi is connected.
+            Used by tools/servo_calibrate.py. tools/call is limited to the helmet
+            hardware and status tools (no reboot or firmware upgrade). Provision an
+            access token (tools/provision_secrets.py --mcp-token, NVS jsecrets key
+            mcp_token) so that only clients sending ws://<ip>:<port>/ws?token=<value>
+            get in; without a token anyone on the same network can move the mask and
+            change the servo calibration. Disable when not needed.
+
+    config JARVIS_LOCAL_MCP_WS_PORT
+        int "Local MCP WebSocket port"
+        range 1 65535
+        default 8080
+
+    config JARVIS_CF_ACCESS_ID
+        string "Cloudflare Access client ID (fallback)"
+        default ""
+        help
+            Used only when NVS partition "jsecrets" has no cf_id. Prefer
+            tools/provision_secrets.py: scripts/build.py regenerates sdkconfig on
+            every build, and values set here end up in the firmware image.
+
+    config JARVIS_CF_ACCESS_SECRET
+        string "Cloudflare Access client secret (fallback)"
+        default ""
+        help
+            Used only when NVS partition "jsecrets" has no cf_secret. Never commit a
+            real value.
+
+    config JARVIS_MICRO_WAKE_WORD
+        bool "On-device microWakeWord detector (experimental)"
+        default n
+        help
+            Run a microWakeWord model (for example "Quan gia") next to the ESP-SR
+            wake word. Without a trained model compiled in, the detector disables itself.
+
+    config JARVIS_MWW_CUTOFF_PCT
+        int "microWakeWord probability cutoff (%)"
+        depends on JARVIS_MICRO_WAKE_WORD
+        range 50 100
+        default 97
+
+    config JARVIS_MWW_SLIDING_WINDOW
+        int "microWakeWord sliding window (frames)"
+        depends on JARVIS_MICRO_WAKE_WORD
+        range 1 20
+        default 5
+
+endmenu

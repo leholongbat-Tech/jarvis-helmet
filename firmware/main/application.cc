@@ -488,6 +488,7 @@ void Application::CheckNewVersion() {
         }
         retry_count = 0;
         retry_delay = 10;  // Reset retry delay
+        ota_check_succeeded_.store(true, std::memory_order_relaxed);  // [jarvis]
 
         if (ota_->HasNewVersion()) {
             if (UpgradeFirmware(ota_->GetFirmwareUrl(), ota_->GetFirmwareVersion())) {
@@ -1043,8 +1044,14 @@ void Application::HandleStateChangedEvent() {
 
             if (listening_mode_ != kListeningModeRealtime) {
                 audio_service_.EnableVoiceProcessing(false);
+#if defined(CONFIG_BOARD_TYPE_JARVIS_HELMET) && !defined(CONFIG_JARVIS_WAKE_WORD_BARGE_IN)
+                // [jarvis] Simplex mic without AEC: the helmet's own TTS could trigger the
+                // wake word, so keep detection off while speaking (PTT still interrupts).
+                audio_service_.EnableWakeWordDetection(false);
+#else
                 // Only AFE wake word can be detected in speaking mode
                 audio_service_.EnableWakeWordDetection(audio_service_.IsAfeWakeWord());
+#endif
             }
             audio_service_.ResetDecoder();
             break;

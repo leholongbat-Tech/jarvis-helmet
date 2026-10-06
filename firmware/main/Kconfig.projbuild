@@ -254,6 +254,9 @@ choice BOARD_TYPE
     config BOARD_TYPE_HU_087
         bool "HU-087"
         depends on IDF_TARGET_ESP32S3
+    config BOARD_TYPE_JARVIS_HELMET
+        bool "Jarvis Helmet"
+        depends on IDF_TARGET_ESP32S3
     config BOARD_TYPE_JIUCHUAN
         bool "Jiuchuan ESP32-S3 (九川智能)"
         depends on IDF_TARGET_ESP32S3
@@ -735,7 +738,7 @@ endchoice
 
 
 choice DISPLAY_LCD_TYPE
-    depends on BOARD_TYPE_BREAD_COMPACT_WIFI_LCD || BOARD_TYPE_BREAD_COMPACT_ESP32_LCD || BOARD_TYPE_WDMOMO_CGC || BOARD_TYPE_BREAD_COMPACT_WIFI_CAM || (BOARD_TYPE_WK_ESP32S3_DEV && WK_ESP32S3_DEV_DISPLAY_LCD)
+    depends on BOARD_TYPE_BREAD_COMPACT_WIFI_LCD || BOARD_TYPE_BREAD_COMPACT_ESP32_LCD || BOARD_TYPE_WDMOMO_CGC || BOARD_TYPE_BREAD_COMPACT_WIFI_CAM || (BOARD_TYPE_WK_ESP32S3_DEV && WK_ESP32S3_DEV_DISPLAY_LCD) || BOARD_TYPE_JARVIS_HELMET
     prompt "LCD Type"
     default LCD_ST7789_240X320
     help
@@ -1133,5 +1136,8 @@ menu "TAIJIPAI_S3_CONFIG"
     help
         启动双声道
 endmenu
+
+# [jarvis-helmet] board options, visible only for BOARD_TYPE_JARVIS_HELMET
+rsource "boards/jarvis-helmet/Kconfig.jarvis"
 
 endmenu
