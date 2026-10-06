@@ -1548,6 +1548,7 @@ class Turn:
         self.wav_duration_ms: Optional[int] = None
         self.abort_t: Optional[float] = None
         self.wake_echo: Optional[dict] = None  # what the server sent for the wake word alone
+        self.wake_sent_t: Optional[float] = None
         self.errors: list = []
         self.warnings: list = []
         self.completed = False
@@ -1567,6 +1568,24 @@ class Turn:
 
     def first(self, items: list) -> Optional[float]:
         return next((x[0] for x in items if self.after_eos(x[0])), None)
+
+    def measured_wake_echo(self) -> Optional[dict]:
+        """What the server sent for the wake word alone: recorded before the command in text mode;
+        in audio mode everything that arrived between the wake word and the end of the command's
+        speech (the command itself cannot be answered before its speech ends)."""
+        if self.wake_echo is not None:
+            return self.wake_echo
+        if self.wake_sent_t is None or self.eos is None:
+            return None
+
+        def early(t: float) -> bool:
+            return self.wake_sent_t <= t < self.eos
+
+        return {"stt": [x for t, x in self.stt if early(t)],
+                "sentences": [x for t, x in self.sentences if early(t)],
+                "tts_start": sum(1 for t, *_ in self.tts_start if early(t)),
+                "audio_frames": sum(1 for t, *_ in self.frames if early(t)),
+                "emotions": []}  # emotions carry no timestamp
 
     def active_calls(self) -> list:
         """Device calls that move something (not the connect-time sync or a status read)."""
@@ -1624,7 +1643,7 @@ class Turn:
             "reply_wav": self.reply_wav,
             "mcp_calls": [{k: v for k, v in c.items() if not k.startswith("_")}
                           for c in self.mcp_calls],
-            "wake_echo": self.wake_echo,
+            "wake_echo": self.measured_wake_echo(),
             "actions": self.actions(),
             "metrics": self.metrics(),
             "completed": self.completed,
@@ -1996,6 +2015,8 @@ class DeviceSession:
         # wake word is handled as a question instead (stt + LLM reply).
         turn = self.turn
         await self.send_text(msg_listen_detect(self.session_id, word))
+        if turn is not None:
+            turn.wake_sent_t = time.perf_counter()
         self.log(f"wake word {word!r}")
         await self.listen_start(turn.inp.mode if turn else "auto")
         if wait_ack and turn is not None:
@@ -2238,12 +2259,12 @@ def run_check(name: str, turns: list, ctx: dict, soft: bool = False) -> CheckRes
         return CheckResult(name, not bad, "every turn produced a device call or audio"
                            if not bad else f"silent turns {bad[:10]}", soft)
     if name == "wake_word_silent":
-        measured = [t for t in turns if t.wake_echo is not None]
-        if not measured:
-            return CheckResult(name, True, "not measured (audio input streams right after the wake word)",
-                               soft=True)
-        bad = {t.index: t.wake_echo for t in measured
-               if any(t.wake_echo[k] for k in ("stt", "sentences", "tts_start", "audio_frames", "emotions"))}
+        echoes = {t.index: t.measured_wake_echo() for t in turns}
+        echoes = {i: e for i, e in echoes.items() if e is not None}
+        if not echoes:
+            return CheckResult(name, False, "not measured: no turn started with a wake word", soft)
+        bad = {i: e for i, e in echoes.items()
+               if any(e[k] for k in ("stt", "sentences", "tts_start", "audio_frames", "emotions"))}
         return CheckResult(name, not bad, "the server answered nothing to the wake word alone" if not bad
                            else f"wake word handled as a question (not in wakeup_words?): {bad}", soft)
     if name == "glyphs":

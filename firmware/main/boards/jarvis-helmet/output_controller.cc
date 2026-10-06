@@ -887,7 +887,8 @@ void OutputController::RegisterMcpTools() {
     mcp.AddTool("self.eyes.effect",
                 "Hiệu ứng đèn mắt. / Eye light effect: breathe (repeats until another command, "
                 "duration_ms = cycle), blink, flicker, power_up (light up), fade_out (dim to off). "
-                "duration_ms 0 = default (breathe 2500, flicker 600, others 1000).",
+                "duration_ms 0 = default (breathe 2500, flicker 600, others 1000), otherwise "
+                "100-10000.",
                 PropertyList(
                     {Property("name", kPropertyTypeString).SetMaxLength(16),
                      Property("duration_ms", kPropertyTypeInteger, 0, 0,

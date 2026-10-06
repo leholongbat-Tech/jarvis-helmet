@@ -300,7 +300,7 @@ for v in redis_data vieneu_voices asr_dataset xiaozhi_data; do
     "umask 077 && tar czf /b/$f -C /v --exclude='.config.yaml*' . && chown $(id -u):$(id -g) /b/$f"
 done
 cp server/.env "backup/env-$(date +%F)" && chmod 600 backup/env-*
-tar tzf backup/xiaozhi_data-*.tgz | grep -c config.yaml   # phải in 0
+tar tzf "backup/xiaozhi_data-$(date +%F).tgz" | grep -c config.yaml   # phải in 0 (một file mỗi lần)
 # Khôi phục một volume (dừng service dùng nó trước):
 docker run --rm -v jarvis_redis_data:/v -v "$PWD/backup:/b" alpine:3 sh -c 'cd /v && tar xzf /b/redis_data-<ngày>.tgz'
 ```

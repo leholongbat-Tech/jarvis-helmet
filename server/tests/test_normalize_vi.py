@@ -185,6 +185,44 @@ def test_designator_letters_are_not_units(text, expected):
     assert normalize_vi(text) == expected
 
 
+@pytest.mark.parametrize("text,expected", [
+    # A 4-digit ascending pair with a dash is a range, not a 1800/1900 hotline.
+    ("Giai đoạn 1900-1945 có nhiều biến động.",
+     "Giai đoạn một nghìn chín trăm đến một nghìn chín trăm bốn mươi lăm có nhiều biến động."),
+    ("Độ cao 1800-2000 m", "Độ cao một nghìn tám trăm đến hai nghìn mét"),
+    ("Hotline 1800-1090.", "Hotline một tám không không, một không chín không."),
+    ("Hotline 1900-6060.", "Hotline một chín không không, sáu không sáu không."),
+    # "thời điểm"/"địa điểm" and a comma are not score cues; "sao?" asks, it does not count stars.
+    ("Tính đến thời điểm 15/6, có 100 người.", "Tính đến thời điểm ngày mười lăm tháng sáu, có một trăm người."),
+    ("Tại địa điểm 25/12", "Tại địa điểm ngày hai mươi lăm tháng mười hai"),
+    ("Từ 15/6, điểm thi sẽ được công bố.", "Từ ngày mười lăm tháng sáu, điểm thi sẽ được công bố."),
+    ("Ngày mai là 2/9 sao?", "Ngày mai là ngày hai tháng chín sao?"),
+    ("Khách sạn đạt 4/5 sao.", "Khách sạn đạt bốn trên năm sao."),
+    ("Điểm: 8/10", "Điểm: tám trên mười"),
+    # After a quantity verb or before a quantity noun a common fraction stays a fraction.
+    ("Nước chiếm tới 3/4 bề mặt Trái Đất.", "Nước chiếm tới ba phần bốn bề mặt Trái Đất."),
+    ("Tỉ lệ tăng từ 1/3 lên 1/2", "Tỉ lệ tăng từ một phần ba lên một phần hai"),
+    ("Sau 1/4 thế kỷ", "Sau một phần bốn thế kỷ"),
+    ("Từ 1/4 giá xăng tăng.", "Từ ngày một tháng tư giá xăng tăng."),
+    # Only "A" and "g" become labels after a designator; real units stay units.
+    ("Quạt bàn 40W tiêu thụ ít điện.", "Quạt bàn bốn mươi oát tiêu thụ ít điện."),
+    ("Hãy cắm vào cổng 5V", "Hãy cắm vào cổng năm vôn"),
+    ("Giá phòng 500.000đ", "Giá phòng năm trăm nghìn đồng"),
+    ("hẻm 4m", "hẻm bốn mét"),
+    # Quarters written "quý N/YYYY"; implausible years are ratios.
+    ("Doanh thu quý 1/2025 tăng 20%.", "Doanh thu quý một năm hai nghìn không trăm hai mươi lăm tăng hai mươi phần trăm."),
+    ("Quý 2/2026", "Quý hai năm hai nghìn không trăm hai mươi sáu"),
+    ("Tỉ lệ 1/1000", "Tỉ lệ một trên một nghìn"),
+])
+def test_review_round_regressions(text, expected):
+    assert normalize_vi(text) == expected
+
+
+def test_english_ranges_and_negation_keep_units():
+    assert normalize_en("The war lasted from 1900-1945.") == "The war lasted from nineteen hundred to nineteen forty five."
+    assert normalize_en("There is no 5V on that pin.") == "There is no five volts on that pin."
+
+
 def test_english_designator_letters_are_not_units():
     assert normalize_en("Room 12A is ready.") == "Room twelve A is ready."
     assert normalize_en("The current is 2A.") == "The current is two amps."

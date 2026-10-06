@@ -716,11 +716,26 @@ def describe_expected(case: Dict[str, Any]) -> str:
     return " -> ".join(parts)
 
 
+def device_rule_error(call: Dict[str, Any]) -> Optional[str]:
+    """Checks the firmware callbacks make beyond the advertised schema (docs/interfaces.md section 2):
+    an MCP property has a single min/max range and counts bytes, not characters."""
+    name, args = call["name"], call["args"]
+    if name == "self_eyes_effect":
+        ms = args.get("duration_ms")
+        if isinstance(ms, int) and not isinstance(ms, bool) and 0 < ms < 100:
+            return f"{name}.duration_ms: {ms} is neither 0 (effect default) nor 100..10000"
+    if name == "self_display_show_info":
+        for key, limit in (("title", 24), ("text", 200)):
+            value = args.get(key)
+            if isinstance(value, str) and len(value) > limit:
+                return f"{name}.{key}: longer than {limit} characters"
+    return None
+
+
 def schema_errors(tools: Sequence[Dict[str, Any]], calls: Sequence[Dict[str, Any]]) -> List[str]:
-    """Arguments that break the offered tool's JSON schema (e.g. speed 5 < minimum 10): the device
-    or plugin would reject the call. Empty when jsonschema is not installed."""
-    if jsonschema is None:
-        return []
+    """Arguments the device or plugin would reject: they break the offered tool's JSON schema (e.g.
+    speed 5 < minimum 10; skipped when jsonschema is not installed) or a rule of the firmware
+    callback (device_rule_error)."""
     schemas = {t["function"]["name"]: t["function"].get("parameters") or {} for t in tools}
     errors = []
     for call in calls:
@@ -731,10 +746,17 @@ def schema_errors(tools: Sequence[Dict[str, Any]], calls: Sequence[Dict[str, Any
         if not isinstance(call["args"], dict):
             errors.append(f"{call['name']}: arguments are not a JSON object")
             continue
-        found = sorted(jsonschema.Draft202012Validator(schema).iter_errors(call["args"]), key=lambda e: list(e.path))
+        found = []
+        if jsonschema is not None:
+            found = sorted(jsonschema.Draft202012Validator(schema).iter_errors(call["args"]),
+                           key=lambda e: list(e.path))
         if found:
             where = ".".join(str(p) for p in found[0].path) or "(root)"
             errors.append(f"{call['name']}.{where}: {found[0].message}")
+            continue
+        rule = device_rule_error(call)
+        if rule:
+            errors.append(rule)
     return errors
 
 

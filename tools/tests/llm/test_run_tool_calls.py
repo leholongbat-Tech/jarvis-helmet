@@ -177,6 +177,20 @@ def test_schema_errors(ctx):
     assert "not a JSON object" in rtc.schema_errors(ctx.tools, [bad_json])[0]
 
 
+def test_schema_errors_apply_firmware_callback_rules(ctx):
+    """The advertised schema allows duration_ms 0..10000 and 96-byte titles; the device rejects
+    1..99 ms (D26) and titles over 24 characters, so such calls must not score as correct."""
+    eyes = lambda ms: [call("self_eyes_effect", {"name": "blink", "duration_ms": ms})]  # noqa: E731
+    assert rtc.schema_errors(ctx.tools, eyes(0)) == []
+    assert rtc.schema_errors(ctx.tools, eyes(150)) == []
+    assert "neither 0" in rtc.schema_errors(ctx.tools, eyes(50))[0]
+    assert "neither 0" in rtc.schema_errors(ctx.tools, eyes(99))[0]
+    long_title = [call("self_display_show_info", {"title": "Đ" * 25, "text": "x"})]
+    assert "longer than 24" in rtc.schema_errors(ctx.tools, long_title)[0]
+    ok_title = [call("self_display_show_info", {"title": "Đ" * 24, "text": "x"})]
+    assert rtc.schema_errors(ctx.tools, ok_title) == []
+
+
 def test_llm_params_follow_the_xiaozhi_template(ctx):
     assert ctx.params == {"max_tokens": 300, "temperature": 0.6}
 

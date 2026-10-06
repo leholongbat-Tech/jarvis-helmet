@@ -201,8 +201,9 @@ trong phân vùng `jsecrets`). Log serial khi cần: `idf.py -p COM5 monitor | t
 
 - **Kỳ vọng (IT1)**: wake word thứ hai hoạt động, mặt nạ đóng.
 - **Tự động**: `$SIM --ota-url $OTA --scenario E12` – giả lập gửi chữ wake word "Quản gia" rồi câu lệnh. Bắt buộc:
-  `wake_word_silent` (trong 800 ms sau wake word, server không gửi `stt`, câu đáp, âm thanh hay emotion nào: nó nhận "Quản gia"
-  là wake word trong `wakeup_words`, chứ không coi là câu hỏi) và `actions:mask_close`.
+  `wake_word_silent` (sau wake word – 800 ms khi chèn chữ, hoặc tới lúc nói xong câu lệnh khi phát WAV – server không gửi
+  `stt`, câu đáp, âm thanh hay emotion nào: nó nhận "Quản gia" là wake word trong `wakeup_words`, chứ không coi là câu hỏi) và
+  `actions:mask_close`.
 - **Mũ thật**: cần biến thể firmware nhận được "Quản gia": phương án A (`wn9_jarvis_tts`) chỉ có "Jarvis"; B1
   (`jarvis-helmet-multinet`, "jia wei si" + "guan jia") hoặc B2 (`jarvis-helmet-mww`, model microWakeWord đã train) – theo quyết định
   trong `docs/wakeword-report.md`. Mặt nạ mở sẵn; nói "Quản gia", rồi "close the mask" (hoặc liền một hơi).

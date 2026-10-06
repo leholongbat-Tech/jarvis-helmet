@@ -440,22 +440,32 @@ _COMMON_FRACTIONS = {(1, 2), (1, 3), (2, 3), (1, 4), (3, 4)}
 # "x/y" next to these words is a score ("điểm 9/10", "4/5 sao"), after these a date ("từ 1/4").
 _SCORE_NEXT = frozenset({"điểm", "sao"})
 _SCORE_PREV = frozenset({"điểm", "chấm", "được", "đạt"})
+# "thời điểm 15/6", "địa điểm 25/12", "quan điểm": not a score.
+_NOT_SCORE_BEFORE_DIEM = frozenset({"thời", "địa", "quan", "đặc", "ưu", "nhược", "trọng"})
 _DATE_CUES = frozenset({"từ", "đến", "tới", "hạn", "trước", "sau", "vào", "hôm"})
+# ...but a common fraction stays a fraction after a quantity verb ("chiếm tới 3/4", "tăng từ 1/3")
+# or before a quantity noun ("sau 1/4 thế kỷ", "trước 2/3 chặng đường").
+_QUANTITY_VERBS = frozenset({"chiếm", "tăng", "giảm", "lên", "xuống", "còn", "gấp", "khoảng", "gần", "hơn"})
+_FRACTION_NOUNS = frozenset({"thế", "chặng", "quãng", "đoạn", "diện", "bề", "dân", "lượng", "phần",
+                             "tổng", "khối", "dung"})
 # NUM (op NUM)+ = NUM: a dash inside such a chain is a minus sign, not a range.
 _ARITH_CHAIN_RE = re.compile(
     r"\d+(?:[.,]\d+)*(?:[ \t]*[-−–+×x*/÷][ \t]*\d+(?:[.,]\d+)*)+[ \t]*=[ \t]*[-−–]?\d+(?:[.,]\d+)*")
 _ARITH_MINUS_RE = re.compile(r"(?<=\d)[ \t]*[-−–][ \t]*(?=\d)")
-_WORD_BEFORE_RE = re.compile(r"([^\W\d_]+)[^\w]*$")
-_WORD_AFTER_RE = re.compile(r"^[^\w]*([^\W\d_]+)")
-# "phòng 12A", "lớp 10A", "quốc lộ 1A", "mạng 4g": after these words a single-letter "unit" is a
-# label, not amperes/volts/grams.
+# Neighbour words: only spaces (and a colon before) may separate them from the number, so a comma
+# or a sentence end is never crossed ("Từ 15/6, điểm thi …").
+_WORD_BEFORE_RE = re.compile(r"([^\W\d_]+)[ \t]*:?[ \t]*$")
+_WORD_AFTER_RE = re.compile(r"^[ \t]*([^\W\d_]+)")
+# "phòng 12A", "lớp 10A", "quốc lộ 1A", "mạng 4g": after these words an "A" or "g" is a label, not
+# amperes/grams. Other unit letters (V, W, m, đ…) stay units ("quạt bàn 40W", "giá phòng 500.000đ").
+_LABEL_LETTERS = frozenset({"A", "g"})
 _VI_DESIGNATORS = frozenset({
     "phòng", "tầng", "lớp", "căn", "nhà", "số", "khu", "dãy", "lô", "block", "lộ", "mạng", "tòa",
     "toà", "cổng", "bàn", "ghế", "hẻm", "ngõ", "ngách", "kiệt", "sảnh", "tuyến", "mã", "cửa", "xe",
 })
 _EN_DESIGNATORS = frozenset({
     "room", "floor", "class", "block", "gate", "flat", "apartment", "unit", "suite", "seat",
-    "platform", "route", "highway", "level", "bay", "building", "number", "no",
+    "platform", "route", "highway", "level", "bay", "building", "number",
 })
 # Phone numbers written in groups: 0912 345 678, 0912.345.678, 028 3822 1234, 1900 6060.
 _PHONE_RE = re.compile(r"(?<![\d.,])(?:0\d{2,3}(?:[ .-]\d{2,4}){1,3}|1[89]00(?:[ .-]\d{3,4}){1,2})(?![\d])")
@@ -615,8 +625,7 @@ class Normalizer:
         text = re.sub(r"(?<![\w.,])([01]?\d|2[0-4])h([0-5]\d)?(?![\w])", self._vi_time_h, text)
         text = re.sub(r"(?:\b(ngày|Ngày)\s+)?(?<![\d/.,])(\d{1,2})/(\d{1,2})(?![\d/]|[.,]\d)",
                       self._vi_dm_date, text)
-        text = re.sub(r"\b[Qq]([1-4])\s?/\s?(\d{4})(?![\d/])",
-                      lambda m: f"quý {self._int(int(m.group(1)))} năm {self._int(int(m.group(2)))}", text)
+        text = re.sub(r"\b(?:([Qq]uý)\s+|[Qq])([1-4])\s?/\s?(\d{4})(?![\d/])", self._vi_quarter, text)
         text = re.sub(r"(?:\b([Tt]háng)\s+)?(?<![\w/.,])(\d{1,2})/(\d{4})(?![\d/])", self._vi_month_year, text)
         text = re.sub(r"\$\s?(" + _NUM + r")", lambda m: f"{self._vi_number(m.group(1))} đô la", text)
         text = re.sub(r"(?<![\w.,)])[-−–](?=\d)", "âm ", text)
@@ -680,6 +689,11 @@ class Normalizer:
             groups = re.split(r"[ .-]", m.group(0))
             if not 8 <= sum(len(g) for g in groups) <= 11:
                 return m.group(0)
+            # "1900-1945", "1800-2000 m", "0900-1700": an ascending pair of 4-digit numbers joined by a
+            # dash is a range (years, heights, hours), not a hotline like "1800-1090" or "1900-6060".
+            if (len(groups) == 2 and m.group(0)[4] == "-" and all(len(g) == 4 for g in groups)
+                    and int(groups[0]) < int(groups[1]) <= 2400):
+                return m.group(0)
             return ", ".join(digits(g) for g in groups)
 
         return _PHONE_RE.sub(repl, text)
@@ -696,6 +710,15 @@ class Normalizer:
         before = _WORD_BEFORE_RE.search(m.string[:m.start()])
         after = _WORD_AFTER_RE.search(m.string[m.end():])
         return (before.group(1).lower() if before else "", after.group(1).lower() if after else "")
+
+    @staticmethod
+    def _second_word_before(m: "re.Match[str]") -> str:
+        """Lower-cased word before the word just before a match ("tăng" in "tăng từ 1/3")."""
+        before = _WORD_BEFORE_RE.search(m.string[:m.start()])
+        if not before:
+            return ""
+        second = _WORD_BEFORE_RE.search(m.string[:before.start()])
+        return second.group(1).lower() if second else ""
 
     @staticmethod
     def _ranges(text: str, word: str) -> str:
@@ -772,7 +795,7 @@ class Normalizer:
 
     def _vi_unit(self, m: "re.Match[str]") -> str:
         number, unit = m.group(1), m.group(2)
-        if len(unit) == 1 and unit.isalpha() and self._neighbour_words(m)[0] in _VI_DESIGNATORS:
+        if unit in _LABEL_LETTERS and self._neighbour_words(m)[0] in _VI_DESIGNATORS:
             return f"{self._vi_number(number)} {unit.upper()}"  # "phòng 12A" -> "phòng mười hai A"
         return f"{self._vi_number(number)} {VI_UNITS[unit]}"
 
@@ -805,19 +828,29 @@ class Normalizer:
     def _vi_dm_date(self, m: "re.Match[str]") -> str:
         cue, day, month = m.group(1), int(m.group(2)), int(m.group(3))
         prev, nxt = self._neighbour_words(m)
-        if not cue and (nxt in _SCORE_NEXT or prev in _SCORE_PREV):
+        if prev == "điểm" and self._second_word_before(m) in _NOT_SCORE_BEFORE_DIEM:
+            prev = ""  # "thời điểm 15/6" is a date
+        if nxt == "sao" and re.match(r"[ \t]*sao[ \t]*\?", m.string[m.end():], re.I):
+            nxt = ""  # "Ngày mai là 2/9 sao?" asks a question, "4/5 sao" counts stars
+        if not cue and day <= month and (nxt in _SCORE_NEXT or prev in _SCORE_PREV):
             return f"{self._int(day)} trên {self._int(month)}"  # "Điểm 9/10", "4/5 sao"
-        if not cue and (day, month) in _COMMON_FRACTIONS and prev not in _DATE_CUES:
-            return f"{self._int(day)} phần {self._int(month)}"
+        if not cue and (day, month) in _COMMON_FRACTIONS:
+            quantity = self._second_word_before(m) in _QUANTITY_VERBS or nxt in _FRACTION_NOUNS
+            if prev not in _DATE_CUES or quantity:  # "từ 1/4" is a date, "tăng từ 1/3" a fraction
+                return f"{self._int(day)} phần {self._int(month)}"
         if 1 <= month <= 12 and 1 <= day <= 31:
             return self._vi_date_words(day, month, None, cue)
         return m.group(0)
 
     def _vi_month_year(self, m: "re.Match[str]") -> str:
         cue, month, year = m.group(1), int(m.group(2)), int(m.group(3))
-        if 1 <= month <= 12:
+        if 1 <= month <= 12 and 1900 <= year <= 2100:  # "tỉ lệ 1/1000" is a ratio, not a date
             return f"{cue or 'tháng'} {self._vi_month(month)} năm {self._int(year)}"
         return m.group(0)
+
+    def _vi_quarter(self, m: "re.Match[str]") -> str:
+        word = "Quý" if (m.group(1) or "").startswith("Q") else "quý"
+        return f"{word} {self._int(int(m.group(2)))} năm {self._int(int(m.group(3)))}"
 
     def _vi_time(self, m: "re.Match[str]") -> str:
         hour, minute, second = int(m.group(1)), int(m.group(2)), m.group(3)
@@ -862,7 +895,7 @@ class Normalizer:
 
     def _en_unit(self, m: "re.Match[str]") -> str:
         number = m.group(1)
-        if len(m.group(2)) == 1 and m.group(2).isalpha() and self._neighbour_words(m)[0] in _EN_DESIGNATORS:
+        if m.group(2) in _LABEL_LETTERS and self._neighbour_words(m)[0] in _EN_DESIGNATORS:
             return f"{self._en_number(number)} {m.group(2).upper()}"  # "Room 12A" -> "Room twelve A"
         singular, plural = EN_UNITS[m.group(2)]
         return f"{self._en_number(number)} {singular if number == '1' else plural}"

@@ -959,6 +959,42 @@ def test_cli_e12_wake_word_must_get_no_answer(capsys):
     assert turn_wake_echo(summary)["stt"] == ["Quản gia"]
 
 
+def test_wake_echo_in_audio_mode_is_what_arrives_before_end_of_speech():
+    """Review finding: with audio input wake_word_silent must still measure (it used to pass)."""
+    wav = Path("E12.wav")
+    echoing = ds.Turn(1, ds.TurnInput(wav=wav, wake="Quản gia"))
+    echoing.wake_sent_t, echoing.eos = 10.0, 12.0
+    echoing.stt = [(10.2, "Quản gia"), (12.5, "close the mask")]
+    echoing.sentences = [(10.4, "Vâng?"), (13.0, "Đã đóng mặt nạ.")]
+    echoing.frames = [(10.5, 100, True), (13.1, 100, True)]
+    echo = echoing.measured_wake_echo()
+    assert echo["stt"] == ["Quản gia"] and echo["sentences"] == ["Vâng?"] and echo["audio_frames"] == 1
+    assert not ds.run_check("wake_word_silent", [echoing], {}).ok
+    quiet = ds.Turn(1, ds.TurnInput(wav=wav, wake="Quản gia"))
+    quiet.wake_sent_t, quiet.eos = 10.0, 12.0
+    quiet.stt = [(12.5, "close the mask")]
+    assert ds.run_check("wake_word_silent", [quiet], {}).ok
+    unmeasured = ds.run_check("wake_word_silent", [ds.Turn(1, ds.TurnInput(text="x"))], {})
+    assert not unmeasured.ok and "not measured" in unmeasured.detail
+
+
+@needs_audio
+@pytest.mark.parametrize("known", [True, False])
+def test_cli_audio_wake_echo_is_measured(capsys, tmp_path, known):
+    rate = 16000
+    tone = (0.3 * 32767 * np.sin(2 * np.pi * 300 * np.arange(int(0.6 * rate)) / rate))
+    pcm = np.concatenate([np.zeros(int(0.2 * rate)), tone, np.zeros(int(0.2 * rate))])
+    wav = tmp_path / "cmd.wav"
+    ds.write_wav(wav, pcm.astype(np.int16), rate)
+    words = ("Jarvis", "Quản gia") if known else ("Jarvis",)
+    with ScriptedServer(wake_words=words) as srv:
+        _, summary = run_cli(capsys, ["--ws-url", srv.ws_url, "--auth-key", srv.auth_key, "--wav", str(wav),
+                                      "--mode", "manual", "--wake", "Quản gia"])
+    echo = summary["turns"][0]["wake_echo"]
+    assert echo is not None
+    assert echo["stt"] == ([] if known else ["Quản gia"])
+
+
 def test_e4_latency_and_responses_ignore_passive_calls():
     """tests-tools-1: the connect-time self.sequence.save is not the quick-phrase command."""
     turn = ds.Turn(1, ds.TurnInput(text="mở mặt nạ"))
