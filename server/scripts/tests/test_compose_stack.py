@@ -166,9 +166,73 @@ def test_asr_mounts_are_owned_by_the_image_user(services):
     assert re.search(r"^USER asr$", dockerfile, re.M)
     created = re.search(r"mkdir -p ([^\\\n&]+)", dockerfile).group(1).split()
     for volume in services["asr"]["volumes"]:
+        if volume.startswith("./"):
+            continue  # read-only bind mounts (config) need no owner
         target = volume.split(":")[1]
         assert target in created, f"{target} is not created (owned by asr) in server/asr/Dockerfile"
     assert "HF_HOME" not in env_of(services["asr"]), "the image sets HF_HOME=/cache/hf"
+
+
+def test_asr_hallucination_list_is_a_live_directory_mount(services):
+    """audio-services-9: host edits apply without a rebuild (a single-file mount misses renames)."""
+    assert "./asr/config:/app/config:ro" in services["asr"]["volumes"]
+    assert (SERVER / "asr" / "config" / "hallucinations.txt").is_file()
+    config = (SERVER / "asr" / "jarvis_asr" / "config.py").read_text(encoding="utf-8")
+    assert 'APP_DIR / "config" / "hallucinations.txt"' in config
+    assert "COPY config ./config" in (SERVER / "asr" / "Dockerfile").read_text(encoding="utf-8")
+
+
+# security-config-5: each container shares a network only with the services it talks to.
+NETWORKS = {
+    "cloudflared": {"edge"},
+    "xiaozhi": {"edge", "app"},
+    "litellm": {"app", "llm"},
+    "asr": {"app", "asrnet"},
+    "tts-router": {"app", "tts"},
+    "redis": {"llm"},
+    "ollama": {"llm"},
+    "vieneu": {"tts"},
+    "kokoro": {"tts"},
+    "asr-qwen": {"asrnet"},
+}
+
+
+def _peers(name: str) -> set[str]:
+    return {other for other, nets in NETWORKS.items() if other != name and nets & NETWORKS[name]}
+
+
+def test_networks_isolate_backends(base, services):
+    assert set(base["networks"]) == {"edge", "app", "llm", "tts", "asrnet"}
+    assert set(services) == set(NETWORKS)
+    for name, service in services.items():
+        assert set(service.get("networks") or []) == NETWORKS[name], name
+    assert _peers("redis") <= {"litellm", "ollama"}
+    assert _peers("ollama") <= {"litellm", "redis"}
+    assert _peers("vieneu") <= {"tts-router", "kokoro"}
+    assert _peers("cloudflared") == {"xiaozhi"}
+    assert not {"redis", "ollama", "vieneu"} & _peers("xiaozhi")
+
+
+def test_every_internal_url_is_reachable(services):
+    """Each http://<service>:<port> a container is configured with points to a network peer."""
+    sources = {name: " ".join(str(v) for v in env_of(svc).values()) for name, svc in services.items()}
+    sources["xiaozhi"] += (SERVER / "xiaozhi" / "data" / ".config.yaml.tmpl").read_text(encoding="utf-8")
+    sources["litellm"] += (SERVER / "litellm" / "config.yaml").read_text(encoding="utf-8")
+    sources["cloudflared"] += (SERVER / "cloudflared" / "ingress.json").read_text(encoding="utf-8")
+    seen = set()
+    for name, text in sources.items():
+        for host in re.findall(r"https?://([a-z][a-z0-9-]*):\d+", text):
+            if host in services:
+                assert host in _peers(name), f"{name} calls {host} but shares no network with it"
+                seen.add((name, host))
+    assert {("xiaozhi", "litellm"), ("xiaozhi", "asr"), ("xiaozhi", "tts-router"), ("litellm", "ollama"),
+            ("tts-router", "vieneu"), ("tts-router", "kokoro"), ("asr", "asr-qwen"),
+            ("cloudflared", "xiaozhi")} <= seen
+
+
+def test_no_new_privileges_where_it_is_cheap(services):
+    for name in ("xiaozhi", "litellm", "tts-router"):
+        assert "no-new-privileges:true" in (services[name].get("security_opt") or []), name
 
 
 def test_vieneu_mounts_are_prepared_by_the_image(services):

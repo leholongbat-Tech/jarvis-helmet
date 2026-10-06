@@ -228,7 +228,7 @@ Các cấu hình SV2 (`configs.example.yaml`):
 
 Ba cấu hình đầu cần service chính chạy `ASR_ENGINE=faster_whisper`, `ASR_MODEL=large-v3` (mặc định trong `server/.env.example`).
 Engine và model không đổi được theo request, nên Qwen3-ASR và PhoWhisper chạy bằng **container `jarvis/asr:dev` riêng** trên mạng của
-compose (`jarvis_default`), publish trên `127.0.0.1` các cổng khớp với `configs.example.yaml`:
+compose (`jarvis_asrnet`, mạng của `asr` và `asr-qwen`), publish trên `127.0.0.1` các cổng khớp với `configs.example.yaml`:
 
 ```bash
 cd server
@@ -236,12 +236,12 @@ docker compose -f docker-compose.yml -f docker-compose.debug.yml up -d      # as
 
 # Qwen3-ASR-1.7B: sidecar vLLM (~6,4 GB VRAM, --gpu-memory-utilization 0.2) + container proxy (không chạy model, không cần GPU)
 docker compose --profile asr-qwen up -d asr-qwen
-docker run -d --name jarvis-asr-ab-qwen --network jarvis_default -p 127.0.0.1:9001:9000 \
+docker run -d --name jarvis-asr-ab-qwen --network jarvis_asrnet -p 127.0.0.1:9001:9000 \
     -e ASR_ENGINE=qwen3_vllm -e ASR_VLLM_URL=http://asr-qwen:8000 \
     -e ASR_MODEL=Qwen/Qwen3-ASR-1.7B -e ASR_LANGUAGE=vi jarvis/asr:dev
 
 # PhoWhisper-large (CT2): cần GPU; cache model trong volume riêng mount ở /cache/hf (thư mục có sẵn của image, user asr ghi được)
-docker run -d --name jarvis-asr-ab-pho --network jarvis_default -p 127.0.0.1:9002:9000 --gpus all \
+docker run -d --name jarvis-asr-ab-pho --network jarvis_asrnet -p 127.0.0.1:9002:9000 --gpus all \
     -v jarvis-asr-ab-hf:/cache/hf \
     -e ASR_MODEL=phowhisper-large -e ASR_MODEL_REVISION= -e ASR_LANGUAGE=vi -e ASR_COMPUTE_TYPE=float16 jarvis/asr:dev
 ```
@@ -356,7 +356,7 @@ bảng tổng hợp vào `docs/test-report.md` (mục SV2).
 | `/health` trả 503 `"status": "loading"` | Model đang tải/làm nóng; xem `docker compose logs -f asr`, chờ dòng `[ASR] ready ...` |
 | HTTP 400 `invalid language code` | Giá trị `language` sai (chỉ mã Whisper 2–3 chữ, `auto`, hoặc danh sách `vi,en`) |
 | Nhiều câu `dropped: gate:silence` / `gate:no_speech` / `gate:too_short` | Cổng lọc thấy quá nhỏ/không có tiếng: kiểm tra mic và khoảng cách; ngưỡng `ASR_MIN_RMS_DBFS` (−60), `ASR_VAD_GATE`, `ASR_VAD_THRESHOLD` (0.5), `ASR_VAD_MIN_SPEECH_MS` (250) |
-| WER thô thấp hơn hẳn WER | Bộ lọc ảo giác xóa nhầm: chỉnh `ASR_FILTER_*` hoặc dòng tương ứng trong `server/asr/hallucinations.txt` |
+| WER thô thấp hơn hẳn WER | Bộ lọc ảo giác xóa nhầm: chỉnh `ASR_FILTER_*` hoặc dòng tương ứng trong `server/asr/config/hallucinations.txt` |
 | Mẫu `noise` vẫn ra chữ | Thêm câu bịa vào `hallucinations.txt` (dạng `=câu` nếu chỉ chặn khi trùng toàn bộ); không bao giờ thêm lệnh thật hay wake word |
 | Container Qwen báo `vLLM not reachable` | Sidecar `asr-qwen` chưa lên (lần đầu tải model) hoặc không đủ VRAM: `docker compose --profile asr-qwen logs asr-qwen` |
 | Báo cáo có khung "DỮ LIỆU SMOKE" | Manifest có dòng `synthetic: true`: đây không phải kết quả SV2 |

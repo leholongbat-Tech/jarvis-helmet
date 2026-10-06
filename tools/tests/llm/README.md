@@ -35,7 +35,7 @@ Trên máy server (LiteLLM chỉ nằm trong mạng Docker), cách gọn nhất 
 
 ```bash
 cd /opt/jarvis
-docker run --rm --network jarvis_default -v "$PWD:/w" -w /w python:3.12-slim sh -c \
+docker run --rm --network jarvis_app -v "$PWD:/w" -w /w python:3.12-slim sh -c \
   "pip install -q pyyaml httpx jinja2 jsonschema && \
    python tools/tests/llm/run_tool_calls.py --base-url http://litellm:4000/v1 --env-file server/.env --no-fallbacks"
 ```

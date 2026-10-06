@@ -73,7 +73,7 @@ esac
 # Anchored ones are relative to server/; docker-compose.override.yml is a host-local override.
 EXCLUDE_ANCHORED_DIRS=(tests scripts/tests litellm/tests models)
 EXCLUDE_ANCHORED_FILES=(docker-compose.override.yml)
-EXCLUDE_ANYWHERE=(.env __pycache__ '*.pyc' .pytest_cache '*.secret' cert.pem '*-*-*-*-*.json')
+EXCLUDE_ANYWHERE=(.env __pycache__ '*.pyc' .pytest_cache '*.secret' cert.pem '*-*-*-*-*.json' '.deploy-*.sha')
 TOOLS_PATHS=(tools/tasks_cli.py tools/tests/llm)
 # BatchMode: fail instead of hanging on a password prompt (use an ssh key / agent). Override with
 # JARVIS_SSH_OPTS, e.g. JARVIS_SSH_OPTS="-o BatchMode=no -p 2222".
@@ -175,7 +175,21 @@ compose_steps="docker compose config -q && docker compose pull --ignore-buildabl
 if [[ "$BUILD" == "1" ]]; then
     compose_steps+=" && docker compose build --pull"
 fi
-compose_steps+=" && docker compose up -d --remove-orphans && docker compose ps"
+compose_steps+=" && docker compose up -d --remove-orphans"
+# Bind-mounted config is read once at container start and `up -d` does not notice a changed file:
+# restart/recreate the service when its files differ from the last deploy (hash kept on the host in
+# server/.deploy-<service>.sha). The Ollama entrypoint is a single-file mount, which keeps showing
+# the old inode after a copy, so only a re-create applies it (that reloads the model).
+reload_if_changed() { # stamp-name "command" files...
+    local stamp=".deploy-$1.sha" cmd="$2"
+    shift 2
+    # shellcheck disable=SC2016 # expanded on the host
+    printf 'h=$(cat %s | sha256sum | cut -d" " -f1) && if [ "$(cat %s 2>/dev/null)" != "$h" ]; then %s && echo "$h" > %s; fi' \
+        "$*" "$stamp" "$cmd" "$stamp"
+}
+compose_steps+=" && $(reload_if_changed litellm "docker compose restart litellm" litellm/config.yaml litellm/jarvis_callbacks.py)"
+compose_steps+=" && $(reload_if_changed ollama "docker compose up -d --no-deps --force-recreate ollama" ollama/entrypoint.sh)"
+compose_steps+=" && docker compose ps"
 remote "cd $Q_DIR/server && ${profiles_env}${compose_steps}"
 
 if [[ "$PULL_MODELS" == "1" ]]; then

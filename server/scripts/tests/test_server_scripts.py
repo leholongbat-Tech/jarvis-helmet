@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -50,6 +51,14 @@ pytestmark = pytest.mark.skipif(BASH is None, reason="bash (Git Bash on Windows)
 
 def posix(path: Path) -> str:
     return str(path).replace("\\", "/")
+
+
+def bash_path(path: Path) -> str:
+    """Absolute path as bash sees it (Git Bash: C:/x -> /c/x)."""
+    p = posix(path)
+    if os.name == "nt" and re.match(r"^[A-Za-z]:/", p):
+        p = "/" + p[0].lower() + p[2:]
+    return p
 
 
 class Stubs:
@@ -228,6 +237,44 @@ def test_deploy_dry_run_tar(stubs):
     assert [c for c in stubs.calls() if not c.startswith("docker ")] == []
 
 
+def test_deploy_reloads_changed_bind_mounted_config(tmp_path, stubs):
+    """infra-5: LiteLLM config/callback and the Ollama entrypoint are read once at start."""
+    res = run(SCRIPTS / "deploy.sh", "--method", "tar", env=stubs.env())
+    assert res.returncode == 0, res.stdout + res.stderr
+    line = next(ln for ln in res.stdout.splitlines() if "docker compose up -d --remove-orphans" in ln)
+    remote_cmd = shlex.split(line.split("[dry-run]", 1)[1])[-1]
+    prefix = "cd /opt/jarvis/server && "
+    assert remote_cmd.startswith(prefix)
+    # Run the host part against a fake server directory with a logging docker stub.
+    srv = tmp_path / "srv"
+    (srv / "litellm").mkdir(parents=True)
+    (srv / "ollama").mkdir()
+    (srv / "litellm" / "config.yaml").write_text("a: 1\n", encoding="utf-8")
+    (srv / "litellm" / "jarvis_callbacks.py").write_text("# cb\n", encoding="utf-8")
+    (srv / "ollama" / "entrypoint.sh").write_text("#!/bin/sh\n", encoding="utf-8")
+    stubs.add("docker", "exit 0")
+    script = tmp_path / "host.sh"
+    script.write_text(f"cd {shlex.quote(posix(srv))} && {remote_cmd[len(prefix):]}\n", encoding="utf-8",
+                      newline="\n")
+
+    def deploy() -> list[str]:
+        stubs.log.write_text("", encoding="utf-8")
+        r = run(script, env=stubs.env())
+        assert r.returncode == 0, r.stdout + r.stderr
+        return stubs.calls()
+
+    restart, recreate = "docker compose restart litellm", "docker compose up -d --no-deps --force-recreate ollama"
+    first = deploy()  # no stamp yet: unknown state -> apply
+    assert restart in first and recreate in first
+    assert first.index("docker compose up -d --remove-orphans") < first.index(restart)
+    again = deploy()
+    assert restart not in again and recreate not in again
+    (srv / "litellm" / "jarvis_callbacks.py").write_text("# cb v2\n", encoding="utf-8")
+    third = deploy()
+    assert restart in third and recreate not in third
+    assert sorted(p.name for p in srv.glob(".deploy-*.sha")) == [".deploy-litellm.sha", ".deploy-ollama.sha"]
+
+
 def test_deploy_dry_run_rsync_copy_only(stubs):
     env = stubs.env()
     env["JARVIS_DEPLOY_HOST"] = "jarvis@10.0.0.5"
@@ -237,6 +284,7 @@ def test_deploy_dry_run_rsync_copy_only(stubs):
     assert "rsync -az --delete" in res.stdout
     assert "--exclude=/tests/" in res.stdout and "--exclude=.env" in res.stdout
     assert "--exclude=/docker-compose.override.yml " in res.stdout  # host-local file, never deleted
+    assert r"--exclude=.deploy-\*.sha" in res.stdout  # reload stamps (infra-5) survive --delete
     assert "jarvis@10.0.0.5:/srv/jarvis/server/" in res.stdout
     assert "docker compose" not in res.stdout
     assert [c for c in stubs.calls() if not c.startswith("docker ")] == []
@@ -310,6 +358,51 @@ def test_bootstrap_dry_run_changes_nothing(stubs):
             assert rest.split()[0] in ("cat", "is-enabled", "is-active"), call
         if name == "docker":
             assert rest.split()[0] in ("version", "info", "compose"), call
+
+
+def _first_run_stubs(stubs: Stubs, cdi_dirs: str = '["/etc/cdi","/var/run/cdi"]') -> None:
+    """A Linux host where the deploy user is not in the docker group yet: docker works via sudo only."""
+    _gpu_host_stubs(stubs)
+    stubs.add("uname", "echo Linux")
+    stubs.add("sudo", 'if [ "$1" = docker ]; then shift; JARVIS_AS_ROOT=1 exec docker "$@"; fi\nexit 0')
+    stubs.add("docker", r'''
+[ -n "$JARVIS_AS_ROOT" ] || exit 1
+case "$1 $2" in
+  "version --format") echo 29.8.2 ;;
+  "info --format") echo '%s' ;;
+  "compose version") echo 2.40.0 ;;
+  *) exit 1 ;;
+esac''' % cdi_dirs)
+
+
+root_user = pytest.mark.skipif(hasattr(os, "geteuid") and os.geteuid() == 0,
+                               reason="the first-run tests rely on the sudo stub (not root)")
+
+
+@root_user
+def test_bootstrap_apply_first_run_without_docker_group(tmp_path, stubs):
+    """infra-10: checks run through sudo, step 6 is skipped with a hint, 'Next' is printed."""
+    _first_run_stubs(stubs)
+    res = run(SCRIPTS / "bootstrap_host.sh", "--apply", "--user", "jarvisdeploy", "--deploy-dir", bash_path(tmp_path),
+              env=stubs.env())
+    assert res.returncode == 0, res.stdout + res.stderr
+    assert "Docker Engine 29.8.2" in res.stdout and "CDI spec dirs" in res.stdout
+    assert "dockerd not reachable as" in res.stdout and "gpu_check.sh --mode cdi" in res.stdout
+    assert "Next" in res.stdout
+    calls = stubs.calls()
+    assert "sudo docker version --format {{.Server.Version}}" in calls
+    assert "sudo usermod -aG docker jarvisdeploy" in calls
+    assert not any(c.startswith("docker run") for c in calls)
+
+
+@root_user
+def test_bootstrap_apply_first_run_still_blocks_on_cdi(tmp_path, stubs):
+    _first_run_stubs(stubs, cdi_dirs="null")
+    res = run(SCRIPTS / "bootstrap_host.sh", "--apply", "--user", "jarvisdeploy", "--deploy-dir", bash_path(tmp_path),
+              env=stubs.env())
+    assert res.returncode != 0
+    assert "CDI disabled" in res.stderr and "blocking problem" in res.stderr
+    assert not any(c.startswith(("sudo usermod", "sudo apt-get", "sudo systemctl")) for c in stubs.calls())
 
 
 def test_bootstrap_rejects_bad_user(stubs):

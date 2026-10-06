@@ -48,7 +48,7 @@ sau khi nhận dạng, bộ lọc ảo giác bỏ các câu kiểu "Thanks for w
 | `ASR_BEAM_SIZE` | `5` | 1–16 |
 | `ASR_MAX_TOKENS_PER_S` | `30` | giới hạn token theo độ dài audio (chặn vòng lặp); `off` = tắt |
 | `ASR_LOCAL_FILES_ONLY` | `false` | `true` = không truy cập HuggingFace (model phải có sẵn trong cache) |
-| `ASR_HALLUCINATIONS_FILE` | `/app/hallucinations.txt` | danh sách câu ảo giác (tự nạp lại khi file đổi) |
+| `ASR_HALLUCINATIONS_FILE` | `/app/config/hallucinations.txt` | danh sách câu ảo giác, tự nạp lại trong ~2 s khi file đổi. Compose mount thư mục `server/asr/config` vào `/app/config` (chỉ đọc): sửa file trên server (hoặc sửa trong repo rồi `deploy.sh --apply`) là có hiệu lực, không cần build lại |
 | `ASR_FILTER` | `true` | bật/tắt bộ lọc ảo giác |
 | `ASR_FILTER_LOGPROB_MIN` | `-1.0` | bỏ đoạn có avg logprob thấp hơn (`off` = tắt) |
 | `ASR_FILTER_NO_SPEECH_MAX` | `0.6` | bỏ đoạn có no_speech_prob cao hơn ... |

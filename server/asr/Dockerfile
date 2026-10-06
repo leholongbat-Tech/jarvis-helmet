@@ -36,7 +36,9 @@ RUN useradd --system --uid ${APP_UID} --user-group --create-home --home-dir /hom
  && chown -R asr:asr /cache /data
 
 WORKDIR /app
-COPY app.py hallucinations.txt ./
+COPY app.py ./
+# Baked default; compose bind-mounts server/asr/config over it so edits on the host apply live.
+COPY config ./config
 COPY jarvis_asr ./jarvis_asr
 
 USER asr

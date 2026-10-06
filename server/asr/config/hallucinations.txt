@@ -1,5 +1,6 @@
 # Whisper hallucination blocklist (ASR_HALLUCINATIONS_FILE). Reloaded automatically on change.
-# Danh sách câu Whisper hay bịa ra khi gặp im lặng/tiếng ồn. Sửa file là có hiệu lực, không cần restart.
+# Danh sách câu Whisper hay bịa ra khi gặp im lặng/tiếng ồn. Sửa file là có hiệu lực, không cần restart:
+# compose mount thư mục server/asr/config vào /app/config (chỉ đọc), deploy.sh chép file lên server.
 #
 # Format:
 #   phrase        -> any sentence that contains this phrase is removed (the rest of the text is kept)

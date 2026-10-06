@@ -51,9 +51,9 @@ docker run --rm -v "${PWD}:/w" -w /w/tools/wakeword python:3.12-slim bash -c "pi
 VieNeu-TTS chạy trong compose (`server/`), không mở cổng ra host. Có hai cách gọi:
 
 ```bash
-# a) Chạy script trong một container nối vào mạng của compose (project "jarvis"), từ thư mục gốc repo
+# a) Chạy script trong một container nối vào mạng của compose (project "jarvis", mạng `jarvis_tts` của VieNeu), từ thư mục gốc repo
 #    (Windows/Git Bash: thêm MSYS_NO_PATHCONV=1 trước docker và dùng "$(pwd -W):/w"):
-docker run --rm -v "$PWD:/w" -w /w/tools/wakeword --network jarvis_default python:3.12-slim bash -c \
+docker run --rm -v "$PWD:/w" -w /w/tools/wakeword --network jarvis_tts python:3.12-slim bash -c \
   "pip install -q -r requirements.txt && python gen_positives.py \
      --api-url http://vieneu:8000/v1/audio/speech --sampling-params --count 3000 --out /w/out/positives"
 

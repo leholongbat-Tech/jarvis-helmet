@@ -68,22 +68,31 @@ else
     blocker "not a Linux host ($(uname -s 2>/dev/null)): run this script on the server; nothing can be applied here"
 fi
 
-docker_ok=0
-if command -v docker >/dev/null 2>&1 && server_version="$(docker version --format '{{.Server.Version}}' 2>/dev/null)"; then
-    docker_ok=1
+docker_ok=0  # dockerd reachable as this user (step 6 needs it)
+DOCKER=(docker)
+if [[ "$DRY_RUN" == "0" && ${#SUDO[@]} -gt 0 ]] && is_linux && command -v docker >/dev/null 2>&1 &&
+    ! docker version >/dev/null 2>&1; then
+    # First run: not in the docker group yet (step 2 adds it). Read the versions as root so the
+    # Docker/CDI/compose blockers still stop --apply before anything is installed.
+    DOCKER=("${SUDO[@]}" docker)
+fi
+if command -v docker >/dev/null 2>&1 && server_version="$("${DOCKER[@]}" version --format '{{.Server.Version}}' 2>/dev/null)"; then
+    if [[ "${DOCKER[0]}" == docker ]]; then
+        docker_ok=1
+    fi
     if version_ge "$server_version" "$MIN_DOCKER"; then
         ok "Docker Engine $server_version (CDI enabled by default since $MIN_DOCKER)"
     else
         blocker "Docker Engine $server_version < $MIN_DOCKER: upgrade Docker first (CDI is required)"
     fi
-    cdi_dirs="$(docker info --format '{{json .CDISpecDirs}}' 2>/dev/null || true)"
+    cdi_dirs="$("${DOCKER[@]}" info --format '{{json .CDISpecDirs}}' 2>/dev/null || true)"
     if [[ -z "$cdi_dirs" || "$cdi_dirs" == "null" || "$cdi_dirs" == "[]" ]]; then
         blocker "dockerd has CDI disabled (features.cdi=false in /etc/docker/daemon.json?). Enabling it" \
             "needs a dockerd restart: plan a maintenance window; this script will not restart dockerd"
     else
         ok "CDI spec dirs: $cdi_dirs"
     fi
-    if compose_version="$(docker compose version --short 2>/dev/null)"; then
+    if compose_version="$("${DOCKER[@]}" compose version --short 2>/dev/null)"; then
         if version_ge "${compose_version#v}" "$MIN_COMPOSE"; then
             ok "Docker Compose $compose_version"
         else
@@ -176,10 +185,12 @@ fi
 
 # ---- 6. verification --------------------------------------------------------------------------
 step "6. GPU smoke test through CDI"
-if [[ "$DRY_RUN" == "0" && "$docker_ok" == "1" ]]; then
+if [[ "$DRY_RUN" == "1" ]]; then
+    run "$SCRIPTS_DIR/gpu_check.sh" --mode cdi
+elif [[ "$docker_ok" == "1" ]]; then
     "$SCRIPTS_DIR/gpu_check.sh" --mode cdi || die "GPU check failed"
 else
-    run "$SCRIPTS_DIR/gpu_check.sh" --mode cdi
+    info "dockerd not reachable as $(id -un) yet: log in again (docker group), then run $SCRIPTS_DIR/gpu_check.sh --mode cdi"
 fi
 
 step "Next"

@@ -12,7 +12,8 @@
 #   docker compose -f docker-compose.yml -f docker-compose.debug.yml ...   # internal APIs on 127.0.0.1
 #
 # Only xiaozhi publishes host ports (8000 on the host belongs to another project, and the
-# host already runs an Ollama on 11434). Everything else talks over the internal network.
+# host already runs an Ollama on 11434). Everything else talks over internal networks, split so
+# that each container reaches only the services it calls (see `networks:` at the end).
 #
 # Environment: values come from server/.env (Compose interpolation). No service loads the
 # whole file: each container only gets the variables listed below (least privilege: the
@@ -74,6 +75,8 @@ services:
       - ./tasks:/opt/jarvis/tasks:ro
       - xiaozhi_tmp:/opt/xiaozhi-esp32-server/tmp
       - xiaozhi_data:/opt/xiaozhi-esp32-server/data
+    networks: [edge, app]
+    security_opt: ["no-new-privileges:true"]
     depends_on:
       litellm:
         condition: service_healthy
@@ -149,6 +152,10 @@ services:
       - hf_cache:/cache/hf
       - asr_cuda_cache:/cache/nv        # CUDA JIT cache, kept across container re-creation
       - asr_dataset:/data
+      # Hallucination list (reloaded within ~2 s of an edit). A directory, not the single file:
+      # rsync and most editors replace a file by rename, which a file bind mount never sees.
+      - ./asr/config:/app/config:ro
+    networks: [app, asrnet]
     deploy: *gpu-cdi
     healthcheck:
       test:
@@ -188,6 +195,7 @@ services:
     volumes:
       - ollama_models:/root/.ollama
       - ./ollama/entrypoint.sh:/opt/jarvis/ollama-entrypoint.sh:ro
+    networks: [llm]
     deploy: *gpu-cdi
     healthcheck:
       test: ["CMD", "ollama", "list"]
@@ -232,6 +240,8 @@ services:
     volumes:
       # config.yaml + jarvis_callbacks.py (callbacks are imported from the config directory).
       - ./litellm:/etc/litellm:ro
+    networks: [app, llm]
+    security_opt: ["no-new-privileges:true"]
     depends_on:
       redis:
         condition: service_healthy
@@ -262,6 +272,8 @@ services:
       TZ: ${TZ:-Asia/Ho_Chi_Minh}
     volumes:
       - redis_data:/data
+    # No password: only LiteLLM shares the llm network with it.
+    networks: [llm]
     healthcheck:
       test: ["CMD-SHELL", "redis-cli ping | grep -q PONG"]
       interval: 10s
@@ -298,6 +310,8 @@ services:
       TTS_ABBREV_FILE:
       TTS_MAX_INPUT_CHARS:
       VIENEU_MODEL:
+    networks: [app, tts]
+    security_opt: ["no-new-privileges:true"]
     depends_on:
       vieneu:
         condition: service_healthy
@@ -338,6 +352,7 @@ services:
       # Separate from hf_cache: VieNeu runs as uid 1000, the other model services as root.
       - vieneu_hf_cache:/home/app/.cache/huggingface
       - vieneu_voices:/voices
+    networks: [tts]
     deploy: *gpu-cdi
     healthcheck:
       # Also restarts the container when VieNeu's stream scheduler died (it never recovers).
@@ -359,6 +374,7 @@ services:
       TZ: ${TZ:-Asia/Ho_Chi_Minh}
       DEFAULT_VOICE: ${TTS_ENGLISH_VOICE:-bm_george}
       API_LOG_LEVEL: INFO
+    networks: [tts]
     deploy: *gpu-cdi
     healthcheck:
       test:
@@ -399,6 +415,7 @@ services:
       # Own cache (vLLM runs as root; sharing the asr cache could leave it root-owned).
       - asr_qwen_hf_cache:/hf-cache
     shm_size: "2gb"
+    networks: [asrnet]
     deploy: *gpu-cdi
     healthcheck:
       test:
@@ -423,6 +440,7 @@ services:
     command: ["tunnel", "--metrics", "0.0.0.0:20241", "run"]
     environment:
       TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
+    networks: [edge]
     depends_on:
       xiaozhi:
         condition: service_started
@@ -435,6 +453,18 @@ services:
       start_period: 30s
       start_interval: 5s
     logging: *default-logging
+
+# Every network can reach the internet (model downloads, cloud LLM, Cloudflare edge); they only
+# limit which containers see each other. Redis (cloud budget counters) and Ollama answer LiteLLM
+# only; VieNeu (third-party remote code) and Kokoro answer tts-router only; cloudflared reaches
+# xiaozhi only. Attach a helper container to the one it needs, e.g. `--network jarvis_app` for
+# LiteLLM or `--network jarvis_tts` for VieNeu.
+networks:
+  edge:      # cloudflared -> xiaozhi
+  app:       # xiaozhi -> litellm, asr, tts-router
+  llm:       # litellm -> redis, ollama
+  tts:       # tts-router -> vieneu, kokoro
+  asrnet:    # asr -> asr-qwen
 
 volumes:
   ollama_models:

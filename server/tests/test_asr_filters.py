@@ -26,7 +26,7 @@ from jarvis_asr.filters import (  # noqa: E402
     words,
 )
 
-HALLUCINATIONS = ASR_DIR / "hallucinations.txt"
+HALLUCINATIONS = ASR_DIR / "config" / "hallucinations.txt"
 SENTENCES = Path(__file__).resolve().parents[2] / "tools" / "tests" / "asr" / "sentences.md"
 PROMPT = "Jarvis, quản gia, open mask, close mask, mặt nạ, đèn mắt, combat mode, stealth mode, thưa ngài."
 

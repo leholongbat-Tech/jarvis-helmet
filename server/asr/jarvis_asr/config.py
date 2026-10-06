@@ -140,7 +140,7 @@ class Settings:
     beam_size: int = 5
     max_tokens_per_s: Optional[float] = 30.0  # decode cap vs. runaway loops (None = off)
     local_files_only: bool = False
-    hallucinations_file: Optional[str] = str(APP_DIR / "hallucinations.txt")
+    hallucinations_file: Optional[str] = str(APP_DIR / "config" / "hallucinations.txt")
     filter: FilterSettings = field(default_factory=FilterSettings)
     min_rms_dbfs: Optional[float] = -60.0
     vad_gate: bool = True

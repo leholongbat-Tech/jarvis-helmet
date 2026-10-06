@@ -8,15 +8,15 @@ Claude), đọc câu trả lời (TTS) và điều khiển mũ qua MCP. Chạy b
 
 ```bash
 # Trên PC (Git Bash / Linux), lần đầu:
-ssh batai 'sudo install -d -m 0750 -o "$USER" -g "$USER" /opt/jarvis'
+ssh -t batai 'sudo install -d -m 0750 -o "$USER" -g "$USER" /opt/jarvis'
 bash server/scripts/deploy.sh --copy-only            # xem trước (dry-run)
 bash server/scripts/deploy.sh --apply --copy-only    # chép server/ lên batai:/opt/jarvis
 # Trên batai:
 bash /opt/jarvis/server/scripts/bootstrap_host.sh            # xem trước
 bash /opt/jarvis/server/scripts/bootstrap_host.sh --apply    # docker group, CDI GPU, kiểm tra GPU
 cd /opt/jarvis/server && cp .env.example .env && chmod 600 .env && nano .env
-docker compose up -d && bash scripts/pull_models.sh --apply
-docker compose ps                                    # mọi service (healthy)
+docker compose build && bash scripts/pull_models.sh --apply --asr   # build + tải trước model (lâu)
+docker compose up -d && docker compose ps            # mọi service (healthy)
 ```
 
 ## Mục lục
@@ -129,7 +129,7 @@ Host batai
 ### 3.2 Thư mục triển khai và chép mã
 
 ```bash
-ssh batai 'sudo install -d -m 0750 -o "$USER" -g "$USER" /opt/jarvis'
+ssh -t batai 'sudo install -d -m 0750 -o "$USER" -g "$USER" /opt/jarvis'
 bash server/scripts/deploy.sh --copy-only              # dry-run: in lệnh
 bash server/scripts/deploy.sh --apply --copy-only      # chép server/ + tools cần thiết
 ```
@@ -189,9 +189,10 @@ Mỗi biến đều có chú thích trong `.env.example`. Mỗi container chỉ 
 
 ```bash
 cd /opt/jarvis/server
-docker compose up -d                       # lần đầu build image (xiaozhi, asr, tts-router, vieneu): lâu
-bash scripts/pull_models.sh --apply        # tải + nạp sẵn OLLAMA_MODEL (~19 GB); thêm --asr để tải trước Whisper
-docker compose ps                          # chờ tất cả (healthy); ASR/VieNeu lần đầu tải model (tới 15 phút)
+docker compose build                       # build image (xiaozhi, asr, tts-router, vieneu): lần đầu lâu
+bash scripts/pull_models.sh --apply --asr  # tải + nạp sẵn OLLAMA_MODEL (~19 GB) và tải trước Whisper (~3 GB)
+docker compose up -d
+docker compose ps                          # chờ tất cả (healthy); VieNeu lần đầu tải model (tới 15 phút)
 curl -s http://192.168.1.27:8003/xiaozhi/ota/   # 200: "OTA接口运行正常，...websocket地址是：ws://192.168.1.27:8100/xiaozhi/v1/"
 curl -s http://192.168.1.27:8100/               # "Server is running"
 bash scripts/vram_report.sh                # VRAM theo container
@@ -225,6 +226,10 @@ bash server/scripts/deploy.sh --apply --pull-models    # + scripts/pull_models.s
   và kiểm tra `docker-compose.yml` bằng `docker compose config` trước khi chép.
 - Trên host nó chạy: `docker compose config -q && docker compose pull --ignore-buildable --quiet &&
   docker compose build --pull && docker compose up -d --remove-orphans && docker compose ps`.
+- File cấu hình gắn vào container chỉ được đọc khi container khởi động, nên script so mã băm với lần
+  triển khai trước (lưu ở `server/.deploy-*.sha` trên host): `litellm/config.yaml` hoặc
+  `litellm/jarvis_callbacks.py` đổi → `docker compose restart litellm`; `ollama/entrypoint.sh` đổi →
+  tạo lại container `ollama` (nạp lại model, khoảng 1 phút). Lần đầu chạy bản script này luôn làm cả hai.
 - Lần đầu chưa có `.env`: file được chép xong, script dừng và hướng dẫn tạo `.env`.
 
 Cập nhật bằng tay trên host: `cd /opt/jarvis/server && docker compose pull --ignore-buildable &&
@@ -281,17 +286,21 @@ trong `.env` (volume `asr_dataset`).
 | `jarvis_redis_data` | volume | **có** (chi phí cloud tháng này) |
 | `jarvis_vieneu_voices` | volume | có, nếu đã clone giọng |
 | `jarvis_asr_dataset` | volume | có, nếu đang thu dữ liệu ASR |
-| `jarvis_xiaozhi_data` | volume | nên (cache câu đáp wake word, file firmware OTA) |
+| `jarvis_xiaozhi_data` | volume | nên (cache câu đáp wake word, file firmware OTA). Volume này còn chứa `.config.yaml` đã render (có khóa LiteLLM và khóa ký token xiaozhi): lệnh dưới **loại file đó khỏi bản sao lưu**; entrypoint tạo lại khi khởi động |
 | `jarvis_ollama_models`, `jarvis_hf_cache`, `jarvis_vieneu_hf_cache`, `jarvis_asr_cuda_cache`, `jarvis_asr_qwen_hf_cache` | volume | không (tải lại được, rất lớn) |
 | `jarvis_xiaozhi_tmp` | volume | không (log, âm thanh tạm) |
 
 ```bash
-cd /opt/jarvis && mkdir -p backup
+cd /opt/jarvis && mkdir -p backup && chmod 700 backup
 docker compose -f server/docker-compose.yml exec redis redis-cli BGSAVE
+# File nén quyền 0600, thuộc user của bạn (không phải root), không chứa cấu hình đã render (có bí mật).
 for v in redis_data vieneu_voices asr_dataset xiaozhi_data; do
-  docker run --rm -v "jarvis_$v:/v:ro" -v "$PWD/backup:/b" alpine:3 tar czf "/b/$v-$(date +%F).tgz" -C /v .
+  f="$v-$(date +%F).tgz"
+  docker run --rm -v "jarvis_$v:/v:ro" -v "$PWD/backup:/b" alpine:3 sh -c \
+    "umask 077 && tar czf /b/$f -C /v --exclude='.config.yaml*' . && chown $(id -u):$(id -g) /b/$f"
 done
 cp server/.env "backup/env-$(date +%F)" && chmod 600 backup/env-*
+tar tzf backup/xiaozhi_data-*.tgz | grep -c config.yaml   # phải in 0
 # Khôi phục một volume (dừng service dùng nó trước):
 docker run --rm -v jarvis_redis_data:/v -v "$PWD/backup:/b" alpine:3 sh -c 'cd /v && tar xzf /b/redis_data-<ngày>.tgz'
 ```
@@ -311,6 +320,12 @@ docker run --rm -v jarvis_redis_data:/v -v "$PWD/backup:/b" alpine:3 sh -c 'cd /
   `DEBUG_LITELLM_PORT`, `DEBUG_TTS_PORT` nếu trùng).
 - `cloudflared` chỉ cần đi ra cổng 7844 TCP/UDP (và 443), không cần mở cổng vào.
 - Đổi cổng host thì sửa cả `PUBLIC_WS_URL` / `PUBLIC_OTA_URL` và địa chỉ OTA trong firmware.
+- Mạng Docker được tách để mỗi container chỉ thấy service nó gọi: `edge` (cloudflared, xiaozhi),
+  `app` (xiaozhi, litellm, asr, tts-router), `llm` (litellm, redis, ollama), `tts` (tts-router,
+  vieneu, kokoro), `asrnet` (asr, asr-qwen). Redis (bộ đếm ngân sách cloud, không mật khẩu) và Ollama
+  chỉ LiteLLM gọi được; VieNeu (mã bên thứ ba) chỉ thấy tts-router. Mạng nào cũng ra Internet được.
+  Container phụ (test LLM, sinh dữ liệu wake word) nối vào đúng mạng: `--network jarvis_app` để gọi
+  LiteLLM, `--network jarvis_tts` để gọi VieNeu.
 
 ## 8. Firewall
 
@@ -453,6 +468,7 @@ thật, điểm gọi tool của model 30B, độ trễ dự phòng khi containe
 | LiteLLM trả 400 `No connected db` | khóa LiteLLM sai (xiaozhi và `ask_expert` dùng `LITELLM_MASTER_KEY`) → sửa rồi `docker compose up -d xiaozhi` |
 | ASR không healthy, log `Permission denied` khi tải model | volume cũ do root tạo (bản compose cũ gắn `/hf-cache`) → `docker compose rm -sf asr && docker volume rm jarvis_hf_cache` rồi `docker compose up -d asr` |
 | Healthcheck `starting` rất lâu | lần đầu ASR/VieNeu tải model (cho phép tới 15 phút); xem `docker compose logs -f asr vieneu` |
+| Lần `up` đầu báo `dependency failed to start ... is unhealthy`, xiaozhi không chạy | tải model quá 15 phút (đường truyền chậm). Chờ `docker compose ps` báo asr/vieneu `healthy` rồi chạy lại `docker compose up -d`. Lần sau: tải trước bằng `scripts/pull_models.sh --apply --asr` |
 | Câu đầu tiên sau khi khởi động do cloud trả lời | model chưa nạp/chưa tải → `docker compose logs ollama \| grep jarvis-preload`, `scripts/pull_models.sh --apply` |
 | Mọi câu đều qua cloud (`fallback` liên tục) | Ollama chết/treo, model chưa tải, thiếu VRAM (chạy một phần trên CPU → timeout) → `ollama ps`, `scripts/vram_report.sh` |
 | Dự phòng mất nhiều giây khi container `ollama` bị dừng | xem mục 13.1 |
