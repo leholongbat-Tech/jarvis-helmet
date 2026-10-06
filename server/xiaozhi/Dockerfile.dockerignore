@@ -1,0 +1,17 @@
+# Ignore file used only by server/xiaozhi/Dockerfile (BuildKit: <Dockerfile>.dockerignore,
+# takes precedence over server/.dockerignore). Allow-list: send only what the image needs,
+# never server/.env or other services' data.
+*
+!xiaozhi/Dockerfile
+!xiaozhi/entrypoint.py
+!xiaozhi/data/.config.yaml.tmpl
+!xiaozhi/prompts/
+!xiaozhi/plugins/*.py
+!xiaozhi/providers/tts/*.py
+!xiaozhi/patches/
+!xiaozhi/assets/
+!tasks/taskslib.py
+!tasks/tasks.yaml
+!tasks/schema.json
+**/__pycache__
+**/*.pyc

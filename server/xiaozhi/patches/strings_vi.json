@@ -1,0 +1,70 @@
+{
+  "_meta": {
+    "about": "Chuỗi Việt hóa mà apply_patches.py chèn vào mã xiaozhi-server v0.9.7 lúc build (thay chuỗi tiếng Trung). Sửa ở đây rồi build lại image. Các công cụ khác (vd. tools/tests/llm) đọc file này để gửi đúng nội dung server gửi cho LLM.",
+    "placeholders": "Chỉ dùng được các placeholder liệt kê trong apply_patches.py (vd. {reason}, {tool_name}); viết {{ }} nếu cần dấu ngoặc nhọn thật. Sai placeholder -> build lỗi.",
+    "upstream": "xiaozhi-esp32-server v0.9.7 (87c6df7)",
+    "mcp_error_prefix": "Rỗng: lỗi JSON-RPC của mũ được giữ nguyên văn (vd. invalid step #2: ...) để helmet_tasks phân tích; device_tool_failed bọc câu xin lỗi tiếng Việt."
+  },
+  "direct_answer": {
+    "description": "Trả lời trực tiếp khi yêu cầu không khớp với công cụ nào khác; viết toàn bộ câu trả lời vào tham số response. / Reply directly when no other tool matches the request; put the whole reply in the response parameter.",
+    "response_description": "Toàn bộ câu trả lời cho người dùng, bằng ngôn ngữ người dùng đang nói / The complete reply to the user, in the user's language"
+  },
+  "fewshot": {
+    "direct_user": "Kể cho tôi nghe một câu chuyện ngắn đi.",
+    "direct_response": "Rất sẵn lòng, thưa ngài. Ngài muốn nghe chuyện phiêu lưu, khoa học hay hài hước?",
+    "direct_tool_result": "Answered directly.",
+    "exit_user": "Goodbye for now.",
+    "exit_goodbye": "Goodbye, Sir. I will be here whenever you need me.",
+    "exit_tool_result": "Exit handled."
+  },
+  "max_depth_hint": "[Hệ thống] Đã đạt giới hạn số lần gọi công cụ. Hãy trả lời ngay bằng thông tin đã có, không gọi thêm công cụ nào. / [System] Tool-call limit reached: answer now with the information you already have and do not call any more tools.",
+  "tool_interrupted": "Hành động đã bị hủy hoặc bị ngắt / action cancelled or interrupted",
+  "tool_call_failed": "Xin lỗi thưa ngài, thao tác vừa rồi không phản hồi kịp, ngài vui lòng thử lại.",
+  "tool_args_invalid": "Xin lỗi thưa ngài, tôi chưa hiểu rõ tham số của lệnh này.",
+  "tool_not_found": "Xin lỗi thưa ngài, tôi không có chức năng đó.",
+  "tool_executor_missing": "Xin lỗi thưa ngài, chức năng đó chưa sẵn sàng.",
+  "plugin_not_found": "Xin lỗi thưa ngài, chức năng đó không còn tồn tại.",
+  "mcp_not_initialized": "Xin lỗi thưa ngài, mũ chưa kết nối điều khiển.",
+  "mcp_not_ready": "Xin lỗi thưa ngài, mũ chưa sẵn sàng nhận lệnh, xin ngài thử lại sau giây lát.",
+  "device_tool_failed": "Xin lỗi thưa ngài, tôi không thực hiện được: {reason}",
+  "mcp_error_prefix": "",
+  "mcp_unknown_error": "lỗi không xác định",
+  "mcp_client_not_ready": "mũ chưa sẵn sàng nhận lệnh",
+  "mcp_tool_not_found": "mũ chưa hỗ trợ lệnh này",
+  "mcp_args_unparsable": "không đọc được tham số của lệnh",
+  "mcp_args_json_error": "tham số của lệnh không hợp lệ",
+  "mcp_args_parse_failed": "tham số của lệnh không hợp lệ",
+  "mcp_args_type_error": "kiểu tham số không hợp lệ",
+  "mcp_args_not_dict": "tham số phải là một đối tượng",
+  "mcp_args_failed": "không xử lý được tham số",
+  "mcp_tool_error_no_detail": "thiết bị báo lỗi nhưng không nêu lý do",
+  "mcp_tool_error": "thiết bị báo lỗi: {error_msg}",
+  "mcp_timeout": "mũ không phản hồi kịp",
+  "system_error_default": "Xin lỗi thưa ngài, hệ thống đang bận, xin ngài thử lại sau.",
+  "wakeup_responses": [
+    "Vâng, thưa ngài?",
+    "Tôi đây, thưa ngài.",
+    "Có tôi, thưa ngài."
+  ],
+  "wakeup_fallback_text": "Vâng, thưa ngài?",
+  "greeting_user_text": "Xin chào",
+  "ws_auth_failed": "Xác thực thất bại (token không hợp lệ) / Authentication failed",
+  "end_prompt_fallback": "Người dùng đã im lặng một lúc. Hãy chào tạm biệt bằng một câu thật ngắn gọn, lịch lãm, theo ngôn ngữ của cuộc trò chuyện.",
+  "md_table_single": "Bảng một dòng: ",
+  "md_table_header": "Các cột: ",
+  "md_table_row": "Dòng {i}: ",
+  "handle_exit_intent": {
+    "description": "Gọi khi người dùng muốn kết thúc cuộc trò chuyện hoặc chào tạm biệt (tạm biệt, thôi nhé, goodbye, that's all). / Call when the user wants to end the conversation or says goodbye.",
+    "say_goodbye_description": "Lời chào tạm biệt ngắn, lịch sự, bằng ngôn ngữ người dùng / A short, polite goodbye in the user's language",
+    "default_goodbye": "Tạm biệt thưa ngài, hẹn gặp lại.",
+    "result": "Exit handled."
+  },
+  "get_lunar": {
+    "description": "Tra âm lịch cho một ngày (ngày âm, can chi, tiết khí, con giáp, việc nên làm/kiêng kỵ). Chỉ gọi khi người dùng hỏi về âm lịch. Kết quả trả về bằng tiếng Trung: hãy dịch và trả lời ngắn gọn bằng ngôn ngữ người dùng. / Lunar-calendar lookup for a date; call only for lunar-calendar questions. The result is Chinese text: translate it and answer briefly in the user's language.",
+    "date_description": "Ngày cần tra, định dạng YYYY-MM-DD (vd. 2026-10-06); bỏ trống = hôm nay / Date to look up, YYYY-MM-DD; empty = today",
+    "query_description": "Nội dung cần tra, vd. ngày âm lịch, can chi, tiết khí, con giáp, việc nên/kiêng / What to look up, e.g. lunar date, stem-branch, solar term, zodiac",
+    "date_format_error": "Sai định dạng ngày, hãy dùng YYYY-MM-DD, vd. 2026-10-06. / Invalid date format, use YYYY-MM-DD.",
+    "default_query": "ngày âm lịch và năm can chi / lunar date and stem-branch year",
+    "response_header": "Trả lời yêu cầu của người dùng về \"{query}\" dựa trên dữ liệu âm lịch (tiếng Trung) dưới đây; dịch và trả lời ngắn gọn bằng ngôn ngữ người dùng / Answer the user's request using the Chinese lunar data below, briefly, in the user's language:\n"
+  }
+}

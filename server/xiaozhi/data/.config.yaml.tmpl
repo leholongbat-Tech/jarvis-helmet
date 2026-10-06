@@ -1,0 +1,211 @@
+# =====================================================================================
+# Jarvis Helmet - cấu hình xiaozhi-server v0.9.7 (TEMPLATE, SV5)
+# -------------------------------------------------------------------------------------
+# entrypoint.py render file này mỗi lần container khởi động (Python string.Template):
+#   /opt/jarvis/config/.config.yaml.tmpl  ->  /opt/xiaozhi-esp32-server/data/.config.yaml
+# - Giá trị bí mật / thay đổi theo máy lấy từ biến môi trường, viết dạng "$${TEN_BIEN}"
+#   và LUÔN đặt trong dấu nháy kép (entrypoint tự escape giá trị). Thiếu biến hoặc biến
+#   rỗng -> container dừng và in danh sách các biến còn thiếu.
+# - Cần ký tự đô-la thật thì viết hai lần ($$).
+# - Không sửa data/.config.yaml trong container: file đó bị ghi đè mỗi lần khởi động.
+#   Sửa template này (rồi build lại image) hoặc sửa server/.env.
+# - xiaozhi merge file này lên config.yaml gốc: dict được merge sâu, còn list và giá trị
+#   đơn bị THAY THẾ toàn bộ (wakeup_words, exit_commands, functions, allowed_devices...).
+# - File này KHÔNG được chứa bí mật thật (chỉ placeholder).
+# =====================================================================================
+
+server:
+  ip: 0.0.0.0
+  # WebSocket; compose map cổng host XIAOZHI_WS_PORT (mặc định 8100) vào cổng này (D21)
+  port: 8000
+  # HTTP: OTA (/xiaozhi/ota/) + vision; compose map XIAOZHI_OTA_PORT (8003)
+  http_port: 8003
+  # Địa chỉ WebSocket mà API OTA trả cho mũ.
+  # LAN: ws://<ip-lan>:8100/xiaozhi/v1/  -  qua Cloudflare (P8): wss://jarvis.<domain>/xiaozhi/v1/
+  websocket: "${PUBLIC_WS_URL}"
+  # Mặc định suy ra từ PUBLIC_OTA_URL (/xiaozhi/ota/ -> /mcp/vision/explain). Đây cũng là
+  # gốc của URL tải firmware (/xiaozhi/ota/download/<file>) nên phải cùng host:cổng với OTA.
+  vision_explain: "${PUBLIC_VISION_URL}"
+  # Số nguyên, không đặt trong nháy (OTA nhân giá trị này với 60)
+  timezone_offset: 7
+  # Khóa HMAC ký token WebSocket. Phải cố định: đổi khóa (hoặc để trống -> xiaozhi tự sinh
+  # khóa ngẫu nhiên) làm token đã cấp mất hiệu lực cho tới khi mũ khởi động lại.
+  auth_key: "${XIAOZHI_AUTH_KEY}"
+  auth:
+    enabled: true
+    # Đây là danh sách thiết bị được BỎ QUA kiểm tra token, không phải whitelist.
+    # Phải ghi rõ [] để xóa thiết bị mẫu 11:22:33:44:55:66 của config gốc.
+    allowed_devices: []
+    # Thời hạn token (giây) = 30 ngày. Mỗi lần mũ khởi động, OTA cấp token mới.
+    expire_seconds: 2592000
+  # Dùng WebSocket thuần, không dùng MQTT/UDP gateway
+  mqtt_gateway: null
+  mqtt_signature_key: null
+  udp_gateway: null
+
+log:
+  # Thời gian có mili-giây (.SSS) để đo độ trễ (IT1); dòng [LAT] còn có t_ms riêng.
+  log_format: "<green>{time:YYMMDD HH:mm:ss.SSS}</green>[{version}_{selected_module}][<light-blue>{extra[tag]}</light-blue>]-<level>{level}</level>-<light-green>{message}</light-green>"
+  log_format_file: "{time:YYYY-MM-DD HH:mm:ss.SSS} - {version}_{selected_module} - {name} - {level} - {extra[tag]} - {message}"
+  # INFO (mặc định). DEBUG rất nhiều log (mỗi khung Opus một dòng), chỉ bật khi gỡ lỗi.
+  log_level: "${XIAOZHI_LOG_LEVEL}"
+  log_dir: tmp
+  log_file: "server.log"
+  data_dir: data
+
+# Xử lý audio trong bộ nhớ, không giữ file wav (dữ liệu ASR do service asr tự lưu: ASR_SAVE_DIR)
+delete_audio: true
+# Im lặng bao lâu (giây) thì chào tạm biệt (end_prompt) rồi đóng kết nối
+close_connection_no_voice_time: 120
+# Timeout mỗi request TTS (giây)
+tts_timeout: 15
+# Thời gian chờ mỗi lần gọi công cụ (giây); plugins.ask_expert.timeout_s phải nhỏ hơn
+tool_call_timeout: 30
+# Bộ đệm câu trả lời khi chỉ nghe thấy từ đánh thức (câu "Vâng, thưa ngài?"...)
+enable_wakeup_words_response_cache: true
+# Tắt câu chào sau khi đánh thức: bật sẽ bỏ ~2 giây audio đầu, hỏng lệnh nói một hơi (D15)
+enable_greeting: false
+enable_stop_tts_notify: false
+enable_websocket_ping: false
+# 0 = gửi audio đúng nhịp khung 60 ms (5 khung đầu gửi ngay)
+tts_audio_send_delay: 0
+
+# Từ đánh thức / câu thoát: so khớp CHÍNH XÁC, phân biệt hoa thường, sau khi xóa hết khoảng
+# trắng và dấu câu của câu nhận dạng -> các mục ở đây phải viết liền, không dấu câu (D15).
+wakeup_words:
+  - "Jarvis"
+  - "jarvis"
+  - "JARVIS"
+  - "giắcvít"
+  - "Giắcvít"
+  - "quảngia"
+  - "Quảngia"
+  - "Quảnggia"
+# Nói đúng một trong các câu này -> đóng kết nối ngay (không có lời chào)
+exit_commands:
+  - "tạmbiệt"
+  - "Tạmbiệt"
+  - "kếtthúc"
+  - "Kếtthúc"
+  - "goodbye"
+  - "Goodbye"
+  - "thatsall"
+  - "Thatsall"
+
+# Không dùng MCP endpoint bên ngoài
+mcp_endpoint: null
+
+# Mẫu hello của server. sample_rate = tốc độ Opus TTS gửi xuống mũ; bản vá
+# hello_sample_rate (D3) báo đúng con số này cho firmware (24 kHz).
+xiaozhi:
+  type: hello
+  version: 1
+  transport: websocket
+  audio_params:
+    format: opus
+    sample_rate: 24000
+    channels: 1
+    frame_duration: 60
+
+# Tùy chọn riêng của Jarvis (dùng bởi các bản vá trong server/xiaozhi/patches)
+jarvis:
+  # true = gửi dòng "% <tên công cụ>" lên màn hình mỗi lần LLM gọi công cụ (mặc định tắt)
+  tool_display: false
+
+# Tính cách (biến base_prompt trong prompts/jarvis-prompt.txt). Quy tắc chi tiết nằm trong template prompt.
+prompt: |
+  Bạn là J.A.R.V.I.S, trợ lý AI tích hợp trong mũ giáp kiểu Iron Man của ngài chủ nhân.
+  Phong cách: một quản gia người Anh lịch lãm, điềm tĩnh, tận tụy và chính xác, thỉnh thoảng hài hước nhẹ, tinh tế.
+  Ngài chủ nhân là người Việt và hay nói trộn tiếng Việt với tiếng Anh trong cùng một câu.
+  Qua các công cụ, bạn điều khiển được mặt nạ (hai servo), đèn mắt, một ngõ ra dự phòng, màn hình HUD và các tác vụ tùy biến của mũ; bạn không điều khiển được thiết bị nào khác.
+# Template prompt (đường dẫn tương đối với /opt/xiaozhi-esp32-server)
+prompt_template: prompts/jarvis-prompt.txt
+# Câu đọc khi LLM lỗi giữa chừng
+system_error_response: "Xin lỗi thưa ngài, hệ thống đang gặp sự cố, xin ngài thử lại sau."
+# Câu gửi cho LLM (như lời người dùng, không hiện lên màn hình) khi im lặng quá lâu
+end_prompt:
+  enable: true
+  prompt: |
+    Ngài chủ nhân đã im lặng một lúc. Hãy nói một câu chào tạm biệt thật ngắn gọn, lịch lãm bằng tiếng Việt và trả lời trực tiếp, không gọi công cụ.
+
+selected_module:
+  VAD: SileroVAD
+  ASR: OpenaiASR
+  LLM: JarvisLLM
+  TTS: JarvisTTS
+  Memory: nomem
+  Intent: function_call
+
+VAD:
+  SileroVAD:
+    # Khoảng lặng (ms) để coi là nói xong, từ biến VAD_MIN_SILENCE_MS (mặc định 700; nên 600-800).
+    # Chỉ dùng ở chế độ wake word / tự động; PTT kết thúc câu khi thả nút (D28).
+    min_silence_duration_ms: "${VAD_MIN_SILENCE_MS}"
+
+ASR:
+  OpenaiASR:
+    type: openai
+    # Service asr nội bộ không cần khóa, nhưng xiaozhi bắt buộc chuỗi khác null
+    api_key: "none"
+    base_url: http://asr:9000/v1/audio/transcriptions
+    model_name: whisper-large-v3
+    output_dir: tmp/asr
+    # Thời gian chờ tối đa (giây) cho một lần nhận dạng (bản vá asr_openai_timeout); quá hạn -> câu rỗng
+    timeout_s: 30
+
+LLM:
+  JarvisLLM:
+    type: openai
+    base_url: http://litellm:4000/v1
+    model_name: jarvis-main
+    api_key: "${LITELLM_MASTER_KEY}"
+    max_tokens: 300
+    temperature: 0.6
+    # Không đặt top_p / frequency_penalty (D25). read phải lớn hơn tổng thời gian LiteLLM
+    # thử model local (timeout 15 s, 1 lần thử lại) rồi chuyển sang cloud.
+    timeout:
+      connect: 3
+      read: 40
+
+TTS:
+  JarvisTTS:
+    # Provider streaming core/providers/tts/jarvis_stream.py (SV-B) -> tts-router
+    type: jarvis_stream
+    api_url: http://tts-router:8880/v1/audio/speech
+    api_key: "none"
+    voice: "${TTS_VOICE}"
+    sample_rate: 24000
+    output_dir: tmp/tts
+
+Intent:
+  function_call:
+    type: function_call
+    # Tên module: helmet_tasks mở rộng thành mọi task_*; handle_exit_intent và get_lunar
+    # luôn được thêm tự động (mô tả ghi đè ở mục plugins bên dưới).
+    functions:
+      - helmet_tasks
+      - ask_expert
+
+Memory:
+  nomem:
+    type: nomem
+
+plugins:
+  # KHÔNG thêm khóa description vào helmet_tasks: nó sẽ ghi đè mô tả của mọi task_*.
+  helmet_tasks:
+    tasks_file: /opt/jarvis/tasks/tasks.yaml
+    schema_file: /opt/jarvis/tasks/schema.json
+    quick_phrase_threshold: 90
+    merge_window_ms: 80
+    mcp_timeout_s: 5
+  ask_expert:
+    base_url: http://litellm:4000/v1
+    model: jarvis-cloud
+    api_key: "${LITELLM_MASTER_KEY}"
+    timeout_s: 20
+    max_tokens: 400
+  # Hai công cụ luôn được nạp: mô tả song ngữ thay cho mô tả tiếng Trung (giống strings_vi.json)
+  handle_exit_intent:
+    description: "Gọi khi người dùng muốn kết thúc cuộc trò chuyện hoặc chào tạm biệt (tạm biệt, thôi nhé, goodbye, that's all). / Call when the user wants to end the conversation or says goodbye."
+  get_lunar:
+    description: "Tra âm lịch cho một ngày (ngày âm, can chi, tiết khí, con giáp, việc nên làm/kiêng kỵ). Chỉ gọi khi người dùng hỏi về âm lịch. Kết quả trả về bằng tiếng Trung: hãy dịch và trả lời ngắn gọn bằng ngôn ngữ người dùng. / Lunar-calendar lookup for a date; call only for lunar-calendar questions. The result is Chinese text: translate it and answer briefly in the user's language."
