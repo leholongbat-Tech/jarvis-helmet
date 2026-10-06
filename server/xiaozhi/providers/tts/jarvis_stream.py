@@ -83,12 +83,18 @@ def _protected_dot(text: str, i: int, run_end: int, seg_start: int) -> bool:
     return False
 
 
+def _has_non_ascii_letter(text: str) -> bool:
+    return any(ord(ch) > 127 and ch.isalpha() for ch in text)
+
+
 def find_sentence_end(text: str, final: bool = False) -> int:
     """Index just past the first sentence boundary in `text`, or -1 if there is none yet.
 
     A run of . ! ? ; : (plus closing quotes) ends a sentence only when whitespace follows; a
     run at the very end is undecidable while more text may come ("5." -> "5.02") and counts
-    only when `final` is True. Newlines and CJK terminal marks always end a sentence.
+    only when `final` is True. Newlines and CJK terminal marks always end a sentence. An ASCII
+    ':' or ';' ends one only after a non-ASCII (Vietnamese) letter, as in find_first_comma: a
+    pure-ASCII "Sir, the battery level is: 85%." stays whole for the English voice.
     """
     n = len(text)
     i = 0
@@ -109,6 +115,9 @@ def find_sentence_end(text: str, final: bool = False) -> int:
                 return n if final else -1
             if text[j].isspace():
                 if c == "." and j == i + 1 and _protected_dot(text, i, j, 0):
+                    i = j
+                    continue
+                if c in ":;" and not _has_non_ascii_letter(text[:i]):
                     i = j
                     continue
                 return j

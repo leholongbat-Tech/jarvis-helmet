@@ -69,6 +69,9 @@ class FakeState:
     requests: List[dict] = field(default_factory=list)
     cancelled: bool = False
     finished: bool = False
+    # Failures inside synthesis after a 200: "break" (connection drops before any audio),
+    # "empty" (no audio at all), "break_after_first" (drops after the first chunk).
+    mid_stream: str = ""
 
 
 def fake_backend(state: FakeState, kind: str) -> FastAPI:
@@ -105,7 +108,14 @@ def fake_backend(state: FakeState, kind: str) -> FastAPI:
 
         async def gen():
             try:
+                if state.mid_stream == "break":
+                    raise RuntimeError("synthesis crashed")
+                if state.mid_stream == "empty":
+                    return
                 yield pcm[: state.first_chunk]
+                if state.mid_stream == "break_after_first":
+                    await asyncio.sleep(0.05)
+                    raise RuntimeError("synthesis crashed")
                 if state.delay:
                     await asyncio.sleep(state.delay)
                 rest = pcm[state.first_chunk:]
@@ -148,10 +158,13 @@ def make_router():
     def _make(vieneu_url: str, kokoro_url: str = "", **kw) -> str:
         settings = Settings(vieneu_url=vieneu_url, kokoro_url=kokoro_url, voice="Hải Đăng",
                             health_interval=3600, sentence_gap_ms=0, **kw)
-        srv = Served(create_app(settings))
+        app = create_app(settings)
+        srv = Served(app)
         servers.append(srv)
+        _make.routers[srv.url] = app.state.router
         return srv.url
 
+    _make.routers = {}
     yield _make
     for srv in servers:
         srv.stop()
@@ -305,6 +318,39 @@ def test_kokoro_request_failure_falls_back_to_vieneu(vieneu, kokoro, make_router
     assert r.status_code == 200 and r.headers["x-tts-route"] == "vieneu"
     assert len(kokoro.requests) == 1 and len(vieneu.requests) == 1
     assert vieneu.requests[0]["voice"] == "Hải Đăng"
+
+
+@pytest.mark.parametrize("mode", ["break", "empty"])
+def test_kokoro_failing_inside_synthesis_falls_back_to_vieneu(vieneu, kokoro, make_router, mode):
+    """audio-services-5: 200 + no audio (OOM on the shared GPU) while /health stays 200."""
+    url = make_router(vieneu.url, kokoro.url, english_engine="kokoro")
+    kokoro.mid_stream = mode
+    r = speak(url, input="Good evening, sir. All systems are online.", sample_rate=24000)
+    assert r.status_code == 200
+    assert len(kokoro.requests) == 1 and len(vieneu.requests) == 1
+    assert len(r.content) == len(tone(24000, vieneu.seconds))  # the sentence was still spoken
+    assert make_router.routers[url].kokoro.healthy is False
+
+
+def test_kokoro_breaking_after_audio_is_not_repeated(vieneu, kokoro, make_router):
+    url = make_router(vieneu.url, kokoro.url, english_engine="kokoro")
+    kokoro.mid_stream = "break_after_first"
+    r = speak(url, input="Good evening, sir. All systems are online.", sample_rate=24000)
+    assert r.status_code == 200
+    assert len(r.content) == kokoro.first_chunk  # heard part of it: no second voice on top
+    assert len(kokoro.requests) == 1 and not vieneu.requests
+    assert make_router.routers[url].kokoro.healthy is False
+
+
+def test_english_sentence_with_colon_stays_english(vieneu, kokoro, make_router):
+    """audio-services-4: no voice switch and no Vietnamese number inside an English reply."""
+    url = make_router(vieneu.url, kokoro.url, english_engine="kokoro")
+    r = speak(url, input="Sir, the battery level is: 85%.")
+    assert r.headers["x-tts-route"] == "kokoro" and not vieneu.requests
+    assert kokoro.requests[0]["input"] == "Sir, the battery level is: eighty five percent."
+    r = speak(url, input="All systems are online, sir. 42.")
+    assert r.headers["x-tts-route"] == "kokoro"  # a fragment without letters keeps the language
+    assert kokoro.requests[1]["input"].endswith("forty two.")
 
 
 def test_language_hint_forces_vietnamese(vieneu, kokoro, make_router):

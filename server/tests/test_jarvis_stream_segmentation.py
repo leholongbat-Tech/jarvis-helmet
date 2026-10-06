@@ -44,6 +44,9 @@ def stream(text, chunks=None, **kw):
     ("Ngài cần gì không? Tôi sẵn sàng!", ["Ngài cần gì không?", "Tôi sẵn sàng!"]),
     ("Thật sao?! Tuyệt vời.", ["Thật sao?!", "Tuyệt vời."]),
     ("Lưu ý: pin yếu; hãy sạc ngay.", ["Lưu ý:", "pin yếu;", "hãy sạc ngay."]),
+    # ASCII ':' / ';' split only Vietnamese text: an English sentence keeps one voice.
+    ("Sir, the battery level is: 85%. Mặt nạ đã mở.", ["Sir, the battery level is: 85%.", "Mặt nạ đã mở."]),
+    ("Status: all systems online; eyes on.", ["Status: all systems online; eyes on."]),
     ("Dòng một\nDòng hai", ["Dòng một", "Dòng hai"]),
     ("Để tôi xem... à, đây rồi.", ["Để tôi xem...", "à, đây rồi."]),
     ("Để tôi xem… à, đây rồi.", ["Để tôi xem…", "à, đây rồi."]),

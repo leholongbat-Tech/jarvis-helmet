@@ -139,11 +139,15 @@ class Router:
         language = (language or "auto").lower()
         groups: List[Group] = []
         use_kokoro = self.kokoro_usable()
+        prev_lang = ""
         for sentence in split_sentences(strip_markup(text)):
             if language in ("en", "vi"):
                 lang = language
+            elif prev_lang and not any(ch.isalpha() for ch in sentence):
+                lang = prev_lang  # "42." after an English sentence is read in English, same voice
             else:
                 lang = "en" if self.normalizer.is_english(sentence) else "vi"
+            prev_lang = lang
             spoken = self.normalizer.en(sentence) if lang == "en" else self.normalizer.vi(sentence)
             if not has_speakable(spoken):
                 continue
@@ -222,8 +226,19 @@ class Router:
         t0 = time.perf_counter()
         ttfb: Optional[float] = None
         nbytes = 0
+        sent = 0  # bytes of the current group
         stream: Optional[OpenStream] = first
         errors = 0
+
+        async def relay(s: OpenStream) -> AsyncIterator[bytes]:
+            nonlocal ttfb, nbytes, sent
+            async for pcm in self._pcm(s, rate):
+                if ttfb is None:
+                    ttfb = time.perf_counter() - t0
+                nbytes += len(pcm)
+                sent += len(pcm)
+                yield pcm
+
         try:
             if prefix:
                 yield prefix
@@ -240,18 +255,39 @@ class Router:
                         gap = silence(rate, self.settings.sentence_gap_ms)
                         nbytes += len(gap)
                         yield gap
+                sent = 0
+                failure = ""
                 try:
-                    async for pcm in self._pcm(stream, rate):
-                        if ttfb is None:
-                            ttfb = time.perf_counter() - t0
-                        nbytes += len(pcm)
+                    async for pcm in relay(stream):
                         yield pcm
                 except httpx.HTTPError as exc:
-                    log.error("%s: %s stream broke: %s", rid, group.engine, exc)
-                    errors += 1
+                    failure = f"stream broke: {exc}"
                 finally:
                     await _close_shielded(stream)
                     stream = None
+                if group.engine == "kokoro" and (failure or not sent):
+                    # Kokoro can fail inside synthesis (OOM on the shared GPU) while /health stays
+                    # 200: mark it down and, if nothing was heard yet, say the group with VieNeu.
+                    self.kokoro.mark_failed(failure or "empty audio")
+                    if not sent:
+                        log.warning("%s: kokoro %s; group %d spoken by vieneu", rid, failure or "sent no audio",
+                                    idx)
+                        group.engine = "vieneu"
+                        failure = ""
+                        try:
+                            stream = await self.open_vieneu(group.text, self.vieneu_voice(voice), rate)
+                            async for pcm in relay(stream):
+                                yield pcm
+                        except BackendError as exc:
+                            failure = str(exc)
+                        except httpx.HTTPError as exc:
+                            failure = f"stream broke: {exc}"
+                        finally:
+                            await _close_shielded(stream)
+                            stream = None
+                if failure:
+                    log.error("%s: %s %s", rid, group.engine, failure)
+                    errors += 1
         finally:
             await _close_shielded(stream)
             total = time.perf_counter() - t0

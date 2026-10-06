@@ -3,7 +3,9 @@
 A boundary is a newline, a CJK terminal mark, or a run of . ! ? ; : (plus closing quotes)
 followed by whitespace. Not boundaries: decimals and times (5.02, 3,5, 14:32 - no space after
 the mark), initialisms followed by a lowercase word (J.A.R.V.I.S. đang ...), known abbreviations
-(Mr., TP., v.v. ...), single capital initials and list markers ("1. ").
+(Mr., TP., v.v. ...), single capital initials, list markers ("1. ") and an ASCII ':' or ';' in a
+sentence that has no non-ASCII letter yet ("Sir, the battery level is: 85%." stays one English
+sentence; "Lưu ý: pin yếu" still splits).
 The same rules are used by the xiaozhi provider's streaming segmenter (jarvis_stream.py).
 """
 from __future__ import annotations
@@ -71,6 +73,9 @@ def find_boundary(text: str, start: int = 0, final: bool = False) -> int:
                 return n if final else -1
             if text[j].isspace():
                 if c == "." and j == i + 1 and _protected_dot(text, i, j, start):
+                    i = j
+                    continue
+                if c in ":;" and not any(ord(ch) > 127 and ch.isalpha() for ch in text[start:i]):
                     i = j
                     continue
                 return j

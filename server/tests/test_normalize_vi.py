@@ -170,6 +170,26 @@ def test_unit_letters_need_a_number():
     assert normalize_vi("Chế độ 5 mode") == "Chế độ năm mode"
 
 
+@pytest.mark.parametrize("text,expected", [
+    # After a designator a single letter is a label (audio-services-7), not amperes/grams.
+    ("Tôi ở phòng 12A.", "Tôi ở phòng mười hai A."),
+    ("lớp 12A", "lớp mười hai A"),
+    ("Tầng 5A.", "Tầng năm A."),
+    ("căn 3A", "căn ba A"),
+    ("quốc lộ 1A", "quốc lộ một A"),
+    ("mạng 4g", "mạng bốn G"),
+    ("Pin 2A", "Pin hai ampe"),
+    ("dòng 2A", "dòng hai ampe"),
+])
+def test_designator_letters_are_not_units(text, expected):
+    assert normalize_vi(text) == expected
+
+
+def test_english_designator_letters_are_not_units():
+    assert normalize_en("Room 12A is ready.") == "Room twelve A is ready."
+    assert normalize_en("The current is 2A.") == "The current is two amps."
+
+
 # --- times and dates ------------------------------------------------------------------------
 
 @pytest.mark.parametrize("text,expected", [
@@ -185,6 +205,14 @@ def test_unit_letters_need_a_number():
     ("ngày 6/10", "ngày sáu tháng mười"),
     ("Ngày 25/12/2026", "Ngày hai mươi lăm tháng mười hai năm hai nghìn không trăm hai mươi sáu"),
     ("10/2026", "tháng mười năm hai nghìn không trăm hai mươi sáu"),
+    # "tháng M/YYYY" and "ngày YYYY-MM-DD" keep a single cue word (audio-services-6).
+    ("Dự kiến ra mắt vào tháng 3/2026.",
+     "Dự kiến ra mắt vào tháng ba năm hai nghìn không trăm hai mươi sáu."),
+    ("từ tháng 1/2024 đến tháng 6/2024",
+     "từ tháng một năm hai nghìn không trăm hai mươi tư đến tháng sáu năm hai nghìn không trăm hai mươi tư"),
+    ("Tháng 10/2026", "Tháng mười năm hai nghìn không trăm hai mươi sáu"),
+    ("Q1/2025", "quý một năm hai nghìn không trăm hai mươi lăm"),
+    ("ngày 2026-10-06", "ngày sáu tháng mười năm hai nghìn không trăm hai mươi sáu"),
     ("tháng 4", "tháng tư"),
     ("1/2 quãng đường", "một phần hai quãng đường"),
 ])
@@ -215,6 +243,15 @@ def test_full_sentence_time_and_date():
     ("50k", "năm mươi nghìn"),
     ("$5", "năm đô la"),
     ("0912345678", "không chín một hai ba bốn năm sáu bảy tám"),
+    # Grouped phone numbers: digit by digit, a pause per group (audio-services-8).
+    ("Số điện thoại: 0912 345 678.", "Số điện thoại: không chín một hai, ba bốn năm, sáu bảy tám."),
+    ("0912.345.678", "không chín một hai, ba bốn năm, sáu bảy tám"),
+    ("0912-345-678", "không chín một hai, ba bốn năm, sáu bảy tám"),
+    ("Hotline 1900 6060.", "Hotline một chín không không, sáu không sáu không."),
+    ("028 3822 1234", "không hai tám, ba tám hai hai, một hai ba bốn"),
+    ("1 000 000", "một triệu"),
+    ("Giá 2 500 đồng", "Giá hai nghìn năm trăm đồng"),
+    ("ngày 1900-01-01", "ngày một tháng một năm một nghìn chín trăm"),
     ("ESP32", "ESP ba hai"),
     ("v2.5.0", "v hai chấm năm chấm không"),
     ("2+2=4", "hai cộng hai bằng bốn"),

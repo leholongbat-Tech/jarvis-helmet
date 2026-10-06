@@ -447,6 +447,20 @@ _ARITH_CHAIN_RE = re.compile(
 _ARITH_MINUS_RE = re.compile(r"(?<=\d)[ \t]*[-−–][ \t]*(?=\d)")
 _WORD_BEFORE_RE = re.compile(r"([^\W\d_]+)[^\w]*$")
 _WORD_AFTER_RE = re.compile(r"^[^\w]*([^\W\d_]+)")
+# "phòng 12A", "lớp 10A", "quốc lộ 1A", "mạng 4g": after these words a single-letter "unit" is a
+# label, not amperes/volts/grams.
+_VI_DESIGNATORS = frozenset({
+    "phòng", "tầng", "lớp", "căn", "nhà", "số", "khu", "dãy", "lô", "block", "lộ", "mạng", "tòa",
+    "toà", "cổng", "bàn", "ghế", "hẻm", "ngõ", "ngách", "kiệt", "sảnh", "tuyến", "mã", "cửa", "xe",
+})
+_EN_DESIGNATORS = frozenset({
+    "room", "floor", "class", "block", "gate", "flat", "apartment", "unit", "suite", "seat",
+    "platform", "route", "highway", "level", "bay", "building", "number", "no",
+})
+# Phone numbers written in groups: 0912 345 678, 0912.345.678, 028 3822 1234, 1900 6060.
+_PHONE_RE = re.compile(r"(?<![\d.,])(?:0\d{2,3}(?:[ .-]\d{2,4}){1,3}|1[89]00(?:[ .-]\d{3,4}){1,2})(?![\d])")
+# Space as thousands separator: 1 000 000, 2 500.
+_SPACE_THOUSANDS_RE = re.compile(r"(?<![\d.,])\d{1,3}(?: \d{3})+(?![\d]|[.,]\d)")
 
 # ---------------------------------------------------------------------------------------------
 # English-sentence detection
@@ -590,7 +604,9 @@ class Normalizer:
         if not text:
             return ""
         text = self._abbreviations(text, self._vi_abbr_re, self.cfg.vi_abbreviations)
-        text = re.sub(r"(?<!\d)(\d{4})-(\d{1,2})-(\d{1,2})(?!\d)", self._vi_iso_date, text)
+        text = self._phones(text, vi_digits)
+        text = _SPACE_THOUSANDS_RE.sub(lambda m: m.group(0).replace(" ", ""), text)
+        text = re.sub(r"(?:\b(ngày|Ngày)\s+)?(?<!\d)(\d{4})-(\d{1,2})-(\d{1,2})(?!\d)", self._vi_iso_date, text)
         text = re.sub(r"(?:\b(ngày|Ngày)\s+)?(?<![\d/.])(\d{1,2})([/.-])(\d{1,2})\3(\d{4})(?![\d/])",
                       self._vi_dmy_date, text)
         text = self._arithmetic(text, " trừ ")
@@ -599,7 +615,9 @@ class Normalizer:
         text = re.sub(r"(?<![\w.,])([01]?\d|2[0-4])h([0-5]\d)?(?![\w])", self._vi_time_h, text)
         text = re.sub(r"(?:\b(ngày|Ngày)\s+)?(?<![\d/.,])(\d{1,2})/(\d{1,2})(?![\d/]|[.,]\d)",
                       self._vi_dm_date, text)
-        text = re.sub(r"(?<![\d/.,])(\d{1,2})/(\d{4})(?![\d/])", self._vi_month_year, text)
+        text = re.sub(r"\b[Qq]([1-4])\s?/\s?(\d{4})(?![\d/])",
+                      lambda m: f"quý {self._int(int(m.group(1)))} năm {self._int(int(m.group(2)))}", text)
+        text = re.sub(r"(?:\b([Tt]háng)\s+)?(?<![\w/.,])(\d{1,2})/(\d{4})(?![\d/])", self._vi_month_year, text)
         text = re.sub(r"\$\s?(" + _NUM + r")", lambda m: f"{self._vi_number(m.group(1))} đô la", text)
         text = re.sub(r"(?<![\w.,)])[-−–](?=\d)", "âm ", text)
         text = re.sub(r"\b(thứ|Thứ|hạng|Hạng)\s+(\d{1,2})(?!\d|[.,]\d)", self._vi_ordinal, text)
@@ -619,6 +637,7 @@ class Normalizer:
         if not text:
             return ""
         text = self._abbreviations(text, self._en_abbr_re, self.cfg.en_abbreviations)
+        text = self._phones(text, en_digits)
         text = re.sub(r"(?<!\d)(\d{4})-(\d{1,2})-(\d{1,2})(?!\d)",
                       lambda m: self._en_date(int(m.group(3)), int(m.group(2)), int(m.group(1)), m.group(0)), text)
         text = re.sub(r"(?<![\d/.])(\d{1,2})([/.-])(\d{1,2})\2(\d{4})(?![\d/])",
@@ -653,6 +672,17 @@ class Normalizer:
             return out
 
         return regex.sub(repl, text)
+
+    @staticmethod
+    def _phones(text: str, digits) -> str:
+        """Read grouped phone numbers digit by digit, a short pause between the groups."""
+        def repl(m: "re.Match[str]") -> str:
+            groups = re.split(r"[ .-]", m.group(0))
+            if not 8 <= sum(len(g) for g in groups) <= 11:
+                return m.group(0)
+            return ", ".join(digits(g) for g in groups)
+
+        return _PHONE_RE.sub(repl, text)
 
     @staticmethod
     def _arithmetic(text: str, minus: str) -> str:
@@ -741,7 +771,10 @@ class Normalizer:
         return self._vi_number(token) + (" " if after.isalpha() else "")
 
     def _vi_unit(self, m: "re.Match[str]") -> str:
-        return f"{self._vi_number(m.group(1))} {VI_UNITS[m.group(2)]}"
+        number, unit = m.group(1), m.group(2)
+        if len(unit) == 1 and unit.isalpha() and self._neighbour_words(m)[0] in _VI_DESIGNATORS:
+            return f"{self._vi_number(number)} {unit.upper()}"  # "phòng 12A" -> "phòng mười hai A"
+        return f"{self._vi_number(number)} {VI_UNITS[unit]}"
 
     def _vi_month(self, month: int) -> str:
         return "tư" if month == 4 else self._int(month)
@@ -758,9 +791,9 @@ class Normalizer:
         return out
 
     def _vi_iso_date(self, m: "re.Match[str]") -> str:
-        year, month, day = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        year, month, day = int(m.group(2)), int(m.group(3)), int(m.group(4))
         if 1 <= month <= 12 and 1 <= day <= 31:
-            return self._vi_date_words(day, month, year, None)
+            return self._vi_date_words(day, month, year, m.group(1))
         return m.group(0)
 
     def _vi_dmy_date(self, m: "re.Match[str]") -> str:
@@ -781,9 +814,9 @@ class Normalizer:
         return m.group(0)
 
     def _vi_month_year(self, m: "re.Match[str]") -> str:
-        month, year = int(m.group(1)), int(m.group(2))
+        cue, month, year = m.group(1), int(m.group(2)), int(m.group(3))
         if 1 <= month <= 12:
-            return f"tháng {self._vi_month(month)} năm {self._int(year)}"
+            return f"{cue or 'tháng'} {self._vi_month(month)} năm {self._int(year)}"
         return m.group(0)
 
     def _vi_time(self, m: "re.Match[str]") -> str:
@@ -829,6 +862,8 @@ class Normalizer:
 
     def _en_unit(self, m: "re.Match[str]") -> str:
         number = m.group(1)
+        if len(m.group(2)) == 1 and m.group(2).isalpha() and self._neighbour_words(m)[0] in _EN_DESIGNATORS:
+            return f"{self._en_number(number)} {m.group(2).upper()}"  # "Room 12A" -> "Room twelve A"
         singular, plural = EN_UNITS[m.group(2)]
         return f"{self._en_number(number)} {singular if number == '1' else plural}"
 

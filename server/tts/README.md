@@ -99,7 +99,9 @@ Healthcheck gọi `/health` (chỉ 200 khi VieNeu trả lời).
    thành dấu phẩy), emoji và ký tự điều khiển. Xuống dòng được giữ (là ranh giới câu).
 2. **Tách câu** (`textsplit.split_sentences`): ranh giới là xuống dòng, dấu câu CJK, hoặc chuỗi `. ! ? ; : …` theo sau là khoảng
    trắng. Không tách trong số thập phân/giờ (`5.02`, `3,5`, `14:32`), sau chữ viết tắt (`TP.`, `Mr.`, `v.v.`…), sau chữ tắt dạng
-   `J.A.R.V.I.S.` khi từ tiếp theo viết thường, sau chữ cái đầu tên viết hoa, hoặc số thứ tự đầu dòng (`1. `).
+   `J.A.R.V.I.S.` khi từ tiếp theo viết thường, sau chữ cái đầu tên viết hoa, hoặc số thứ tự đầu dòng (`1. `). Dấu `:` và `;`
+   ASCII chỉ tách câu khi phần đã đọc có chữ tiếng Việt có dấu: `Sir, the battery level is: 85%.` vẫn là một câu tiếng Anh
+   (không đổi giọng giữa câu, số đọc bằng tiếng Anh), còn `Lưu ý: pin yếu` vẫn tách.
 3. **Nhận ngôn ngữ từng câu** (mục 2.3) rồi **chuẩn hóa** câu đó bằng `Normalizer.vi()` hoặc `Normalizer.en()` (mục 2.2).
    Câu không còn chữ/số nào để đọc bị bỏ.
 4. **Gom nhóm**: các câu liền nhau cùng engine được ghép thành một request tới backend.
@@ -132,10 +134,14 @@ Quy tắc chính:
 - Đọc số kiểu miền Bắc: 21 "hai mươi mốt", 24 "hai mươi tư", 25 "hai mươi lăm", 105 "một trăm linh năm".
   `TTS_NUM_ZERO_TENS=lẻ` → "một trăm lẻ năm"; `TTS_NUM_THOUSAND=ngàn` → "một ngàn".
 - Dấu phân cách: một dấu `.` hoặc `,` theo sau **đúng 3 chữ số** là phân cách hàng nghìn (`1.250`, `1,000`); còn lại là dấu
-  thập phân (`5.02`, `3,5`). Số bắt đầu bằng `0` đọc từng chữ số (số điện thoại, mã).
+  thập phân (`5.02`, `3,5`). Số bắt đầu bằng `0` đọc từng chữ số (số điện thoại, mã). Số điện thoại viết theo nhóm
+  (`0912 345 678`, `0912.345.678`, `028 3822 1234`, `1900 6060`) đọc từng chữ số, ngắt nghỉ giữa các nhóm; khoảng trắng
+  làm dấu phân cách hàng nghìn (`1 000 000`) được bỏ trước khi đọc ("một triệu").
 - Đơn vị sau số (V, mV, A, mA, mAh, W, kWh, °C, %, km/h, m/s, km, cm, mm, kg, g, GB, MB, Hz, kHz, ms, dB, đ/VNĐ, USD, `$`…),
-  ngày (`06/10/2026`, `2026-10-06`, `6/10`, `10/2026`), giờ (`14:32`, `7h30`), khoảng (`20-30%` → "đến"), dấu `+ × = /`
-  giữa hai số, số âm, `thứ 2`/`hạng 1`, `tháng 4` → "tháng tư".
+  ngày (`06/10/2026`, `2026-10-06`, `6/10`, `10/2026`, `tháng 3/2026`, `Q1/2025` → "quý một năm …"), giờ (`14:32`,
+  `7h30`), khoảng (`20-30%` → "đến"), dấu `+ × = /` giữa hai số, số âm, `thứ 2`/`hạng 1`, `tháng 4` → "tháng tư". Sau các từ
+  như phòng, tầng, lớp, căn, quốc lộ, mạng… một chữ cái đơn là ký hiệu chứ không phải đơn vị: `phòng 12A` → "phòng mười hai
+  A", `mạng 4g` → "mạng bốn G" (còn `dòng 2A` vẫn là "hai ampe").
 - Viết tắt có sẵn (khớp nguyên từ, phân biệt hoa thường): `Jarvis`/`JARVIS`/`J.A.R.V.I.S` → "Giắc vít", `AI`, `WiFi`/`Wi-Fi`,
   `USB`, `OK`/`okay`, `LED`, `HUD`, `GPS`, `SOS`, `TV`, `GPU`, `CPU`, `PTT`, `Bluetooth`, `v.v.`, `TP.`.
 - **Thêm/ghi đè viết tắt**: file JSON `{"vi": {"ESP": "i ét pi"}, "en": {"ESP": "E S P"}}` (hoặc phẳng `{"ESP": "i ét pi"}` cho
@@ -170,8 +176,11 @@ Anh", và số từ tiếng Anh ≥ `TTS_ENGLISH_MIN_RATIO` (0,6) × (từ Anh +
 
 - Câu tiếng Anh dùng `Normalizer.en()` (số, đơn vị, giờ, ngày đọc bằng tiếng Anh) và được gửi tới **Kokoro chỉ khi**
   `TTS_ENGLISH_ENGINE=kokoro` **và** Kokoro đang healthy; ngược lại vẫn gửi VieNeu (VieNeu đọc được tiếng Anh, giọng lơ lớ hơn).
-- Kokoro lỗi lúc mở stream → router đánh dấu Kokoro down, đọc nhóm đó bằng VieNeu; vòng kiểm tra sức khỏe
-  (`TTS_HEALTH_INTERVAL`, 10 s) bật lại Kokoro khi nó trả lời.
+- Câu không có chữ cái nào (ví dụ `42.` hay `85%.` đứng riêng) theo ngôn ngữ và engine của câu liền trước trong cùng request.
+- Kokoro lỗi lúc mở stream, hoặc trả 200 rồi đứt kết nối / không có âm thanh (ví dụ hết VRAM khi dùng chung GPU, trong khi
+  `/health` vẫn 200) → router đánh dấu Kokoro down và, nếu nhóm đó chưa phát ra âm thanh nào, đọc lại nhóm đó bằng VieNeu.
+  Nhóm đã phát được một phần thì không đọc lại (tránh nghe hai lần). Vòng kiểm tra sức khỏe (`TTS_HEALTH_INTERVAL`, 10 s)
+  bật lại Kokoro khi nó trả lời.
 - Trường mở rộng `language` trong request (`auto` mặc định, `vi`, `en`) ép ngôn ngữ cho mọi câu.
 
 ### 2.4 Âm thanh: PCM 24 kHz streaming
@@ -497,8 +506,9 @@ Dùng khi câu trả lời **toàn tiếng Anh** mà VieNeu đọc lơ lớ. Câ
    `status: "degraded"`, câu tiếng Anh tạm đọc bằng VieNeu). Chạy `bench.py --only 10,11,12,13`: cột `route` phải là `kokoro`.
 
 Ghi chú: image `ghcr.io/remsky/kokoro-fastapi-gpu:v0.9.0-cu128` (model đóng sẵn trong image, ra 24 kHz), cần thêm khoảng 3 GB
-VRAM; giọng Anh-Anh nam: `bm_george`, `bm_fable`, `bm_lewis`, `bm_daniel`. Kokoro có tôn trọng `speed`. Kokoro lỗi giữa chừng
-→ tự quay về VieNeu (mục 2.3). Tắt: đặt lại `TTS_ENGLISH_ENGINE=vieneu`, tạo lại `tts-router`, rồi
+VRAM; giọng Anh-Anh nam: `bm_george`, `bm_fable`, `bm_lewis`, `bm_daniel`. Kokoro có tôn trọng `speed`. Kokoro lỗi trước khi
+phát ra âm thanh (kể cả khi đã trả 200) → nhóm câu đó được đọc bằng VieNeu; lỗi khi đã phát một phần → phần còn lại bị mất,
+Kokoro bị đánh dấu down tới lần kiểm tra sức khỏe sau (mục 2.3). Tắt: đặt lại `TTS_ENGLISH_ENGINE=vieneu`, tạo lại `tts-router`, rồi
 `docker compose --profile english-tts stop kokoro`.
 
 ---
