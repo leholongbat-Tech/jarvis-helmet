@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  python:
+    name: Python tests (server + tools)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install system libraries
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libsndfile1
+      - name: Install test dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - name: Upstream xiaozhi-esp32-server v0.9.7 (patch and template tests)
+        run: git clone --depth 1 --branch v0.9.7 https://github.com/xinnan-tech/xiaozhi-esp32-server "$RUNNER_TEMP/xiaozhi-esp32-server"
+      - name: pytest
+        env:
+          XIAOZHI_SRC: ${{ runner.temp }}/xiaozhi-esp32-server/main/xiaozhi-server
+        run: >
+          python -m pytest -q
+          server/tests server/scripts/tests server/litellm/tests
+          tools/tests tools/wakeword/tests
+      - name: Validate tasks.yaml and the shared sequence fixtures
+        run: |
+          python tools/tasks_cli.py validate
+          python tools/tasks_cli.py fixtures
+      - name: Patches apply cleanly and are idempotent
+        run: |
+          cp -r "$RUNNER_TEMP/xiaozhi-esp32-server/main/xiaozhi-server" "$RUNNER_TEMP/patched"
+          python server/xiaozhi/patches/apply_patches.py --root "$RUNNER_TEMP/patched"
+          python server/xiaozhi/patches/apply_patches.py --root "$RUNNER_TEMP/patched" --check
+      - name: Vietnamese font coverage
+        run: python tools/fonts/check_glyphs.py firmware/main/boards/jarvis-helmet/font_jarvis_*.c
+
+  shellcheck:
+    name: Shell scripts
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: >
+          shellcheck -x
+          server/scripts/*.sh server/cloudflared/*.sh server/ollama/*.sh
+          server/tts/vieneu/*.sh tools/*.sh tools/wakeword/*.sh
+
+  firmware-host-tests:
+    name: Firmware host unit tests
+    runs-on: ubuntu-24.04
+    container: espressif/idf:v6.1
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          cmake -S firmware/tests/host -B build-host -G Ninja
+          cmake --build build-host
+          ctest --test-dir build-host --output-on-failure
+
+  firmware-build:
+    name: Firmware build (${{ matrix.name }})
+    runs-on: ubuntu-24.04
+    container: espressif/idf:v6.1
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: jarvis-helmet
+            args: --name jarvis-helmet --language vi-VN --wake-word wn9_jarvis_tts
+          - name: jarvis-helmet-multinet
+            args: --name jarvis-helmet-multinet --language vi-VN
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        working-directory: firmware
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          . "$IDF_PATH/export.sh"
+          python scripts/build.py jarvis-helmet ${{ matrix.args }}
+      - name: Upstream build-script tests
+        if: matrix.name == 'jarvis-helmet'
+        working-directory: firmware
+        run: |
+          . "$IDF_PATH/export.sh"
+          python -m pip install -q pytest
+          python -m pytest scripts/tests -q
+      - uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{ matrix.name }}
+          path: |
+            firmware/build/*.bin
+            firmware/build/flasher_args.json
+            firmware/build/bootloader/bootloader.bin
+            firmware/build/partition_table/partition-table.bin
+          if-no-files-found: warn

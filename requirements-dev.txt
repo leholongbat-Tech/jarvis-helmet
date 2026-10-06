@@ -1,0 +1,21 @@
+# Python packages for the repo's tests and tools (server/tests, tools/tests, tools/*.py).
+# Runtime dependencies of each service are pinned in its own Dockerfile/requirements file.
+pytest==9.1.1
+PyYAML==6.0.3
+jsonschema==4.26.0
+RapidFuzz==3.14.6
+Jinja2==3.1.6
+fastapi==0.142.2
+starlette==1.7.0
+pydantic==2.13.5
+python-multipart==0.0.32
+uvicorn==0.54.0
+anyio==4.15.1
+httpx==0.28.1
+requests==2.34.2
+websockets==17.2
+numpy==2.5.3
+soundfile==0.14.0
+soxr==1.0.0
+av==18.1.0
+fonttools==4.66.1

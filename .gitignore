@@ -3,6 +3,7 @@
 *.secret
 server/.env
 server/cloudflared/*.json
+!server/cloudflared/ingress.json
 
 # Firmware build / cấu hình cục bộ (chứa bí mật như CF Access token)
 firmware/build/
@@ -22,6 +23,16 @@ venv/
 tools/wakeword/data/
 tools/tests/**/recordings/
 server/models/
+
+# Sản phẩm build/xuất và cache công cụ
+out/
+tools/fonts/cache/
+tools/tests/tts/out/
+tools/tests/e2e/out/
+tools/tests/e2e/audio/
+
+# Cấu hình riêng của từng máy chủ (không commit)
+server/docker-compose.override.yml
 
 # Editor / OS
 .vscode/
