@@ -138,10 +138,14 @@ Quy tắc chính:
   (`0912 345 678`, `0912.345.678`, `028 3822 1234`, `1900 6060`) đọc từng chữ số, ngắt nghỉ giữa các nhóm; khoảng trắng
   làm dấu phân cách hàng nghìn (`1 000 000`) được bỏ trước khi đọc ("một triệu").
 - Đơn vị sau số (V, mV, A, mA, mAh, W, kWh, °C, %, km/h, m/s, km, cm, mm, kg, g, GB, MB, Hz, kHz, ms, dB, đ/VNĐ, USD, `$`…),
-  ngày (`06/10/2026`, `2026-10-06`, `6/10`, `10/2026`, `tháng 3/2026`, `Q1/2025` → "quý một năm …"), giờ (`14:32`,
-  `7h30`), khoảng (`20-30%` → "đến"), dấu `+ × = /` giữa hai số, số âm, `thứ 2`/`hạng 1`, `tháng 4` → "tháng tư". Sau các từ
-  như phòng, tầng, lớp, căn, quốc lộ, mạng… một chữ cái đơn là ký hiệu chứ không phải đơn vị: `phòng 12A` → "phòng mười hai
-  A", `mạng 4g` → "mạng bốn G" (còn `dòng 2A` vẫn là "hai ampe").
+  ngày (`06/10/2026`, `2026-10-06`, `6/10`, `10/2026`, `tháng 3/2026`, `Q1/2025` / `quý 1/2025` → "quý một năm …"; năm
+  ngoài 1900–2100 là tỉ lệ: `1/1000` → "một trên một nghìn"), giờ (`14:32`, `7h30`), khoảng (`20-30%`, `1900-1945` →
+  "đến"), dấu `+ × = /` giữa hai số, số âm, `thứ 2`/`hạng 1`, `tháng 4` → "tháng tư". `x/y` là điểm số cạnh "điểm",
+  "chấm", "được", "đạt", "sao" (không tính "thời điểm", "địa điểm", "sao?"), phân số thường gặp (`1/2`, `3/4`…) sau "từ",
+  "tới"… là ngày trừ khi đi sau động từ hay trước danh từ chỉ lượng ("chiếm tới 3/4", "sau 1/4 thế kỷ"). Sau các từ như
+  phòng, tầng, lớp, căn, quốc lộ, mạng… chữ `A` hoặc `g` là ký hiệu chứ không phải ampe/gam: `phòng 12A` → "phòng mười hai
+  A", `mạng 4g` → "mạng bốn G"; các đơn vị khác vẫn đọc là đơn vị ("quạt bàn 40W", "giá phòng 500.000đ"), và `dòng 2A`
+  vẫn là "hai ampe".
 - Viết tắt có sẵn (khớp nguyên từ, phân biệt hoa thường): `Jarvis`/`JARVIS`/`J.A.R.V.I.S` → "Giắc vít", `AI`, `WiFi`/`Wi-Fi`,
   `USB`, `OK`/`okay`, `LED`, `HUD`, `GPS`, `SOS`, `TV`, `GPU`, `CPU`, `PTT`, `Bluetooth`, `v.v.`, `TP.`.
 - **Thêm/ghi đè viết tắt**: file JSON `{"vi": {"ESP": "i ét pi"}, "en": {"ESP": "E S P"}}` (hoặc phẳng `{"ESP": "i ét pi"}` cho
