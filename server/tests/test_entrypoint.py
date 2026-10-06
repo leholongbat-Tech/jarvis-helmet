@@ -1,7 +1,7 @@
 """Tests for server/xiaozhi/entrypoint.py, the config template and the Jarvis prompt (SV-C).
 
 Pure Python (PyYAML, jinja2 optional); the upstream merge test uses the xiaozhi-server
-v0.9.7 tree from env XIAOZHI_SRC (default: the scratchpad clone) and is skipped without it.
+v0.9.7 tree from env XIAOZHI_SRC (default: out/upstream/...) and is skipped without it.
 """
 import importlib.util
 import io
@@ -21,10 +21,8 @@ XIAOZHI = os.path.join(REPO, "server", "xiaozhi")
 TEMPLATE = os.path.join(XIAOZHI, "data", ".config.yaml.tmpl")
 PROMPT = os.path.join(XIAOZHI, "prompts", "jarvis-prompt.txt")
 STRINGS = os.path.join(XIAOZHI, "patches", "strings_vi.json")
-DEFAULT_XIAOZHI_SRC = (
-    "C:/Users/Longlhvip/AppData/Local/Temp/claude/c--Users-Longlhvip-0-Projects-Jarvis-helmet-jarvis-helmet/"
-    "c2a0007c-ccbb-4442-8698-fefc420b462d/scratchpad/upstream/xiaozhi-esp32-server/main/xiaozhi-server"
-)
+# Upstream xiaozhi-esp32-server v0.9.7 (CI clones it; locally see server/xiaozhi/patches/README.md).
+DEFAULT_XIAOZHI_SRC = os.path.join(REPO, "out", "upstream", "xiaozhi-esp32-server", "main", "xiaozhi-server")
 
 CJK_RE = re.compile(r"[\u3000-\u303f\u3400-\u4dbf\u4e00-\u9fff\uff00-\uffef]")
 D15_WAKE = ["Jarvis", "jarvis", "JARVIS", "giắcvít", "Giắcvít", "quảngia", "Quảngia", "Quảnggia"]

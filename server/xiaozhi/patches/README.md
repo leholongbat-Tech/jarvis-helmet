@@ -37,7 +37,8 @@ python server/xiaozhi/patches/apply_patches.py --list --markdown
 python server/xiaozhi/patches/scan_cjk.py --root <thư mục xiaozhi-server>
 docker run --rm --entrypoint cat jarvis/xiaozhi:dev /opt/jarvis/patches/cjk_report.txt
 
-# test (bản sao tạm của mã upstream; đặt XIAOZHI_SRC nếu clone ở chỗ khác)
+# test: cần mã upstream v0.9.7, mặc định ở out/upstream (thư mục bị git bỏ qua); đặt XIAOZHI_SRC nếu clone ở chỗ khác
+git -c core.longpaths=true clone --depth 1 --branch v0.9.7 https://github.com/xinnan-tech/xiaozhi-esp32-server out/upstream/xiaozhi-esp32-server
 .venv/Scripts/python -m pytest server/tests/test_patches.py server/tests/test_entrypoint.py -q
 ```
 

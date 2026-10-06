@@ -25,7 +25,7 @@ MSYS_NO_PATHCONV=1 docker run --rm -v "$(pwd -W):/repo:ro" -w /repo/firmware/tes
 Hoặc ghi rõ đường dẫn repo:
 
 ```bash
-MSYS_NO_PATHCONV=1 docker run --rm -v "C:/Users/Longlhvip/0.Projects/Jarvis_helmet/jarvis-helmet:/repo:ro" -w /repo/firmware/tests/host espressif/idf:v6.1 bash -c "cmake -S . -B /tmp/b -G Ninja && cmake --build /tmp/b && ctest --test-dir /tmp/b --output-on-failure"
+MSYS_NO_PATHCONV=1 docker run --rm -v "C:/path/to/jarvis-helmet:/repo:ro" -w /repo/firmware/tests/host espressif/idf:v6.1 bash -c "cmake -S . -B /tmp/b -G Ninja && cmake --build /tmp/b && ctest --test-dir /tmp/b --output-on-failure"
 ```
 
 Trong **PowerShell** (từ thư mục gốc repo):

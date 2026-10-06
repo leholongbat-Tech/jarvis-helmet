@@ -1,7 +1,7 @@
 """Tests for server/xiaozhi/patches: apply_patches.py, strings_vi.json, jarvis_support.py, scan_cjk.py.
 
 apply_patches.py runs against a temp copy of the upstream xiaozhi-server v0.9.7 tree (env
-XIAOZHI_SRC, default: the scratchpad clone; skipped when absent). Besides structural checks
+XIAOZHI_SRC, default: out/upstream/...; skipped when absent). Besides structural checks
 (every edit applied exactly once, idempotent, all-or-nothing, still compiles), several patched
 upstream functions are extracted from the patched files and executed with small stubs, so the
 hooks, the hello sample rate, the localized errors and the [LAT] lines are tested for real
@@ -30,10 +30,8 @@ PATCHES = os.path.join(REPO, "server", "xiaozhi", "patches")
 APPLY = os.path.join(PATCHES, "apply_patches.py")
 STRINGS = os.path.join(PATCHES, "strings_vi.json")
 README = os.path.join(PATCHES, "README.md")
-DEFAULT_XIAOZHI_SRC = (
-    "C:/Users/Longlhvip/AppData/Local/Temp/claude/c--Users-Longlhvip-0-Projects-Jarvis-helmet-jarvis-helmet/"
-    "c2a0007c-ccbb-4442-8698-fefc420b462d/scratchpad/upstream/xiaozhi-esp32-server/main/xiaozhi-server"
-)
+# Upstream xiaozhi-esp32-server v0.9.7 (CI clones it; locally see server/xiaozhi/patches/README.md).
+DEFAULT_XIAOZHI_SRC = os.path.join(REPO, "out", "upstream", "xiaozhi-esp32-server", "main", "xiaozhi-server")
 COPY_ITEMS = ("app.py", "config", "core", "plugins_func")
 LAT_STAGES = {"vad_end", "asr_done", "llm_first_token", "llm_done", "tts_first_audio", "first_packet_sent",
               "quick_phrase", "mcp_call"}
