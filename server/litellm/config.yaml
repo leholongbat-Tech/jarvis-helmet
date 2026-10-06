@@ -1,0 +1,102 @@
+# LiteLLM proxy configuration for the Jarvis Helmet (ghcr.io/berriai/litellm:v1.104.0).
+#
+# xiaozhi-server calls model "jarvis-main" (OpenAI API, stream=true, tools, max_tokens 300,
+# temperature 0.6); the ask_expert plugin calls "jarvis-cloud" directly.
+#
+#   jarvis-main  -> Ollama (local, OLLAMA_MODEL in server/.env)
+#        | error / timeout (1 retry, timeouts are not retried)
+#        v
+#   jarvis-cloud -> Claude (CLOUD_MODEL, default anthropic/claude-opus-5-5), monthly budget
+#
+# Keys checked against the v1.104.0 source / image:
+#   - `os.environ/<VAR>` is resolved for every string in this file
+#     (proxy_server.ProxyConfig._check_for_os_environ_vars), numbers are coerced by pydantic.
+#   - deployment budget = litellm_params.max_budget + budget_duration + model_info.id
+#     (router_strategy/budget_limiter.py); spend is kept in Redis (router_settings.redis_*).
+#     Over budget -> HTTP 429 "No deployments available - crossed budget" (no fallback).
+#   - reasoning_effort on adaptive-thinking Claude models -> thinking {type: adaptive} +
+#     output_config {effort} (llms/anthropic/chat/transformation.py).
+#   - model_info.allowed_fails_policy / cooldown_time are per-deployment cooldown settings
+#     (router_utils/cooldown_handlers.py).
+# Environment comes from docker-compose.yml (LITELLM_MAIN_MODEL, OLLAMA_API_BASE, CLOUD_MODEL,
+# CLOUD_MONTHLY_BUDGET_USD) and server/.env (LITELLM_MASTER_KEY, ANTHROPIC_API_KEY, ...).
+
+model_list:
+  # ---- Local primary: Ollama --------------------------------------------------------------
+  - model_name: jarvis-main
+    litellm_params:
+      model: os.environ/LITELLM_MAIN_MODEL      # ollama_chat/<OLLAMA_MODEL>
+      api_base: os.environ/OLLAMA_API_BASE      # http://ollama:11434
+      think: false                              # sent top-level to /api/chat (no thinking tokens)
+      keep_alive: -1                            # keep the model on the GPU
+      timeout: 15                               # non-streaming requests (seconds)
+      stream_timeout: 10                        # xiaozhi streams: give up fast, then fall back
+      # LiteLLM maps frequency_penalty -> Ollama repeat_penalty: never forward it.
+      additional_drop_params: ["frequency_penalty", "presence_penalty"]
+    model_info:
+      id: jarvis-main-ollama
+      mode: chat
+      supports_function_calling: true
+      input_cost_per_token: 0
+      output_cost_per_token: 0
+      # Two timeouts less than cooldown_time apart -> skip the local model for cooldown_time
+      # (requests go straight to the cloud). The fail counter lives cooldown_time seconds, so
+      # keep it above stream_timeout. Connection errors (Ollama stopped) are never cooled down
+      # by LiteLLM (router_utils/cooldown_handlers.py _is_cooldown_required); they fail in ms.
+      allowed_fails_policy:
+        TimeoutErrorAllowedFails: 1
+      cooldown_time: 30
+
+  # ---- Cloud: fallback for jarvis-main and target of ask_expert ---------------------------
+  # Claude Opus 5.5: $4 / $20 per MTok, rejects temperature/top_p, thinking cannot be disabled
+  # (effort is the only control, default "medium").  Alternatives: README.md "Đổi model cloud".
+  - model_name: jarvis-cloud
+    litellm_params:
+      model: os.environ/CLOUD_MODEL             # anthropic/claude-opus-5-5
+      api_key: os.environ/ANTHROPIC_API_KEY
+      # -> thinking {type: adaptive} + output_config {effort: low}. Remove for claude-haiku-4-5.
+      reasoning_effort: low
+      # xiaozhi sends temperature; Claude 5.x answers 400 to sampling params: always drop them.
+      additional_drop_params: ["temperature", "top_p", "top_k", "frequency_penalty", "presence_penalty"]
+      timeout: 30
+      stream_timeout: 20
+      max_budget: os.environ/CLOUD_MONTHLY_BUDGET_USD   # USD per budget_duration
+      budget_duration: 1mo
+    model_info:
+      id: jarvis-cloud-anthropic
+      mode: chat
+      supports_function_calling: true
+      input_cost_per_token: 4.0e-06             # $4 / MTok  (claude-opus-5-5)
+      output_cost_per_token: 2.0e-05            # $20 / MTok
+
+  # ---- Alternatives (keep model_name "jarvis-cloud", replace the block above) -------------
+  # Claude Sonnet 5.5 (faster, $2/$10; same rules as Opus 5.5):
+  #   model: anthropic/claude-sonnet-5-5, reasoning_effort: low,
+  #   input_cost_per_token: 2.0e-06, output_cost_per_token: 1.0e-05
+  # Claude Haiku 4.5 (fastest, $1/$5, no thinking unless asked, accepts temperature):
+  #   model: anthropic/claude-haiku-4-5, REMOVE reasoning_effort,
+  #   input_cost_per_token: 1.0e-06, output_cost_per_token: 5.0e-06
+  # OpenAI / Gemini (check the model id and price on the provider's site at deploy time):
+  #   model: openai/<model-id>, api_key: os.environ/OPENAI_API_KEY
+  #   model: gemini/<model-id>, api_key: os.environ/GEMINI_API_KEY
+
+router_settings:
+  fallbacks: [{"jarvis-main": ["jarvis-cloud"]}]
+  num_retries: 1
+  timeout: 15
+  retry_policy:
+    TimeoutErrorRetries: 0                      # a slow local model goes straight to the fallback
+  # Router state (cooldowns, deployment spend for the budget) shared through Redis, so the
+  # monthly cloud spend survives container restarts.
+  redis_host: redis
+  redis_port: 6379
+
+litellm_settings:
+  drop_params: true                             # drop params a provider does not support
+  request_timeout: 60
+  turn_off_message_logging: true                # never put conversation text in logs/callbacks
+  callbacks: jarvis_callbacks.proxy_handler_instance
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY     # strong "sk-..." key; v1.104.0 refuses unset/sk-1234
+  trusted_proxy_ranges: []                      # clients connect directly (no proxy in front)

@@ -1,0 +1,72 @@
+# LOCAL TEST CONFIG (Docker Desktop / dev box). NOT used in production: config.yaml is.
+# Selected by docker-compose.local.yml. Same router/budget/callback settings as config.yaml,
+# but both groups point to an Ollama, so no Anthropic key is needed:
+#   jarvis-main  -> LOCAL_MAIN_MODEL  @ LOCAL_MAIN_API_BASE   (host Ollama, small model)
+#   jarvis-cloud -> LOCAL_CLOUD_MODEL @ LOCAL_CLOUD_API_BASE  (stand-in "cloud", also local,
+#                   priced like claude-opus-5-5 so cost logging and the budget are exercised)
+# Fallback test: set LOCAL_MAIN_API_BASE to a dead URL (e.g. http://127.0.0.1:9).
+# Timeout/cooldown test: set it to a black-hole address (e.g. http://10.255.255.1:11434).
+# Dev-box differences on purpose: num_ctx 8192 (a host Ollama on a <24 GB GPU defaults to a 4k
+# context, too small for xiaozhi's ~5k-token tool prompt), longer timeouts (slow, shared GPU) and
+# therefore a longer cooldown_time (it must exceed stream_timeout, see the comment below).
+
+model_list:
+  - model_name: jarvis-main
+    litellm_params:
+      model: os.environ/LOCAL_MAIN_MODEL        # ollama_chat/qwen3:4b-instruct
+      api_base: os.environ/LOCAL_MAIN_API_BASE  # http://host.docker.internal:11434
+      think: false
+      keep_alive: 10m                           # shared dev Ollama: do not pin the model forever
+      num_ctx: 8192                             # same value for both groups (no model reload)
+      timeout: 60
+      stream_timeout: 30
+      additional_drop_params: ["frequency_penalty", "presence_penalty"]
+    model_info:
+      id: jarvis-main-local
+      mode: chat
+      supports_function_calling: true
+      input_cost_per_token: 0
+      output_cost_per_token: 0
+      allowed_fails_policy:
+        TimeoutErrorAllowedFails: 1
+      # The fail counter lives cooldown_time seconds, so it must exceed stream_timeout (30 s
+      # here) or two consecutive timeouts never meet (production: 10 s vs 30 s).
+      cooldown_time: 75
+
+  - model_name: jarvis-cloud
+    litellm_params:
+      model: os.environ/LOCAL_CLOUD_MODEL       # ollama_chat/qwen3:4b-instruct (stand-in!)
+      api_base: os.environ/LOCAL_CLOUD_API_BASE
+      think: false
+      keep_alive: 10m
+      num_ctx: 8192
+      additional_drop_params: ["temperature", "top_p", "top_k", "frequency_penalty", "presence_penalty"]
+      timeout: 60
+      stream_timeout: 30
+      max_budget: os.environ/CLOUD_MONTHLY_BUDGET_USD
+      budget_duration: 1mo
+    model_info:
+      id: jarvis-cloud-standin
+      mode: chat
+      supports_function_calling: true
+      input_cost_per_token: 4.0e-06
+      output_cost_per_token: 2.0e-05
+
+router_settings:
+  fallbacks: [{"jarvis-main": ["jarvis-cloud"]}]
+  num_retries: 1
+  timeout: 15
+  retry_policy:
+    TimeoutErrorRetries: 0
+  redis_host: redis
+  redis_port: 6379
+
+litellm_settings:
+  drop_params: true
+  request_timeout: 60
+  turn_off_message_logging: true
+  callbacks: jarvis_callbacks.proxy_handler_instance
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  trusted_proxy_ranges: []                      # clients connect directly (no proxy in front)

@@ -1,0 +1,223 @@
+# Bộ thử gọi tool của LLM (SV3 / IT1): 30 câu ra lệnh + 10 câu không được gọi tool.
+# Chạy: python tools/tests/llm/run_tool_calls.py   (xem README.md cùng thư mục)
+#
+# Tên tool là tên LLM nhìn thấy: tool MCP của mũ đã được xiaozhi "sanitize" (self.eyes.set ->
+# self_eyes_set), tác vụ trong server/tasks/tasks.yaml là task_<id>, plugin server giữ nguyên tên
+# (ask_expert, handle_exit_intent, get_lunar). direct_answer (tool ảo của xiaozhi) = không gọi tool.
+#
+# Mỗi câu ra lệnh:
+#   calls: danh sách lời gọi mong đợi, ĐÚNG THỨ TỰ. Mỗi phần tử là
+#            {tool: <tên>, args: {...}}                    -> đúng một cách
+#            {one_of: [{tool: ...}, {tool: ..., args: ...}]} -> phương án đầu là ưu tiên (theo prompt),
+#                                                              các phương án sau vẫn tính ĐẠT (ghi "alt")
+#   args:  so khớp từng khóa có ghi (khóa không ghi thì bỏ qua):
+#            giá trị thường  -> bằng đúng giá trị VÀ đúng kiểu JSON (false khác "false", 30 khác "30")
+#            {min: a, max: b} -> số trong khoảng
+#            {contains: "x"} / {contains_any: ["x", "y"]} -> chuỗi chứa (không phân biệt hoa thường)
+#            {one_of: [a, b]} -> bằng một trong các giá trị
+#   args_any: [{...}, {...}]  -> ít nhất một nhóm args trong danh sách phải khớp
+# Ngoài ra mọi lời gọi được kiểm tra theo JSON schema của tool (kiểu, min/max, required): sai
+# schema là KHÔNG ĐẠT, vì mũ/plugin sẽ từ chối lời gọi đó (cần gói jsonschema).
+# Lời gọi thêm vào chỉ đọc trạng thái (settings.tolerated_extra_tools) được bỏ qua ở câu ra lệnh.
+# Câu không gọi tool: đạt khi LLM trả lời thẳng (text) hoặc qua direct_answer.
+
+settings:
+  model: jarvis-main
+  max_tokens: 300            # như khối LLM.JarvisLLM của xiaozhi
+  temperature: 0.6
+  threshold: 0.95            # tỉ lệ đạt tối thiểu của câu ra lệnh (SV3: >= 95%)
+  min_no_tool_rate: 1.0      # 10/10 câu không gọi tool phải đạt
+  tolerated_extra_tools: [self_get_device_status, self_system_get_status, self_mask_get_state]
+
+commands:
+  # ---- Mở mặt nạ ---------------------------------------------------------------------------
+  - id: open_vi
+    text: "Jarvis, mở mặt nạ ra giúp tôi."
+    calls:
+      - one_of: [{tool: task_open_mask}, {tool: self_mask_open}]
+  - id: open_vi_plan
+    text: "cho tôi xem mặt"
+    note: "Ví dụ trong SV3"
+    calls:
+      - one_of: [{tool: task_open_mask}, {tool: self_mask_open}]
+  - id: open_en
+    text: "lift the faceplate please"
+    calls:
+      - one_of: [{tool: task_open_mask}, {tool: self_mask_open}]
+  - id: open_mixed
+    text: "Jarvis, open mask cho tôi với"
+    calls:
+      - one_of: [{tool: task_open_mask}, {tool: self_mask_open}]
+
+  # ---- Đóng mặt nạ -------------------------------------------------------------------------
+  - id: close_vi
+    text: "đóng mặt nạ lại đi"
+    calls:
+      - one_of: [{tool: task_close_mask}, {tool: self_mask_close}]
+  - id: close_en_plan
+    text: "lower the faceplate"
+    note: "Ví dụ trong SV3"
+    calls:
+      - one_of: [{tool: task_close_mask}, {tool: self_mask_close}]
+  - id: close_mixed_e12
+    text: "Quản gia, close the mask"
+    note: "Kịch bản E12"
+    calls:
+      - one_of: [{tool: task_close_mask}, {tool: self_mask_close}]
+
+  # ---- Đèn mắt -----------------------------------------------------------------------------
+  - id: eyes_off_plan
+    text: "tắt đèn mắt đi"
+    note: "Ví dụ trong SV3"
+    calls:
+      - one_of:
+          - {tool: task_eyes_off}
+          - {tool: self_eyes_set, args: {"on": false}}
+          - {tool: self_eyes_effect, args: {name: fade_out}}
+  - id: eyes_on_vi
+    text: "bật đèn mắt lên"
+    calls:
+      - one_of:
+          - {tool: task_eyes_on}
+          - {tool: self_eyes_set, args: {"on": true}}
+          - {tool: self_eyes_effect, args: {name: power_up}}
+  - id: eyes_on_en
+    text: "turn on the eye lights"
+    calls:
+      - one_of:
+          - {tool: task_eyes_on}
+          - {tool: self_eyes_set, args: {"on": true}}
+          - {tool: self_eyes_effect, args: {name: power_up}}
+  - id: eyes_bright_vi
+    text: "chỉnh đèn mắt sáng 30% thôi"
+    calls:
+      - {tool: self_eyes_set, args: {"on": true, brightness: 30}}
+  - id: eyes_bright_en
+    text: "set the eye brightness to 50 percent"
+    calls:
+      - {tool: self_eyes_set, args: {"on": true, brightness: 50}}
+  - id: eyes_blink_vi
+    text: "cho mắt nhấp nháy đi"
+    calls:
+      - {tool: self_eyes_effect, args: {name: {one_of: [blink, flicker]}}}
+  - id: eyes_breathe_en
+    text: "make the eyes breathe slowly"
+    calls:
+      - {tool: self_eyes_effect, args: {name: breathe}}
+
+  # ---- Vị trí / tốc độ mặt nạ ---------------------------------------------------------------
+  - id: mask_half_vi
+    text: "mở mặt nạ một nửa thôi"
+    calls:
+      - {tool: self_mask_set_position, args: {percent: 50}}
+  - id: mask_pos_en
+    text: "set the mask to 30 percent open"
+    calls:
+      - {tool: self_mask_set_position, args: {percent: 30}}
+  - id: mask_slow_vi
+    text: "mở mặt nạ thật chậm"
+    note: "speed phải nằm trong 10..100 (firmware từ chối giá trị ngoài khoảng)"
+    calls:
+      - one_of:
+          - {tool: self_mask_open, args: {speed: {min: 10, max: 40}}}
+          - {tool: self_mask_set_position, args: {percent: 100, speed: {min: 10, max: 40}}}
+
+  # ---- Ngõ ra dự phòng ----------------------------------------------------------------------
+  - id: output_on_vi
+    text: "bật ngõ ra dự phòng lên"
+    calls:
+      - {tool: self_output_set, args: {"on": true}}
+  - id: output_off_en
+    text: "switch off the auxiliary output"
+    calls:
+      - {tool: self_output_set, args: {"on": false}}
+
+  # ---- Tác vụ / chế độ -----------------------------------------------------------------------
+  - id: combat_mixed
+    text: "Jarvis, combat mode"
+    calls:
+      - {tool: task_combat_mode}
+  - id: stealth_vi
+    text: "chuyển sang chế độ ẩn mình"
+    calls:
+      - {tool: task_stealth_mode}
+  - id: salute_vi
+    text: "chào kiểu Iron Man đi"
+    calls:
+      - {tool: task_salute}
+
+  # ---- Màn hình, chuỗi, trạng thái, âm lượng --------------------------------------------------
+  - id: display_vi
+    text: "hiện chữ Xin chào lên màn hình"
+    calls:
+      - tool: self_display_show_info
+        args_any:
+          - {text: {contains: "xin chào"}}
+          - {title: {contains: "xin chào"}}
+  - id: sequence_stop_vi
+    text: "dừng chuỗi thao tác đang chạy lại"
+    calls:
+      - {tool: self_sequence_stop}
+  - id: status_mask_vi
+    text: "mặt nạ đang mở hay đóng thế?"
+    calls:
+      - one_of: [{tool: self_mask_get_state}, {tool: self_system_get_status}]
+  - id: volume_vi
+    text: "tăng âm lượng lên 80"
+    note: "Mô tả tool của firmware bảo gọi self_get_device_status trước: chấp nhận cả lượt đó (xiaozhi sẽ gọi LLM lượt 2)."
+    calls:
+      - one_of:
+          - {tool: self_audio_speaker_set_volume, args: {volume: 80}}
+          - {tool: self_get_device_status}
+
+  # ---- Hỏi chuyên gia (cloud) ----------------------------------------------------------------
+  - id: expert_vi
+    text: "hỏi chuyên gia giúp tôi: tại sao bầu trời có màu xanh?"
+    note: "Kịch bản E6"
+    calls:
+      - {tool: ask_expert, args: {question: {contains_any: ["bầu trời", "sky"]}}}
+  - id: expert_en
+    text: "ask the expert how a tokamak fusion reactor works"
+    calls:
+      - {tool: ask_expert, args: {question: {contains: "tokamak"}}}
+
+  # ---- Kết thúc ------------------------------------------------------------------------------
+  - id: exit_vi
+    text: "thôi, tạm biệt nhé, hẹn gặp lại sau"
+    calls:
+      - {tool: handle_exit_intent}
+
+  # ---- Nhiều lệnh trong một câu (đúng thứ tự) ------------------------------------------------
+  - id: multi_e3
+    text: "Jarvis, open mask rồi bật đèn mắt lên"
+    note: "Kịch bản E3: hai lời gọi theo đúng thứ tự"
+    calls:
+      - one_of: [{tool: task_open_mask}, {tool: self_mask_open}]
+      - one_of:
+          - {tool: task_eyes_on}
+          - {tool: self_eyes_set, args: {"on": true}}
+          - {tool: self_eyes_effect, args: {name: power_up}}
+
+no_tool:
+  - id: none_material
+    text: "mặt nạ này làm bằng gì vậy?"
+    note: "Ví dụ trong SV3"
+  - id: none_time
+    text: "mấy giờ rồi?"
+    note: "Giờ có sẵn trong prompt, không cần tool"
+  - id: none_joke
+    text: "kể cho tôi nghe một câu chuyện cười ngắn đi"
+  - id: none_thanks
+    text: "cảm ơn nhé, làm tốt lắm"
+  - id: none_movie_en
+    text: "what's your favorite movie?"
+  - id: none_ironman
+    text: "bạn có thích Iron Man không?"
+  - id: none_tired
+    text: "hôm nay tôi thấy hơi mệt"
+  - id: none_math_en
+    text: "what is two plus two?"
+  - id: none_translate
+    text: "dịch giúp tôi câu good morning sang tiếng Việt"
+  - id: none_name
+    text: "bạn tên là gì?"

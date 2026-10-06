@@ -1,0 +1,90 @@
+{
+  "_comment": "MCP tools/list result of the Jarvis helmet as the server receives it (firmware v2.5.0 + board jarvis-helmet). Order = firmware order: AddCommonTools() first, then helmet_tools::Register, MaskController, OutputController. User-only tools (self.servo.*) are not listed (the server never asks for them). Property JSON follows McpServer Property::to_json (no per-property descriptions). Kept in sync with firmware/main/boards/jarvis-helmet/*.cc by test_run_tool_calls.py. A real capture (e.g. from tools/tests/e2e/device_sim.py or a device log) can replace this file via --device-tools.",
+  "tools": [
+    {
+      "name": "self.get_device_status",
+      "description": "Provides the real-time information of the device, including the current status of the audio speaker, screen, battery, network, etc.\nUse this tool for: \n1. Answering questions about current condition (e.g. what is the current volume of the audio speaker?)\n2. As the first step to control the device (e.g. turn up / down the volume of the audio speaker, etc.)",
+      "inputSchema": {"type": "object", "properties": {}}
+    },
+    {
+      "name": "self.audio_speaker.set_volume",
+      "description": "Set the volume of the audio speaker. If the current volume is unknown, you must call `self.get_device_status` tool first and then call this tool.",
+      "inputSchema": {"type": "object", "properties": {"volume": {"type": "integer", "minimum": 0, "maximum": 100}}, "required": ["volume"]}
+    },
+    {
+      "name": "self.screen.set_brightness",
+      "description": "Set the brightness of the screen.",
+      "inputSchema": {"type": "object", "properties": {"brightness": {"type": "integer", "minimum": 0, "maximum": 100}}, "required": ["brightness"]}
+    },
+    {
+      "name": "self.screen.set_theme",
+      "description": "Set the theme of the screen. The theme can be `light` or `dark`.",
+      "inputSchema": {"type": "object", "properties": {"theme": {"type": "string"}}, "required": ["theme"]}
+    },
+    {
+      "name": "self.sequence.run",
+      "description": "Chạy chuỗi thao tác / Run a step sequence. steps = JSON array of one-key objects: mask, servo, eyes, output, delay, display, sound. Returns at once; a new sequence replaces the running one.",
+      "inputSchema": {"type": "object", "properties": {"steps": {"type": "string", "maxLength": 4000}}, "required": ["steps"]}
+    },
+    {
+      "name": "self.sequence.run_saved",
+      "description": "Chạy chuỗi đã lưu / Run a sequence saved on the helmet by name (e.g. open_mask, close_mask).",
+      "inputSchema": {"type": "object", "properties": {"name": {"type": "string", "maxLength": 11}}, "required": ["name"]}
+    },
+    {
+      "name": "self.sequence.save",
+      "description": "Lưu chuỗi thao tác vào mũ / Save a step sequence on the helmet for offline use (name: a-z, 0-9, _; max 11 chars).",
+      "inputSchema": {"type": "object", "properties": {"name": {"type": "string", "maxLength": 11}, "steps": {"type": "string", "maxLength": 4000}}, "required": ["name", "steps"]}
+    },
+    {
+      "name": "self.sequence.stop",
+      "description": "Dừng chuỗi đang chạy / Stop the running sequence.",
+      "inputSchema": {"type": "object", "properties": {}}
+    },
+    {
+      "name": "self.display.show_info",
+      "description": "Hiện thẻ thông tin trên HUD / Show an info card on the helmet HUD (title max 24 chars, text max 200 chars).",
+      "inputSchema": {"type": "object", "properties": {"title": {"type": "string", "maxLength": 96}, "text": {"type": "string", "maxLength": 800}, "seconds": {"type": "integer", "default": 5, "minimum": 1, "maximum": 30}}, "required": ["title", "text"]}
+    },
+    {
+      "name": "self.system.get_status",
+      "description": "Trạng thái mũ / Helmet status: mask, eyes, output, running sequence, 5V supply (vbus_mv), Wi-Fi RSSI, uptime.",
+      "inputSchema": {"type": "object", "properties": {}}
+    },
+    {
+      "name": "self.mask.open",
+      "description": "Mở mặt nạ (nâng tấm che mặt lên). / Open (raise) the helmet faceplate. Returns at once, the motion runs in the background.",
+      "inputSchema": {"type": "object", "properties": {"speed": {"type": "integer", "default": 70, "minimum": 10, "maximum": 100}}}
+    },
+    {
+      "name": "self.mask.close",
+      "description": "Đóng mặt nạ (hạ tấm che mặt xuống). / Close (lower) the helmet faceplate. Returns at once, the motion runs in the background.",
+      "inputSchema": {"type": "object", "properties": {"speed": {"type": "integer", "default": 70, "minimum": 10, "maximum": 100}}}
+    },
+    {
+      "name": "self.mask.set_position",
+      "description": "Mở mặt nạ một phần. / Move the faceplate to a partial position: percent 0 = closed, 100 = fully open.",
+      "inputSchema": {"type": "object", "properties": {"percent": {"type": "integer", "minimum": 0, "maximum": 100}, "speed": {"type": "integer", "default": 70, "minimum": 10, "maximum": 100}}, "required": ["percent"]}
+    },
+    {
+      "name": "self.mask.get_state",
+      "description": "Xem trạng thái mặt nạ. / Get the faceplate state: open, closed or moving, with position 0-100 (0 = closed).",
+      "inputSchema": {"type": "object", "properties": {}}
+    },
+    {
+      "name": "self.eyes.set",
+      "description": "Bật/tắt đèn mắt, chỉnh độ sáng. / Turn the eye lights on or off and set their brightness 0-100.",
+      "inputSchema": {"type": "object", "properties": {"on": {"type": "boolean"}, "brightness": {"type": "integer", "default": 100, "minimum": 0, "maximum": 100}}, "required": ["on"]}
+    },
+    {
+      "name": "self.eyes.effect",
+      "description": "Hiệu ứng đèn mắt. / Eye light effect: breathe (repeats until another command, duration_ms = cycle, e.g. 2500), blink, flicker, power_up (light up), fade_out (dim to off).",
+      "inputSchema": {"type": "object", "properties": {"name": {"type": "string", "maxLength": 16}, "duration_ms": {"type": "integer", "default": 1000, "minimum": 100, "maximum": 10000}}, "required": ["name"]}
+    },
+    {
+      "name": "self.output.set",
+      "description": "Bật/tắt ngõ ra phụ (kênh dự phòng). / Switch the auxiliary spare output on or off.",
+      "inputSchema": {"type": "object", "properties": {"on": {"type": "boolean"}}, "required": ["on"]}
+    }
+  ]
+}
