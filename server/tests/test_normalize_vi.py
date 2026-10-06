@@ -225,6 +225,29 @@ def test_misc_numbers(text, expected):
     assert normalize_vi(text) == expected
 
 
+@pytest.mark.parametrize("text,expected", [
+    # A dash inside "NUM op NUM = NUM" is a minus sign, not a range.
+    ("Kết quả 10 - 3 = 7.", "Kết quả mười trừ ba bằng bảy."),
+    ("10-3=7", "mười trừ ba bằng bảy"),
+    ("3 - 5 = -2", "ba trừ năm bằng âm hai"),
+    ("20-30%", "hai mươi đến ba mươi phần trăm"),      # still a range: no "="
+    # "x/y" as a score next to điểm/sao, as a date after a date cue, else a fraction.
+    ("Điểm 9/10.", "Điểm chín trên mười."),
+    ("4/5 sao", "bốn trên năm sao"),
+    ("được 8/10", "được tám trên mười"),
+    ("Kỳ nghỉ bắt đầu từ 1/4.", "Kỳ nghỉ bắt đầu từ ngày một tháng tư."),
+    ("hạn 3/4", "hạn ngày ba tháng tư"),
+    ("1/2 cốc nước", "một phần hai cốc nước"),
+])
+def test_arithmetic_scores_and_dates(text, expected):
+    assert normalize_vi(text) == expected
+
+
+def test_english_arithmetic_minus():
+    assert normalize_en("10 - 3 = 7") == "ten minus three equals seven"
+    assert normalize_en("3 - 5 = -2") == "three minus five equals minus two"
+
+
 # --- abbreviations --------------------------------------------------------------------------
 
 @pytest.mark.parametrize("text,expected", [

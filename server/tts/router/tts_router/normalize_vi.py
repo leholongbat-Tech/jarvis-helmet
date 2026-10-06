@@ -437,6 +437,16 @@ EN_UNITS: Dict[str, Tuple[str, str]] = {
 }
 
 _COMMON_FRACTIONS = {(1, 2), (1, 3), (2, 3), (1, 4), (3, 4)}
+# "x/y" next to these words is a score ("điểm 9/10", "4/5 sao"), after these a date ("từ 1/4").
+_SCORE_NEXT = frozenset({"điểm", "sao"})
+_SCORE_PREV = frozenset({"điểm", "chấm", "được", "đạt"})
+_DATE_CUES = frozenset({"từ", "đến", "tới", "hạn", "trước", "sau", "vào", "hôm"})
+# NUM (op NUM)+ = NUM: a dash inside such a chain is a minus sign, not a range.
+_ARITH_CHAIN_RE = re.compile(
+    r"\d+(?:[.,]\d+)*(?:[ \t]*[-−–+×x*/÷][ \t]*\d+(?:[.,]\d+)*)+[ \t]*=[ \t]*[-−–]?\d+(?:[.,]\d+)*")
+_ARITH_MINUS_RE = re.compile(r"(?<=\d)[ \t]*[-−–][ \t]*(?=\d)")
+_WORD_BEFORE_RE = re.compile(r"([^\W\d_]+)[^\w]*$")
+_WORD_AFTER_RE = re.compile(r"^[^\w]*([^\W\d_]+)")
 
 # ---------------------------------------------------------------------------------------------
 # English-sentence detection
@@ -583,6 +593,7 @@ class Normalizer:
         text = re.sub(r"(?<!\d)(\d{4})-(\d{1,2})-(\d{1,2})(?!\d)", self._vi_iso_date, text)
         text = re.sub(r"(?:\b(ngày|Ngày)\s+)?(?<![\d/.])(\d{1,2})([/.-])(\d{1,2})\3(\d{4})(?![\d/])",
                       self._vi_dmy_date, text)
+        text = self._arithmetic(text, " trừ ")
         text = self._ranges(text, " đến ")
         text = re.sub(r"(?<![\d:])([01]?\d|2[0-4]):([0-5]\d)(?::([0-5]\d))?(?![\d:])", self._vi_time, text)
         text = re.sub(r"(?<![\w.,])([01]?\d|2[0-4])h([0-5]\d)?(?![\w])", self._vi_time_h, text)
@@ -597,7 +608,8 @@ class Normalizer:
         text = self._vi_unit_re.sub(self._vi_unit, text)
         text = re.sub(r"(?<![\w.,])(\d{1,3})k(?![" + _LETTER + r"\d])",
                       lambda m: f"{self._int(int(m.group(1)))} {self.cfg.thousand}", text)
-        text = self._operators(text, plus=" cộng ", times=" nhân ", equals=" bằng ", over=" trên ")
+        text = self._operators(text, plus=" cộng ", times=" nhân ", equals=" bằng ", over=" trên ",
+                               negative="âm")
         text = re.sub(r"\d+(?:[.,]\d+)*", self._vi_number_match, text)
         return self._cleanup(text, amp=" và ", at=" a còng ", percent=" phần trăm")
 
@@ -611,12 +623,14 @@ class Normalizer:
                       lambda m: self._en_date(int(m.group(3)), int(m.group(2)), int(m.group(1)), m.group(0)), text)
         text = re.sub(r"(?<![\d/.])(\d{1,2})([/.-])(\d{1,2})\2(\d{4})(?![\d/])",
                       lambda m: self._en_date(int(m.group(1)), int(m.group(3)), int(m.group(4)), m.group(0)), text)
+        text = self._arithmetic(text, " minus ")
         text = self._ranges(text, " to ")
         text = re.sub(r"(?<![\d:])([01]?\d|2[0-4]):([0-5]\d)(?::([0-5]\d))?(?![\d:])", self._en_time, text)
         text = re.sub(r"\$\s?(" + _NUM + r")", self._en_dollars, text)
         text = re.sub(r"(?<![\w.,)])[-−–](?=\d)", "minus ", text)
         text = self._en_unit_re.sub(self._en_unit, text)
-        text = self._operators(text, plus=" plus ", times=" times ", equals=" equals ", over=" over ")
+        text = self._operators(text, plus=" plus ", times=" times ", equals=" equals ", over=" over ",
+                               negative="minus")
         text = re.sub(r"\d+(?:[.,]\d+)*", self._en_number_match, text)
         return self._cleanup(text, amp=" and ", at=" at ", percent=" percent")
 
@@ -641,15 +655,30 @@ class Normalizer:
         return regex.sub(repl, text)
 
     @staticmethod
+    def _arithmetic(text: str, minus: str) -> str:
+        # "10 - 3 = 7", "10-3=7": inside a chain that ends in "= NUM" the dash means minus (the
+        # sign of a negative result, "= -2", stays and is read by the negative-number rule).
+        return _ARITH_CHAIN_RE.sub(lambda m: _ARITH_MINUS_RE.sub(minus, m.group(0)), text)
+
+    @staticmethod
+    def _neighbour_words(m: "re.Match[str]") -> Tuple[str, str]:
+        """Lower-cased word just before and just after a match ("" at the edges)."""
+        before = _WORD_BEFORE_RE.search(m.string[:m.start()])
+        after = _WORD_AFTER_RE.search(m.string[m.end():])
+        return (before.group(1).lower() if before else "", after.group(1).lower() if after else "")
+
+    @staticmethod
     def _ranges(text: str, word: str) -> str:
         # "20-30%", "3V-5V", "14:00-15:00": a dash between two numbers reads as "to".
         return re.sub(r"(\d(?:%|°C|°|[A-Za-z]{1,4})?)[ \t]*[-–—][ \t]*(?=\d)", r"\1" + word, text)
 
     @staticmethod
-    def _operators(text: str, plus: str, times: str, equals: str, over: str) -> str:
+    def _operators(text: str, plus: str, times: str, equals: str, over: str, negative: str = "") -> str:
         text = re.sub(r"(?<=\d)[ \t]*\+[ \t]*(?=\d)", plus, text)
         text = re.sub(r"(?<=\d)[ \t]*[×x*][ \t]*(?=\d)", times, text)
-        text = re.sub(r"(?<=\d)[ \t]*=[ \t]*(?=\d)", equals, text)
+        # "= -2" was already rewritten to "= âm 2" / "= minus 2" by the negative-number rule.
+        neg = r"|" + re.escape(negative.strip()) + r"\b" if negative.strip() else ""
+        text = re.sub(r"(?<=\d)[ \t]*=[ \t]*(?=\d" + neg + r")", equals, text)
         text = re.sub(r"(?<=\d)[ \t]*[/÷][ \t]*(?=\d)", over, text)
         return text
 
@@ -742,7 +771,10 @@ class Normalizer:
 
     def _vi_dm_date(self, m: "re.Match[str]") -> str:
         cue, day, month = m.group(1), int(m.group(2)), int(m.group(3))
-        if not cue and (day, month) in _COMMON_FRACTIONS:
+        prev, nxt = self._neighbour_words(m)
+        if not cue and (nxt in _SCORE_NEXT or prev in _SCORE_PREV):
+            return f"{self._int(day)} trên {self._int(month)}"  # "Điểm 9/10", "4/5 sao"
+        if not cue and (day, month) in _COMMON_FRACTIONS and prev not in _DATE_CUES:
             return f"{self._int(day)} phần {self._int(month)}"
         if 1 <= month <= 12 and 1 <= day <= 31:
             return self._vi_date_words(day, month, None, cue)
