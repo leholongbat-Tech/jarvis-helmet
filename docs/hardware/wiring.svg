@@ -1,0 +1,592 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1060" width="1600" height="1060" font-family="sans-serif" role="img" aria-labelledby="ttl desc">
+<title id="ttl">Jarvis Helmet – sơ đồ đấu dây hệ thống (Rev A)</title>
+<desc id="desc">ESP32-S3-DevKitC-1 ở giữa; INMP441, MAX98357A + loa, nút bấm, ST7789, 2 servo, mạch đèn mắt Q1, output dự phòng Q2 và khối nguồn nối hình sao. Bảng chân theo HW2.</desc>
+<rect x="0" y="0" width="1600" height="1060" fill="#ffffff"/>
+<text x="30" y="42" font-size="26" text-anchor="start" font-weight="bold" fill="#1d1d1f">Jarvis Helmet – Sơ đồ đấu dây hệ thống</text>
+<text x="30" y="66" font-size="14" text-anchor="start" font-weight="normal" fill="#5f6368">ESP32-S3-DevKitC-1 N16R8 · bảng chân theo HW2 · nguồn sạc dự phòng 5V ≥2.4A nối hình sao (HW1) · công suất theo HW3</text>
+<text x="1570" y="38" font-size="14" text-anchor="end" font-weight="bold" fill="#1d1d1f">Rev A · 2026-10-06</text>
+<text x="1570" y="56" font-size="12" text-anchor="end" font-weight="normal" fill="#5f6368">Bản đầu, chưa đo trên phần cứng thật</text>
+<text x="1570" y="72" font-size="12" text-anchor="end" font-weight="normal" fill="#5f6368">Chi tiết, tọa độ PCB: docs/hardware/wiring.md</text>
+<line x1="30" y1="100" x2="58" y2="100" stroke="#d62728" stroke-width="4" stroke-linecap="round"/>
+<text x="64" y="104.5" font-size="13" text-anchor="start" font-weight="normal" fill="#1d1d1f">5V</text>
+<line x1="105.2" y1="100" x2="133.2" y2="100" stroke="#ef7d00" stroke-width="4" stroke-linecap="round"/>
+<text x="139.2" y="104.5" font-size="13" text-anchor="start" font-weight="normal" fill="#1d1d1f">3V3</text>
+<line x1="188.0" y1="100" x2="216.0" y2="100" stroke="#333333" stroke-width="4" stroke-linecap="round"/>
+<text x="222.0" y="104.5" font-size="13" text-anchor="start" font-weight="normal" fill="#1d1d1f">GND</text>
+<line x1="270.8" y1="100" x2="298.8" y2="100" stroke="#1f6fd1" stroke-width="4" stroke-linecap="round"/>
+<text x="304.8" y="104.5" font-size="13" text-anchor="start" font-weight="normal" fill="#1d1d1f">I2S</text>
+<line x1="353.6" y1="100" x2="381.6" y2="100" stroke="#8e44ad" stroke-width="4" stroke-linecap="round"/>
+<text x="387.6" y="104.5" font-size="13" text-anchor="start" font-weight="normal" fill="#1d1d1f">SPI (LCD)</text>
+<line x1="482.0" y1="100" x2="510.0" y2="100" stroke="#2a9d3a" stroke-width="4" stroke-linecap="round"/>
+<text x="516.0" y="104.5" font-size="13" text-anchor="start" font-weight="normal" fill="#1d1d1f">PWM</text>
+<line x1="564.8" y1="100" x2="592.8" y2="100" stroke="#c79a00" stroke-width="4" stroke-linecap="round"/>
+<text x="598.8" y="104.5" font-size="13" text-anchor="start" font-weight="normal" fill="#1d1d1f">Analog (VSENSE)</text>
+<line x1="738.8" y1="100" x2="766.8" y2="100" stroke="#0f8f9a" stroke-width="4" stroke-linecap="round"/>
+<text x="772.8" y="104.5" font-size="13" text-anchor="start" font-weight="normal" fill="#1d1d1f">Vào số (nút)</text>
+<polygon points="960.0,100 952.0,91.0 884.8,91.0 884.8,109.0 952.0,109.0" fill="#ffffff" stroke="#d62728" stroke-width="1.8"/>
+<text x="918.4" y="104.5" font-size="12" text-anchor="middle" font-weight="bold" fill="#d62728">5V_AUDIO</text>
+<text x="968.0" y="104.5" font-size="13" text-anchor="start" font-weight="normal" fill="#1d1d1f">cờ = nối theo tên lưới</text>
+<line x1="1138.0" y1="91" x2="1138.0" y2="97" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="1129.0" y1="97" x2="1147.0" y2="97" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="1132.0" y1="101" x2="1144.0" y2="101" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="1135.0" y1="105" x2="1141.0" y2="105" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<text x="1152.0" y="104.5" font-size="13" text-anchor="start" font-weight="normal" fill="#1d1d1f">GND về điểm sao, mỗi nhánh dây riêng</text>
+<rect x="650" y="150" width="300" height="620" rx="10" fill="#eef4fc" stroke="#2f4f7f" stroke-width="2"/>
+<text x="800" y="174" font-size="16" text-anchor="middle" font-weight="bold" fill="#1d1d1f">U1 · ESP32-S3-DevKitC-1</text>
+<text x="800" y="192" font-size="13" text-anchor="middle" font-weight="normal" fill="#5f6368">N16R8 (WROOM-1-N16R8)</text>
+<text x="800" y="224" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">L4 / R17 = chân số 4 hàng trái / số 17 hàng phải</text>
+<line x1="630" y1="205" x2="650" y2="205" stroke="#ef7d00" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="630" cy="205" r="3.2" fill="#ffffff" stroke="#ef7d00" stroke-width="1.8"/>
+<text x="660" y="209.5" font-size="13" fill="#1d1d1f">3V3<tspan fill="#5f6368" font-size="12"> L1</tspan></text>
+<line x1="630" y1="258" x2="650" y2="258" stroke="#1f6fd1" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="630" cy="258" r="3.2" fill="#ffffff" stroke="#1f6fd1" stroke-width="1.8"/>
+<text x="660" y="262.5" font-size="13" fill="#1d1d1f">GPIO4 · WS<tspan fill="#5f6368" font-size="12"> L4</tspan></text>
+<line x1="630" y1="279" x2="650" y2="279" stroke="#1f6fd1" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="630" cy="279" r="3.2" fill="#ffffff" stroke="#1f6fd1" stroke-width="1.8"/>
+<text x="660" y="283.5" font-size="13" fill="#1d1d1f">GPIO5 · SCK<tspan fill="#5f6368" font-size="12"> L5</tspan></text>
+<line x1="630" y1="300" x2="650" y2="300" stroke="#1f6fd1" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="630" cy="300" r="3.2" fill="#ffffff" stroke="#1f6fd1" stroke-width="1.8"/>
+<text x="660" y="304.5" font-size="13" fill="#1d1d1f">GPIO6 · SD<tspan fill="#5f6368" font-size="12"> L6</tspan></text>
+<line x1="630" y1="438" x2="650" y2="438" stroke="#1f6fd1" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="630" cy="438" r="3.2" fill="#ffffff" stroke="#1f6fd1" stroke-width="1.8"/>
+<text x="660" y="442.5" font-size="13" fill="#1d1d1f">GPIO7 · DIN<tspan fill="#5f6368" font-size="12"> L7</tspan></text>
+<line x1="630" y1="460" x2="650" y2="460" stroke="#1f6fd1" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="630" cy="460" r="3.2" fill="#ffffff" stroke="#1f6fd1" stroke-width="1.8"/>
+<text x="660" y="464.5" font-size="13" fill="#1d1d1f">GPIO15 · BCLK<tspan fill="#5f6368" font-size="12"> L8</tspan></text>
+<line x1="630" y1="482" x2="650" y2="482" stroke="#1f6fd1" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="630" cy="482" r="3.2" fill="#ffffff" stroke="#1f6fd1" stroke-width="1.8"/>
+<text x="660" y="486.5" font-size="13" fill="#1d1d1f">GPIO16 · LRC<tspan fill="#5f6368" font-size="12"> L9</tspan></text>
+<line x1="630" y1="580" x2="650" y2="580" stroke="#0f8f9a" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="630" cy="580" r="3.2" fill="#ffffff" stroke="#0f8f9a" stroke-width="1.8"/>
+<text x="660" y="584.5" font-size="13" fill="#1d1d1f">GPIO10 · PTT<tspan fill="#5f6368" font-size="12"> L16</tspan></text>
+<line x1="630" y1="640" x2="650" y2="640" stroke="#0f8f9a" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="630" cy="640" r="3.2" fill="#ffffff" stroke="#0f8f9a" stroke-width="1.8"/>
+<text x="660" y="644.5" font-size="13" fill="#1d1d1f">GPIO11 · MẶT NẠ<tspan fill="#5f6368" font-size="12"> L17</tspan></text>
+<line x1="630" y1="690" x2="650" y2="690" stroke="#c79a00" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="630" cy="690" r="3.2" fill="#ffffff" stroke="#c79a00" stroke-width="1.8"/>
+<text x="660" y="694.5" font-size="13" fill="#1d1d1f">GPIO1 · VSENSE<tspan fill="#5f6368" font-size="12"> R4</tspan></text>
+<line x1="630" y1="725" x2="650" y2="725" stroke="#d62728" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="630" cy="725" r="3.2" fill="#ffffff" stroke="#d62728" stroke-width="1.8"/>
+<text x="660" y="729.5" font-size="13" fill="#1d1d1f">5V (5V_ESP)<tspan fill="#5f6368" font-size="12"> L21</tspan></text>
+<line x1="630" y1="750" x2="650" y2="750" stroke="#333333" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="630" cy="750" r="3.2" fill="#ffffff" stroke="#333333" stroke-width="1.8"/>
+<text x="660" y="754.5" font-size="13" fill="#1d1d1f">GND<tspan fill="#5f6368" font-size="12"> L22</tspan></text>
+<line x1="950" y1="240" x2="970" y2="240" stroke="#8e44ad" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="970" cy="240" r="3.2" fill="#ffffff" stroke="#8e44ad" stroke-width="1.8"/>
+<text x="940" y="244.5" font-size="13" text-anchor="end" fill="#1d1d1f"><tspan fill="#5f6368" font-size="12">R18 </tspan>GPIO21 · SCLK</text>
+<line x1="950" y1="265" x2="970" y2="265" stroke="#8e44ad" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="970" cy="265" r="3.2" fill="#ffffff" stroke="#8e44ad" stroke-width="1.8"/>
+<text x="940" y="269.5" font-size="13" text-anchor="end" fill="#1d1d1f"><tspan fill="#5f6368" font-size="12">R17 </tspan>GPIO47 · MOSI</text>
+<line x1="950" y1="290" x2="970" y2="290" stroke="#8e44ad" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="970" cy="290" r="3.2" fill="#ffffff" stroke="#8e44ad" stroke-width="1.8"/>
+<text x="940" y="294.5" font-size="13" text-anchor="end" fill="#1d1d1f"><tspan fill="#5f6368" font-size="12">R9 </tspan>GPIO39 · RES</text>
+<line x1="950" y1="315" x2="970" y2="315" stroke="#8e44ad" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="970" cy="315" r="3.2" fill="#ffffff" stroke="#8e44ad" stroke-width="1.8"/>
+<text x="940" y="319.5" font-size="13" text-anchor="end" fill="#1d1d1f"><tspan fill="#5f6368" font-size="12">R8 </tspan>GPIO40 · DC</text>
+<line x1="950" y1="340" x2="970" y2="340" stroke="#8e44ad" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="970" cy="340" r="3.2" fill="#ffffff" stroke="#8e44ad" stroke-width="1.8"/>
+<text x="940" y="344.5" font-size="13" text-anchor="end" fill="#1d1d1f"><tspan fill="#5f6368" font-size="12">R7 </tspan>GPIO41 · CS</text>
+<line x1="950" y1="365" x2="970" y2="365" stroke="#2a9d3a" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="970" cy="365" r="3.2" fill="#ffffff" stroke="#2a9d3a" stroke-width="1.8"/>
+<text x="940" y="369.5" font-size="13" text-anchor="end" fill="#1d1d1f"><tspan fill="#5f6368" font-size="12">R6 </tspan>GPIO42 · BLK</text>
+<line x1="950" y1="432" x2="970" y2="432" stroke="#2a9d3a" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="970" cy="432" r="3.2" fill="#ffffff" stroke="#2a9d3a" stroke-width="1.8"/>
+<text x="940" y="436.5" font-size="13" text-anchor="end" fill="#1d1d1f"><tspan fill="#5f6368" font-size="12">L10 </tspan>GPIO17 · SERVO S0</text>
+<line x1="950" y1="505" x2="970" y2="505" stroke="#2a9d3a" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="970" cy="505" r="3.2" fill="#ffffff" stroke="#2a9d3a" stroke-width="1.8"/>
+<text x="940" y="509.5" font-size="13" text-anchor="end" fill="#1d1d1f"><tspan fill="#5f6368" font-size="12">L11 </tspan>GPIO18 · SERVO S1</text>
+<line x1="950" y1="700" x2="970" y2="700" stroke="#2a9d3a" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="970" cy="700" r="3.2" fill="#ffffff" stroke="#2a9d3a" stroke-width="1.8"/>
+<text x="940" y="704.5" font-size="13" text-anchor="end" fill="#1d1d1f"><tspan fill="#5f6368" font-size="12">L12 </tspan>GPIO8 · GATE Q1</text>
+<line x1="950" y1="735" x2="970" y2="735" stroke="#2a9d3a" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="970" cy="735" r="3.2" fill="#ffffff" stroke="#2a9d3a" stroke-width="1.8"/>
+<text x="940" y="739.5" font-size="13" text-anchor="end" fill="#1d1d1f"><tspan fill="#5f6368" font-size="12">L15 </tspan>GPIO9 · GATE Q2</text>
+<text x="800" y="384" font-size="12" text-anchor="middle" font-weight="bold" fill="#5f6368">Có sẵn trên devkit, không đi dây:</text>
+<text x="800" y="400" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">GPIO0 = nút BOOT · GPIO48 = LED RGB</text>
+<text x="800" y="416" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">(DevKitC-1 v1.1: LED ở GPIO38)</text>
+<text x="800" y="540" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">Cấm dùng: 3, 19, 20, 26–37, 43–46</text>
+<text x="800" y="556" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">Còn trống: 2, 12, 13, 14, 38</text>
+<rect x="380" y="150" width="180" height="165" rx="6" fill="#f6f8fb" stroke="#4a4f57" stroke-width="1.5"/>
+<text x="390" y="170" font-size="14" text-anchor="start" font-weight="bold" fill="#1d1d1f">U3 · INMP441</text>
+<text x="390" y="186" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">mic I2S (qua J8)</text>
+<circle cx="560" cy="195" r="3.2" fill="#ffffff" stroke="#ef7d00" stroke-width="1.8"/>
+<text x="550" y="199.5" font-size="12" text-anchor="end" font-weight="normal" fill="#1d1d1f">VDD</text>
+<circle cx="560" cy="216" r="3.2" fill="#ffffff" stroke="#333333" stroke-width="1.8"/>
+<text x="550" y="220.5" font-size="12" text-anchor="end" font-weight="normal" fill="#1d1d1f">GND</text>
+<circle cx="560" cy="237" r="3.2" fill="#ffffff" stroke="#333333" stroke-width="1.8"/>
+<text x="550" y="241.5" font-size="12" text-anchor="end" font-weight="normal" fill="#1d1d1f">L/R</text>
+<circle cx="560" cy="258" r="3.2" fill="#ffffff" stroke="#1f6fd1" stroke-width="1.8"/>
+<text x="550" y="262.5" font-size="12" text-anchor="end" font-weight="normal" fill="#1d1d1f">WS</text>
+<circle cx="560" cy="279" r="3.2" fill="#ffffff" stroke="#1f6fd1" stroke-width="1.8"/>
+<text x="550" y="283.5" font-size="12" text-anchor="end" font-weight="normal" fill="#1d1d1f">SCK</text>
+<circle cx="560" cy="300" r="3.2" fill="#ffffff" stroke="#1f6fd1" stroke-width="1.8"/>
+<text x="550" y="304.5" font-size="12" text-anchor="end" font-weight="normal" fill="#1d1d1f">SD</text>
+<line x1="563" y1="258" x2="627" y2="258" stroke="#1f6fd1" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="563" y1="279" x2="627" y2="279" stroke="#1f6fd1" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="563" y1="300" x2="627" y2="300" stroke="#1f6fd1" stroke-width="2.2" stroke-linecap="round"/>
+<polyline points="627,205 595,205 595,195 563,195" fill="none" stroke="#ef7d00" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="595" cy="195" r="3.6" fill="#ef7d00"/>
+<polyline points="595,195 595,138 1100,138 1100,175 1127,175" fill="none" stroke="#ef7d00" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="860" y="133" font-size="12" text-anchor="middle" font-weight="normal" fill="#ef7d00">3V3 → U4 VCC (J7.2)</text>
+<polyline points="563,216 574,216 574,237" fill="none" stroke="#333333" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="563" y1="237" x2="574" y2="237" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="574" y1="237" x2="574" y2="243" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="565" y1="243" x2="583" y2="243" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="568" y1="247" x2="580" y2="247" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="571" y1="251" x2="577" y2="251" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<text x="390" y="305" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">L/R nối GND = kênh trái</text>
+<text x="605" y="318" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">J8 (5 chân)</text>
+<rect x="380" y="395" width="180" height="165" rx="6" fill="#f6f8fb" stroke="#4a4f57" stroke-width="1.5"/>
+<text x="390" y="415" font-size="14" text-anchor="start" font-weight="bold" fill="#1d1d1f">U2 · MAX98357A</text>
+<text x="390" y="431" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">amply I2S trên PCB</text>
+<circle cx="560" cy="438" r="3.2" fill="#ffffff" stroke="#1f6fd1" stroke-width="1.8"/>
+<text x="550" y="442.5" font-size="12" text-anchor="end" font-weight="normal" fill="#1d1d1f">DIN</text>
+<line x1="563" y1="438" x2="627" y2="438" stroke="#1f6fd1" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="560" cy="460" r="3.2" fill="#ffffff" stroke="#1f6fd1" stroke-width="1.8"/>
+<text x="550" y="464.5" font-size="12" text-anchor="end" font-weight="normal" fill="#1d1d1f">BCLK</text>
+<line x1="563" y1="460" x2="627" y2="460" stroke="#1f6fd1" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="560" cy="482" r="3.2" fill="#ffffff" stroke="#1f6fd1" stroke-width="1.8"/>
+<text x="550" y="486.5" font-size="12" text-anchor="end" font-weight="normal" fill="#1d1d1f">LRC</text>
+<line x1="563" y1="482" x2="627" y2="482" stroke="#1f6fd1" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="560" cy="510" r="3.2" fill="#ffffff" stroke="#5f6368" stroke-width="1.8"/>
+<text x="550" y="514.5" font-size="12" text-anchor="end" font-weight="normal" fill="#5f6368">GAIN · trống = 9 dB</text>
+<line x1="563" y1="510" x2="576" y2="510" stroke="#5f6368" stroke-width="1.6" stroke-linecap="round"/>
+<line x1="572" y1="506" x2="580" y2="514" stroke="#5f6368" stroke-width="1.6" stroke-linecap="round"/>
+<line x1="572" y1="514" x2="580" y2="506" stroke="#5f6368" stroke-width="1.6" stroke-linecap="round"/>
+<circle cx="560" cy="535" r="3.2" fill="#ffffff" stroke="#5f6368" stroke-width="1.8"/>
+<text x="550" y="539.5" font-size="12" text-anchor="end" font-weight="normal" fill="#5f6368">SD · trống (mono)</text>
+<line x1="563" y1="535" x2="576" y2="535" stroke="#5f6368" stroke-width="1.6" stroke-linecap="round"/>
+<line x1="572" y1="531" x2="580" y2="539" stroke="#5f6368" stroke-width="1.6" stroke-linecap="round"/>
+<line x1="572" y1="539" x2="580" y2="531" stroke="#5f6368" stroke-width="1.6" stroke-linecap="round"/>
+<circle cx="380" cy="450" r="3.2" fill="#ffffff" stroke="#d62728" stroke-width="1.8"/>
+<text x="390" y="454.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">VIN</text>
+<circle cx="380" cy="472" r="3.2" fill="#ffffff" stroke="#333333" stroke-width="1.8"/>
+<text x="390" y="476.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">GND</text>
+<circle cx="380" cy="505" r="3.2" fill="#ffffff" stroke="#1d1d1f" stroke-width="1.8"/>
+<text x="390" y="509.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">OUT+</text>
+<circle cx="380" cy="530" r="3.2" fill="#ffffff" stroke="#1d1d1f" stroke-width="1.8"/>
+<text x="390" y="534.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">OUT−</text>
+<line x1="377" y1="450" x2="214" y2="450" stroke="#d62728" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="214,450 206,441.0 138.8,441.0 138.8,459.0 206,459.0" fill="#ffffff" stroke="#d62728" stroke-width="1.8"/>
+<text x="172.4" y="454.5" font-size="12" text-anchor="middle" font-weight="bold" fill="#d62728">5V_AUDIO</text>
+<line x1="377" y1="472" x2="268" y2="472" stroke="#333333" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="296" y1="450" x2="296" y2="457.0" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
+<line x1="296" y1="465.0" x2="296" y2="472" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="287" y1="457.0" x2="305" y2="457.0" stroke="#d62728" stroke-width="2.6" stroke-linecap="round"/>
+<path d="M 287 467.0 Q 296 463.0 305 467.0" fill="none" stroke="#333333" stroke-width="2.6"/>
+<text x="282" y="462.0" font-size="12" text-anchor="middle" font-weight="normal" fill="#d62728">+</text>
+<line x1="330" y1="450" x2="330" y2="457.0" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
+<line x1="330" y1="465.0" x2="330" y2="472" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="321" y1="457.0" x2="339" y2="457.0" stroke="#d62728" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="321" y1="465.0" x2="339" y2="465.0" stroke="#333333" stroke-width="2.6" stroke-linecap="round"/>
+<circle cx="296" cy="450" r="3.6" fill="#d62728"/>
+<circle cx="330" cy="450" r="3.6" fill="#d62728"/>
+<circle cx="296" cy="472" r="3.6" fill="#333333"/>
+<circle cx="330" cy="472" r="3.6" fill="#333333"/>
+<line x1="268" y1="472" x2="268" y2="478" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="259" y1="478" x2="277" y2="478" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="262" y1="482" x2="274" y2="482" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="265" y1="486" x2="271" y2="486" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<text x="258" y="480" font-size="12" text-anchor="end" font-weight="normal" fill="#5f6368">GND_AUDIO</text>
+<text x="313" y="441" font-size="12" text-anchor="middle" font-weight="normal" fill="#1d1d1f">C3 470µ  C4 100n</text>
+<polyline points="377,505 262,505" fill="none" stroke="#1d1d1f" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="377,530 262,530" fill="none" stroke="#1d1d1f" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="246" y="503" width="16" height="29" fill="#ffffff" stroke="#1d1d1f" stroke-width="2"/>
+<polygon points="246,503 222,489 222,546 246,532" fill="#ffffff" stroke="#1d1d1f" stroke-width="2"/>
+<text x="214" y="512" font-size="13" text-anchor="end" font-weight="bold" fill="#1d1d1f">LS1</text>
+<text x="214" y="528" font-size="12" text-anchor="end" font-weight="normal" fill="#1d1d1f">loa 3W 8Ω</text>
+<text x="320" y="498" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">J10</text>
+<text x="214" y="556" font-size="12" text-anchor="end" font-weight="bold" fill="#d62728">BTL: không nối OUT− xuống GND</text>
+<line x1="627" y1="580" x2="440" y2="580" stroke="#0f8f9a" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="520" cy="580" r="3.6" fill="#0f8f9a"/>
+<circle cx="440" cy="580" r="3.6" fill="#0f8f9a"/>
+<line x1="520" y1="580" x2="520" y2="589.0" stroke="#0f8f9a" stroke-width="2" stroke-linecap="round"/>
+<line x1="520" y1="597.0" x2="520" y2="606" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="511" y1="589.0" x2="529" y2="589.0" stroke="#0f8f9a" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="511" y1="597.0" x2="529" y2="597.0" stroke="#333333" stroke-width="2.6" stroke-linecap="round"/>
+<text x="533" y="597.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">C8 100n</text>
+<line x1="520" y1="606" x2="520" y2="612" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="511" y1="612" x2="529" y2="612" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="514" y1="616" x2="526" y2="616" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="517" y1="620" x2="523" y2="620" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="440" y1="580" x2="440" y2="586.0" stroke="#0f8f9a" stroke-width="2" stroke-linecap="round"/>
+<line x1="440" y1="604.0" x2="440" y2="610" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<circle cx="440" cy="586.0" r="2.6" fill="#0f8f9a"/>
+<circle cx="440" cy="604.0" r="2.6" fill="#333333"/>
+<line x1="428" y1="583.0" x2="428" y2="607.0" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"/>
+<line x1="428" y1="595.0" x2="418" y2="595.0" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"/>
+<line x1="418" y1="589.0" x2="418" y2="601.0" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"/>
+<text x="412" y="599.0" font-size="12" text-anchor="end" font-weight="normal" fill="#1d1d1f">SW2 PTT</text>
+<line x1="440" y1="610" x2="440" y2="616" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="431" y1="616" x2="449" y2="616" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="434" y1="620" x2="446" y2="620" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="437" y1="624" x2="443" y2="624" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="627" y1="640" x2="440" y2="640" stroke="#0f8f9a" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="520" cy="640" r="3.6" fill="#0f8f9a"/>
+<circle cx="440" cy="640" r="3.6" fill="#0f8f9a"/>
+<line x1="520" y1="640" x2="520" y2="649.0" stroke="#0f8f9a" stroke-width="2" stroke-linecap="round"/>
+<line x1="520" y1="657.0" x2="520" y2="666" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="511" y1="649.0" x2="529" y2="649.0" stroke="#0f8f9a" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="511" y1="657.0" x2="529" y2="657.0" stroke="#333333" stroke-width="2.6" stroke-linecap="round"/>
+<text x="533" y="657.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">C9 100n</text>
+<line x1="520" y1="666" x2="520" y2="672" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="511" y1="672" x2="529" y2="672" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="514" y1="676" x2="526" y2="676" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="517" y1="680" x2="523" y2="680" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="440" y1="640" x2="440" y2="646.0" stroke="#0f8f9a" stroke-width="2" stroke-linecap="round"/>
+<line x1="440" y1="664.0" x2="440" y2="670" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<circle cx="440" cy="646.0" r="2.6" fill="#0f8f9a"/>
+<circle cx="440" cy="664.0" r="2.6" fill="#333333"/>
+<line x1="428" y1="643.0" x2="428" y2="667.0" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"/>
+<line x1="428" y1="655.0" x2="418" y2="655.0" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"/>
+<line x1="418" y1="649.0" x2="418" y2="661.0" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"/>
+<text x="412" y="659.0" font-size="12" text-anchor="end" font-weight="normal" fill="#1d1d1f">SW3 mặt nạ</text>
+<line x1="440" y1="670" x2="440" y2="676" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="431" y1="676" x2="449" y2="676" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="434" y1="680" x2="446" y2="680" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="437" y1="684" x2="443" y2="684" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<text x="600" y="572" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">J9</text>
+<text x="388" y="712" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">pull-up nội; bấm = nối GND</text>
+<line x1="627" y1="690" x2="600" y2="690" stroke="#c79a00" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="600,690 592,681.0 539.6,681.0 539.6,699.0 592,699.0" fill="#ffffff" stroke="#c79a00" stroke-width="1.8"/>
+<text x="565.8" y="694.5" font-size="12" text-anchor="middle" font-weight="bold" fill="#c79a00">VSENSE</text>
+<line x1="627" y1="725" x2="600" y2="725" stroke="#d62728" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="600,725 592,716.0 539.6,716.0 539.6,734.0 592,734.0" fill="#ffffff" stroke="#d62728" stroke-width="1.8"/>
+<text x="565.8" y="729.5" font-size="12" text-anchor="middle" font-weight="bold" fill="#d62728">5V_ESP</text>
+<polyline points="627,750 612,750" fill="none" stroke="#333333" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="612" y1="750" x2="612" y2="756" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="603" y1="756" x2="621" y2="756" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="606" y1="760" x2="618" y2="760" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="609" y1="764" x2="615" y2="764" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<text x="600" y="765" font-size="12" text-anchor="end" font-weight="normal" fill="#5f6368">GND_ESP</text>
+<rect x="1130" y="150" width="200" height="240" rx="6" fill="#f6f8fb" stroke="#4a4f57" stroke-width="1.5"/>
+<text x="1320" y="172" font-size="14" text-anchor="end" font-weight="bold" fill="#1d1d1f">U4 · LCD ST7789</text>
+<text x="1320" y="190" font-size="12" text-anchor="end" font-weight="normal" fill="#5f6368">1.54" 240×240 · SPI</text>
+<circle cx="1130" cy="175" r="3.2" fill="#ffffff" stroke="#ef7d00" stroke-width="1.8"/>
+<text x="1140" y="179.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">VCC</text>
+<circle cx="1130" cy="200" r="3.2" fill="#ffffff" stroke="#333333" stroke-width="1.8"/>
+<text x="1140" y="204.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">GND</text>
+<circle cx="1130" cy="240" r="3.2" fill="#ffffff" stroke="#8e44ad" stroke-width="1.8"/>
+<text x="1140" y="244.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">SCL</text>
+<circle cx="1130" cy="265" r="3.2" fill="#ffffff" stroke="#8e44ad" stroke-width="1.8"/>
+<text x="1140" y="269.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">SDA</text>
+<circle cx="1130" cy="290" r="3.2" fill="#ffffff" stroke="#8e44ad" stroke-width="1.8"/>
+<text x="1140" y="294.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">RES</text>
+<circle cx="1130" cy="315" r="3.2" fill="#ffffff" stroke="#8e44ad" stroke-width="1.8"/>
+<text x="1140" y="319.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">DC</text>
+<circle cx="1130" cy="340" r="3.2" fill="#ffffff" stroke="#8e44ad" stroke-width="1.8"/>
+<text x="1140" y="344.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">CS</text>
+<circle cx="1130" cy="365" r="3.2" fill="#ffffff" stroke="#2a9d3a" stroke-width="1.8"/>
+<text x="1140" y="369.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">BLK</text>
+<line x1="973" y1="240" x2="1127" y2="240" stroke="#8e44ad" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="973" y1="265" x2="1127" y2="265" stroke="#8e44ad" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="973" y1="290" x2="1127" y2="290" stroke="#8e44ad" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="973" y1="315" x2="1127" y2="315" stroke="#8e44ad" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="973" y1="340" x2="1127" y2="340" stroke="#8e44ad" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="973" y1="365" x2="1127" y2="365" stroke="#2a9d3a" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="1127" y1="200" x2="1112" y2="200" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="1112" y1="200" x2="1112" y2="206" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="1103" y1="206" x2="1121" y2="206" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="1106" y1="210" x2="1118" y2="210" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="1109" y1="214" x2="1115" y2="214" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<text x="1050" y="231" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">J7</text>
+<text x="1345" y="214" font-size="12" text-anchor="start" font-weight="bold" fill="#1d1d1f">Màn 8 chân (có CS):</text>
+<text x="1345" y="232" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">LCD_ST7789_240X240, SPI mode 0</text>
+<text x="1345" y="250" font-size="12" text-anchor="start" font-weight="bold" fill="#1d1d1f">Màn 7 chân (không CS): bỏ</text>
+<text x="1345" y="268" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">trống GPIO41, chọn _7PIN,</text>
+<text x="1345" y="286" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">SPI mode 3</text>
+<text x="1345" y="304" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">SCL/SDA là SPI, không phải I2C</text>
+<text x="1345" y="322" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">Ảnh nhiễu: R11 33Ω nối tiếp SCL</text>
+<text x="1345" y="340" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">RES = GPIO39 (thay GPIO45)</text>
+<line x1="973" y1="432" x2="1000" y2="432" stroke="#2a9d3a" stroke-width="2.2" stroke-linecap="round"/>
+<rect x="1000" y="426" width="46" height="12" fill="#ffffff" stroke="#2a9d3a" stroke-width="2"/>
+<text x="1023.0" y="422" font-size="12" text-anchor="middle" font-weight="normal" fill="#1d1d1f">R7 220Ω</text>
+<line x1="1046" y1="432" x2="1150" y2="432" stroke="#2a9d3a" stroke-width="2.2" stroke-linecap="round"/>
+<rect x="1150" y="422" width="22" height="48" rx="3" fill="#ffffff" stroke="#4a4f57" stroke-width="1.6"/>
+<text x="1161" y="418" font-size="12" text-anchor="middle" font-weight="bold" fill="#1d1d1f">J3</text>
+<circle cx="1150" cy="432" r="2.6" fill="#2a9d3a"/>
+<circle cx="1172" cy="432" r="2.6" fill="#2a9d3a"/>
+<line x1="1172" y1="432" x2="1240" y2="432" stroke="#2a9d3a" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="1150" cy="446" r="2.6" fill="#d62728"/>
+<circle cx="1172" cy="446" r="2.6" fill="#d62728"/>
+<line x1="1172" y1="446" x2="1240" y2="446" stroke="#d62728" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="1150" cy="460" r="2.6" fill="#333333"/>
+<circle cx="1172" cy="460" r="2.6" fill="#333333"/>
+<line x1="1172" y1="460" x2="1240" y2="460" stroke="#333333" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="1150,446 1142,437.0 1074.8,437.0 1074.8,455.0 1142,455.0" fill="#ffffff" stroke="#d62728" stroke-width="1.8"/>
+<text x="1108.4" y="450.5" font-size="12" text-anchor="middle" font-weight="bold" fill="#d62728">5V_SERVO</text>
+<line x1="1150" y1="460" x2="1132" y2="460" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="1132" y1="460" x2="1132" y2="466" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="1123" y1="466" x2="1141" y2="466" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="1126" y1="470" x2="1138" y2="470" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="1129" y1="474" x2="1135" y2="474" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<rect x="1240" y="420" width="170" height="52" rx="6" fill="#fbfbf3" stroke="#4a4f57" stroke-width="1.5"/>
+<text x="1250" y="436" font-size="13" text-anchor="start" font-weight="bold" fill="#1d1d1f">M1 · servo S0</text>
+<text x="1250" y="452" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">MG90S (trái)</text>
+<text x="1250" y="466" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">cam · đỏ · nâu</text>
+<line x1="973" y1="505" x2="1000" y2="505" stroke="#2a9d3a" stroke-width="2.2" stroke-linecap="round"/>
+<rect x="1000" y="499" width="46" height="12" fill="#ffffff" stroke="#2a9d3a" stroke-width="2"/>
+<text x="1023.0" y="495" font-size="12" text-anchor="middle" font-weight="normal" fill="#1d1d1f">R8 220Ω</text>
+<line x1="1046" y1="505" x2="1150" y2="505" stroke="#2a9d3a" stroke-width="2.2" stroke-linecap="round"/>
+<rect x="1150" y="495" width="22" height="48" rx="3" fill="#ffffff" stroke="#4a4f57" stroke-width="1.6"/>
+<text x="1161" y="491" font-size="12" text-anchor="middle" font-weight="bold" fill="#1d1d1f">J4</text>
+<circle cx="1150" cy="505" r="2.6" fill="#2a9d3a"/>
+<circle cx="1172" cy="505" r="2.6" fill="#2a9d3a"/>
+<line x1="1172" y1="505" x2="1240" y2="505" stroke="#2a9d3a" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="1150" cy="519" r="2.6" fill="#d62728"/>
+<circle cx="1172" cy="519" r="2.6" fill="#d62728"/>
+<line x1="1172" y1="519" x2="1240" y2="519" stroke="#d62728" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="1150" cy="533" r="2.6" fill="#333333"/>
+<circle cx="1172" cy="533" r="2.6" fill="#333333"/>
+<line x1="1172" y1="533" x2="1240" y2="533" stroke="#333333" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="1150,519 1142,510.0 1074.8,510.0 1074.8,528.0 1142,528.0" fill="#ffffff" stroke="#d62728" stroke-width="1.8"/>
+<text x="1108.4" y="523.5" font-size="12" text-anchor="middle" font-weight="bold" fill="#d62728">5V_SERVO</text>
+<line x1="1150" y1="533" x2="1132" y2="533" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="1132" y1="533" x2="1132" y2="539" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="1123" y1="539" x2="1141" y2="539" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="1126" y1="543" x2="1138" y2="543" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="1129" y1="547" x2="1135" y2="547" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<rect x="1240" y="493" width="170" height="52" rx="6" fill="#fbfbf3" stroke="#4a4f57" stroke-width="1.5"/>
+<text x="1250" y="509" font-size="13" text-anchor="start" font-weight="bold" fill="#1d1d1f">M2 · servo S1</text>
+<text x="1250" y="525" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">MG90S (phải)</text>
+<text x="1250" y="539" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">cam · đỏ · nâu</text>
+<text x="1102" y="562" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">đất ở J3/J4 = GND_SERVO</text>
+<text x="1420" y="440" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">S1 lắp đối xứng: đảo</text>
+<text x="1420" y="457" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">chiều bằng hiệu chỉnh</text>
+<text x="1420" y="474" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">(closed &gt; open, FW2).</text>
+<text x="1420" y="491" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">Giật khi khởi động:</text>
+<text x="1420" y="508" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">thêm R9/R10 10kΩ.</text>
+<line x1="973" y1="700" x2="1005" y2="700" stroke="#2a9d3a" stroke-width="2.2" stroke-linecap="round"/>
+<rect x="1005" y="694" width="45" height="12" fill="#ffffff" stroke="#2a9d3a" stroke-width="2"/>
+<text x="1027.5" y="690" font-size="12" text-anchor="middle" font-weight="normal" fill="#1d1d1f">R3 100Ω</text>
+<line x1="1050" y1="700" x2="1115" y2="700" stroke="#2a9d3a" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="1090" cy="700" r="3.6" fill="#2a9d3a"/>
+<line x1="1115" y1="700" x2="1135" y2="700" stroke="#2a9d3a" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="1135" y1="686" x2="1135" y2="714" stroke="#1d1d1f" stroke-width="2.4" stroke-linecap="round"/>
+<line x1="1141" y1="683" x2="1141" y2="691" stroke="#1d1d1f" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="1141" y1="696" x2="1141" y2="704" stroke="#1d1d1f" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="1141" y1="709" x2="1141" y2="717" stroke="#1d1d1f" stroke-width="2.6" stroke-linecap="round"/>
+<polyline points="1141,687 1157,687 1157,670" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1141,713 1157,713 1157,730" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="1141" y1="700" x2="1157" y2="700" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"/>
+<line x1="1157" y1="700" x2="1157" y2="713" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"/>
+<polygon points="1142,700 1150,696 1150,704" fill="#1d1d1f"/>
+<text x="1167" y="698" font-size="12" text-anchor="start" font-weight="bold" fill="#1d1d1f">Q1 AO3400A</text>
+<text x="1167" y="713" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">đèn mắt</text>
+<rect x="1084" y="708" width="12" height="24" fill="#ffffff" stroke="#1d1d1f" stroke-width="2"/>
+<text x="1080" y="724.0" font-size="12" text-anchor="end" font-weight="normal" fill="#1d1d1f">R5 100k</text>
+<line x1="1090" y1="700" x2="1090" y2="708" stroke="#2a9d3a" stroke-width="2" stroke-linecap="round"/>
+<polyline points="1090,732 1090,740 1157,740" fill="none" stroke="#333333" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="1157" y1="730" x2="1157" y2="740" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="1157" y1="740" x2="1157" y2="746" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="1148" y1="746" x2="1166" y2="746" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="1151" y1="750" x2="1163" y2="750" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="1154" y1="754" x2="1160" y2="754" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<text x="1169" y="755" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">GND_PWR</text>
+<polyline points="1157,670 1157,670 1460,670" fill="none" stroke="#1d1d1f" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="1250,580 1242,571.0 1182.2,571.0 1182.2,589.0 1242,589.0" fill="#ffffff" stroke="#d62728" stroke-width="1.8"/>
+<text x="1212.1" y="584.5" font-size="12" text-anchor="middle" font-weight="bold" fill="#d62728">5V_EYES</text>
+<line x1="1250" y1="580" x2="1460" y2="580" stroke="#d62728" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="1340" cy="580" r="3.6" fill="#d62728"/>
+<rect x="1334" y="588" width="12" height="24" fill="#ffffff" stroke="#d62728" stroke-width="2"/>
+<text x="1329" y="604.0" font-size="12" text-anchor="end" font-weight="normal" fill="#1d1d1f">R_EYE1</text>
+<line x1="1340" y1="612" x2="1340" y2="622" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
+<rect x="1316" y="622" width="48" height="34" rx="4" fill="#fff8e6" stroke="#b8860b" stroke-width="1.6"/>
+<text x="1340" y="637" font-size="12" text-anchor="middle" font-weight="bold" fill="#1d1d1f">E1</text>
+<text x="1340" y="652" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">(+ −)</text>
+<line x1="1340" y1="656" x2="1340" y2="670" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"/>
+<circle cx="1340" cy="670" r="3.6" fill="#1d1d1f"/>
+<text x="1310" y="645" font-size="12" text-anchor="end" font-weight="normal" fill="#5f6368">mắt trái</text>
+<circle cx="1440" cy="580" r="3.6" fill="#d62728"/>
+<rect x="1434" y="588" width="12" height="24" fill="#ffffff" stroke="#d62728" stroke-width="2"/>
+<text x="1429" y="604.0" font-size="12" text-anchor="end" font-weight="normal" fill="#1d1d1f">R_EYE2</text>
+<line x1="1440" y1="612" x2="1440" y2="622" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
+<rect x="1416" y="622" width="48" height="34" rx="4" fill="#fff8e6" stroke="#b8860b" stroke-width="1.6"/>
+<text x="1440" y="637" font-size="12" text-anchor="middle" font-weight="bold" fill="#1d1d1f">E2</text>
+<text x="1440" y="652" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">(+ −)</text>
+<line x1="1440" y1="656" x2="1440" y2="670" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"/>
+<circle cx="1440" cy="670" r="3.6" fill="#1d1d1f"/>
+<text x="1468" y="645" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">mắt phải</text>
+<rect x="1280" y="575" width="10" height="10" fill="#ffffff" stroke="#4a4f57" stroke-width="1.6"/>
+<text x="1285" y="571" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">J6.1</text>
+<rect x="1280" y="665" width="10" height="10" fill="#ffffff" stroke="#4a4f57" stroke-width="1.6"/>
+<text x="1285" y="661" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">J6.2</text>
+<text x="1300" y="690" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">EYES_DRV (drain Q1)</text>
+<text x="1240" y="772" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">Mỗi mắt một R_EYE riêng, chọn theo đo (mục 4.2)</text>
+<text x="1240" y="788" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">R5 kéo xuống: đèn tắt khi khởi động / reset</text>
+<rect x="20" y="798" width="1035" height="254" rx="10" fill="#fff7f6" stroke="#e3b5b0" stroke-width="1.4"/>
+<text x="32" y="818" font-size="15" text-anchor="start" font-weight="bold" fill="#1d1d1f">NGUỒN &amp; PHÂN PHỐI (HW1) – nối đất hình sao</text>
+<rect x="40" y="870" width="56" height="84" rx="4" fill="#ffffff" stroke="#4a4f57" stroke-width="1.6"/>
+<text x="68" y="864" font-size="13" text-anchor="middle" font-weight="bold" fill="#1d1d1f">J1</text>
+<text x="52" y="894" font-size="14" text-anchor="middle" font-weight="bold" fill="#d62728">+</text>
+<text x="52" y="940" font-size="14" text-anchor="middle" font-weight="bold" fill="#333333">−</text>
+<circle cx="96" cy="890" r="3.6" fill="#d62728"/>
+<circle cx="96" cy="936" r="3.6" fill="#333333"/>
+<text x="32" y="978" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">← sạc dự phòng 5V ≥2.4A</text>
+<text x="32" y="994" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">USB-A cắt / USB-C sink</text>
+<text x="32" y="1010" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">(5.1kΩ ở CC1 và CC2)</text>
+<line x1="96" y1="890" x2="122" y2="890" stroke="#d62728" stroke-width="2.2" stroke-linecap="round"/>
+<rect x="122" y="882" width="46" height="16" fill="#ffffff" stroke="#d62728" stroke-width="2"/>
+<line x1="128" y1="896" x2="162" y2="884" stroke="#d62728" stroke-width="1.4" stroke-linecap="round"/>
+<text x="145" y="875" font-size="12" text-anchor="middle" font-weight="normal" fill="#1d1d1f">F1 2.5A</text>
+<line x1="168" y1="890" x2="196" y2="890" stroke="#d62728" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="196" cy="890" r="3" fill="#d62728"/>
+<circle cx="240" cy="890" r="3" fill="#d62728"/>
+<line x1="199" y1="889" x2="236" y2="876" stroke="#d62728" stroke-width="2.4" stroke-linecap="round"/>
+<text x="218" y="868" font-size="12" text-anchor="middle" font-weight="normal" fill="#1d1d1f">SW1 ≥3A</text>
+<text x="218" y="912" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">(qua J2)</text>
+<line x1="240" y1="890" x2="276" y2="890" stroke="#d62728" stroke-width="2.2" stroke-linecap="round"/>
+<rect x="276" y="836" width="10" height="74" fill="#d62728"/>
+<text x="270" y="852" font-size="12" text-anchor="end" font-weight="bold" fill="#d62728">★ 5V_MAIN</text>
+<line x1="96" y1="936" x2="276" y2="936" stroke="#333333" stroke-width="2.2" stroke-linecap="round"/>
+<rect x="276" y="928" width="10" height="114" fill="#333333"/>
+<text x="270" y="958" font-size="12" text-anchor="end" font-weight="bold" fill="#333333">★ GND_STAR</text>
+<polyline points="286,902 330,902 330,930" fill="none" stroke="#d62728" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="324" y="930" width="12" height="24" fill="#ffffff" stroke="#d62728" stroke-width="2"/>
+<text x="318" y="946.0" font-size="12" text-anchor="end" font-weight="normal" fill="#1d1d1f">R1</text>
+<line x1="330" y1="954" x2="330" y2="962" stroke="#c79a00" stroke-width="2" stroke-linecap="round"/>
+<circle cx="330" cy="962" r="3.6" fill="#c79a00"/>
+<line x1="330" y1="962" x2="385" y2="962" stroke="#c79a00" stroke-width="2" stroke-linecap="round"/>
+<rect x="324" y="968" width="12" height="24" fill="#ffffff" stroke="#333333" stroke-width="2"/>
+<text x="318" y="984.0" font-size="12" text-anchor="end" font-weight="normal" fill="#1d1d1f">R2</text>
+<line x1="330" y1="962" x2="330" y2="968" stroke="#c79a00" stroke-width="2" stroke-linecap="round"/>
+<line x1="360" y1="962" x2="360" y2="977.0" stroke="#c79a00" stroke-width="2" stroke-linecap="round"/>
+<line x1="360" y1="985.0" x2="360" y2="1000" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="351" y1="977.0" x2="369" y2="977.0" stroke="#c79a00" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="351" y1="985.0" x2="369" y2="985.0" stroke="#333333" stroke-width="2.6" stroke-linecap="round"/>
+<text x="373" y="985.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">C7</text>
+<circle cx="360" cy="962" r="3.6" fill="#c79a00"/>
+<line x1="330" y1="992" x2="330" y2="1000" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<circle cx="330" cy="1000" r="3.6" fill="#333333"/>
+<circle cx="360" cy="1000" r="3.6" fill="#333333"/>
+<polygon points="385,962 393,953.0 445.4,953.0 445.4,971.0 393,971.0" fill="#ffffff" stroke="#c79a00" stroke-width="1.8"/>
+<text x="419.2" y="966.5" font-size="12" text-anchor="middle" font-weight="bold" fill="#c79a00">VSENSE</text>
+<text x="338" y="917" font-size="12" text-anchor="start" font-weight="bold" fill="#d62728">VSENSE_TOP</text>
+<text x="338" y="932" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">100kΩ 1%</text>
+<text x="395" y="990" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">→ GPIO1</text>
+<polyline points="286,890 470,890 470,930" fill="none" stroke="#d62728" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="470" y1="930" x2="470" y2="936.0" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
+<line x1="470" y1="952.0" x2="470" y2="958" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
+<polygon points="461,936.0 479,936.0 470,951.0" fill="#ffffff" stroke="#d62728" stroke-width="2"/>
+<line x1="461" y1="952.0" x2="479" y2="952.0" stroke="#d62728" stroke-width="2.6" stroke-linecap="round"/>
+<circle cx="470" cy="958" r="3.6" fill="#d62728"/>
+<line x1="470" y1="958" x2="500" y2="958" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
+<line x1="470" y1="958" x2="470" y2="967.5" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
+<line x1="470" y1="975.5" x2="470" y2="985" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="461" y1="967.5" x2="479" y2="967.5" stroke="#d62728" stroke-width="2.6" stroke-linecap="round"/>
+<path d="M 461 977.5 Q 470 973.5 479 977.5" fill="none" stroke="#333333" stroke-width="2.6"/>
+<text x="456" y="965.5" font-size="12" text-anchor="middle" font-weight="normal" fill="#d62728">+</text>
+<line x1="500" y1="958" x2="500" y2="967.5" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
+<line x1="500" y1="975.5" x2="500" y2="985" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="491" y1="967.5" x2="509" y2="967.5" stroke="#d62728" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="491" y1="975.5" x2="509" y2="975.5" stroke="#333333" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="470" y1="985" x2="500" y2="985" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<polyline points="470,985 470,1000 286,1000" fill="none" stroke="#333333" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="482" y="905" font-size="12" text-anchor="start" font-weight="bold" fill="#d62728">5V_ESP</text>
+<text x="482" y="920" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">→ U1 5V (L21)</text>
+<text x="482" y="935" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">D1 SS34/1N5819</text>
+<text x="510" y="966" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">C5 220µ</text>
+<text x="510" y="982" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">C6 100n</text>
+<text x="478" y="996" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">GND_ESP</text>
+<polyline points="286,878 595,878 595,930" fill="none" stroke="#d62728" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="595" cy="930" r="3.6" fill="#d62728"/>
+<line x1="595" y1="930" x2="625" y2="930" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
+<line x1="595" y1="930" x2="595" y2="953.5" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
+<line x1="595" y1="961.5" x2="595" y2="985" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="586" y1="953.5" x2="604" y2="953.5" stroke="#d62728" stroke-width="2.6" stroke-linecap="round"/>
+<path d="M 586 963.5 Q 595 959.5 604 963.5" fill="none" stroke="#333333" stroke-width="2.6"/>
+<text x="581" y="951.5" font-size="12" text-anchor="middle" font-weight="normal" fill="#d62728">+</text>
+<line x1="625" y1="930" x2="625" y2="953.5" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
+<line x1="625" y1="961.5" x2="625" y2="985" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="616" y1="953.5" x2="634" y2="953.5" stroke="#d62728" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="616" y1="961.5" x2="634" y2="961.5" stroke="#333333" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="595" y1="985" x2="625" y2="985" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<polyline points="595,985 595,1012 286,1012" fill="none" stroke="#333333" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="603" y="893" font-size="12" text-anchor="start" font-weight="bold" fill="#d62728">5V_AUDIO</text>
+<text x="603" y="908" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">→ U2 VIN</text>
+<text x="635" y="950" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">C3 470µF</text>
+<text x="635" y="966" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">C4 100nF</text>
+<text x="603" y="1008" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">GND_AUDIO</text>
+<polyline points="286,866 720,866 720,930" fill="none" stroke="#d62728" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="720" cy="930" r="3.6" fill="#d62728"/>
+<line x1="720" y1="930" x2="750" y2="930" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
+<line x1="720" y1="930" x2="720" y2="953.5" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
+<line x1="720" y1="961.5" x2="720" y2="985" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="711" y1="953.5" x2="729" y2="953.5" stroke="#d62728" stroke-width="2.6" stroke-linecap="round"/>
+<path d="M 711 963.5 Q 720 959.5 729 963.5" fill="none" stroke="#333333" stroke-width="2.6"/>
+<text x="706" y="951.5" font-size="12" text-anchor="middle" font-weight="normal" fill="#d62728">+</text>
+<line x1="750" y1="930" x2="750" y2="953.5" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
+<line x1="750" y1="961.5" x2="750" y2="985" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<line x1="741" y1="953.5" x2="759" y2="953.5" stroke="#d62728" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="741" y1="961.5" x2="759" y2="961.5" stroke="#333333" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="720" y1="985" x2="750" y2="985" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<polyline points="720,985 720,1024 286,1024" fill="none" stroke="#333333" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="728" y="881" font-size="12" text-anchor="start" font-weight="bold" fill="#d62728">5V_SERVO</text>
+<text x="728" y="896" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">→ J3.2, J4.2</text>
+<text x="728" y="1020" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">GND_SERVO</text>
+<text x="760" y="950" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">C1 1000µF</text>
+<text x="760" y="966" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">C2 100nF</text>
+<polyline points="286,854 845,854 845,930" fill="none" stroke="#d62728" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="853" y="869" font-size="12" text-anchor="start" font-weight="bold" fill="#d62728">5V_EYES</text>
+<text x="853" y="884" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">→ J6.1</text>
+<text x="853" y="899" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">→ R_EYE1/2</text>
+<line x1="845" y1="930" x2="845" y2="940" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
+<polygon points="839,940 851,940 845,950" fill="#d62728"/>
+<polyline points="286,842 965,842 965,930" fill="none" stroke="#d62728" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="973" y="857" font-size="12" text-anchor="start" font-weight="bold" fill="#d62728">5V_MAIN</text>
+<text x="973" y="872" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">→ J5.1, D2</text>
+<line x1="965" y1="930" x2="965" y2="940" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
+<polygon points="959,940 971,940 965,950" fill="#d62728"/>
+<rect x="1070" y="798" width="510" height="254" rx="10" fill="#f6fbf6" stroke="#b5d6b8" stroke-width="1.4"/>
+<text x="1082" y="818" font-size="15" text-anchor="start" font-weight="bold" fill="#1d1d1f">OUTPUT DỰ PHÒNG (HW3) – J5, ≤1A</text>
+<polyline points="973,735 1062,735 1062,950 1100,950" fill="none" stroke="#2a9d3a" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="1100" y="944" width="45" height="12" fill="#ffffff" stroke="#2a9d3a" stroke-width="2"/>
+<text x="1122.5" y="940" font-size="12" text-anchor="middle" font-weight="normal" fill="#1d1d1f">R4 100Ω</text>
+<line x1="1145" y1="950" x2="1215" y2="950" stroke="#2a9d3a" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="1185" cy="950" r="3.6" fill="#2a9d3a"/>
+<line x1="1215" y1="950" x2="1235" y2="950" stroke="#2a9d3a" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="1235" y1="936" x2="1235" y2="964" stroke="#1d1d1f" stroke-width="2.4" stroke-linecap="round"/>
+<line x1="1241" y1="933" x2="1241" y2="941" stroke="#1d1d1f" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="1241" y1="946" x2="1241" y2="954" stroke="#1d1d1f" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="1241" y1="959" x2="1241" y2="967" stroke="#1d1d1f" stroke-width="2.6" stroke-linecap="round"/>
+<polyline points="1241,937 1257,937 1257,920" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1241,963 1257,963 1257,980" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="1241" y1="950" x2="1257" y2="950" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"/>
+<line x1="1257" y1="950" x2="1257" y2="963" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"/>
+<polygon points="1242,950 1250,946 1250,954" fill="#1d1d1f"/>
+<text x="1267" y="948" font-size="12" text-anchor="start" font-weight="bold" fill="#1d1d1f">Q2 AO3400A</text>
+<text x="1267" y="963" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">output dự phòng</text>
+<rect x="1179" y="958" width="12" height="24" fill="#ffffff" stroke="#1d1d1f" stroke-width="2"/>
+<text x="1175" y="974.0" font-size="12" text-anchor="end" font-weight="normal" fill="#1d1d1f">R6 100k</text>
+<line x1="1185" y1="950" x2="1185" y2="958" stroke="#2a9d3a" stroke-width="2" stroke-linecap="round"/>
+<polyline points="1185,982 1185,992 1257,992" fill="none" stroke="#333333" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="1257" y1="980" x2="1257" y2="992" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+<circle cx="1257" cy="992" r="3.6" fill="#333333"/>
+<polyline points="1257,992 1257,1036 286,1036" fill="none" stroke="#333333" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1265" y="1032" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">GND_PWR → điểm sao</text>
+<polygon points="1200,862 1192,853.0 1132.2,853.0 1132.2,871.0 1192,871.0" fill="#ffffff" stroke="#d62728" stroke-width="1.8"/>
+<text x="1162.1" y="866.5" font-size="12" text-anchor="middle" font-weight="bold" fill="#d62728">5V_MAIN</text>
+<line x1="1200" y1="862" x2="1430" y2="862" stroke="#d62728" stroke-width="2.2" stroke-linecap="round"/>
+<polyline points="1257,920 1257,905 1430,905" fill="none" stroke="#1d1d1f" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="1350" cy="862" r="3.6" fill="#d62728"/>
+<circle cx="1350" cy="905" r="3.6" fill="#1d1d1f"/>
+<line x1="1350" y1="862" x2="1350" y2="875.5" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
+<line x1="1350" y1="891.5" x2="1350" y2="905" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
+<polygon points="1341,891.5 1359,891.5 1350,876.5" fill="#ffffff" stroke="#d62728" stroke-width="2"/>
+<line x1="1341" y1="875.5" x2="1359" y2="875.5" stroke="#d62728" stroke-width="2.6" stroke-linecap="round"/>
+<text x="1340" y="887.5" font-size="12" text-anchor="end" font-weight="normal" fill="#1d1d1f">D2 1N5819</text>
+<rect x="1430" y="850" width="24" height="68" rx="3" fill="#ffffff" stroke="#4a4f57" stroke-width="1.6"/>
+<text x="1442" y="845" font-size="12" text-anchor="middle" font-weight="bold" fill="#1d1d1f">J5</text>
+<text x="1442" y="866" font-size="13" text-anchor="middle" font-weight="bold" fill="#d62728">+</text>
+<text x="1442" y="911" font-size="13" text-anchor="middle" font-weight="bold" fill="#1d1d1f">−</text>
+<polyline points="1454,862 1480,862" fill="none" stroke="#d62728" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1454,905 1480,905" fill="none" stroke="#1d1d1f" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="1480" y="846" width="88" height="76" rx="4" fill="#ffffff" stroke="#4a4f57" stroke-width="1.4" stroke-dasharray="5 4"/>
+<text x="1524" y="874" font-size="12" text-anchor="middle" font-weight="bold" fill="#1d1d1f">TẢI ≤1A</text>
+<text x="1524" y="890" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">relay, quạt,</text>
+<text x="1524" y="906" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">motor…</text>
+<text x="1300" y="920" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">OUT_DRV</text>
+<text x="1350" y="1000" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">D2: vạch catot về +5V</text>
+<text x="1350" y="1016" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">Chưa có trong ngân sách dòng HW1</text>
+</svg>

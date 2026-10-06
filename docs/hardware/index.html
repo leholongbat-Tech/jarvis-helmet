@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jarvis Helmet – Bản vẽ điện</title>
+<style>
+  :root {
+    --bg: #f4f5f7;
+    --card: #ffffff;
+    --text: #1d1d1f;
+    --muted: #5f6368;
+    --border: #d9dce1;
+    --accent: #1f6fd1;
+    --warn: #c45a00;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16181c;
+      --card: #20232a;
+      --text: #e8eaed;
+      --muted: #a4a9b1;
+      --border: #3a3f48;
+      --accent: #7fb2ff;
+      --warn: #ffb066;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+  }
+  header, main, footer { max-width: 1680px; margin: 0 auto; padding: 0 16px; }
+  header { padding-top: 24px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 16px; }
+  nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  nav a {
+    display: inline-block;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--card);
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  nav a:hover, nav a:focus-visible { border-color: var(--accent); }
+  figure {
+    margin: 0 0 28px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  figure h2 { font-size: 1.15rem; margin: 0 0 4px; }
+  figcaption { color: var(--muted); margin-bottom: 12px; }
+  .frame {
+    background: #ffffff;           /* SVG vẽ trên nền trắng */
+    border-radius: 6px;
+    overflow-x: auto;
+  }
+  .frame img { display: block; width: 100%; height: auto; min-width: 900px; }
+  .open { font-size: 0.9rem; margin-top: 8px; }
+  .open a { color: var(--accent); }
+  .notes {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--warn);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 28px;
+  }
+  .notes h2 { font-size: 1.05rem; margin: 0 0 6px; color: var(--warn); }
+  .notes ul { margin: 0; padding-left: 20px; }
+  footer { color: var(--muted); font-size: 0.9rem; padding-bottom: 32px; }
+  code { font-family: ui-monospace, Consolas, monospace; font-size: 0.92em; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Jarvis Helmet – Bản vẽ điện</h1>
+  <p class="sub">Rev A · 2026-10-06 · Bảng chân theo HW2, nguồn theo HW1, công suất theo HW3, PCB theo HW4. Bản đầu, chưa đo trên phần cứng thật.</p>
+  <nav aria-label="Tài liệu">
+    <a href="wiring.md">wiring.md – bảng đấu dây</a>
+    <a href="BOM.md">BOM.md – danh sách linh kiện</a>
+    <a href="breadboard.md">breadboard.md – bản thử breadboard</a>
+    <a href="#he-thong">Sơ đồ hệ thống</a>
+    <a href="#pcb">Bố trí PCB 7×9</a>
+    <a href="#breadboard">Bản thử breadboard</a>
+  </nav>
+</header>
+<main>
+  <section class="notes" aria-label="Cần đo trước khi hàn">
+    <h2>Cần đo trên linh kiện thật trước khi hàn</h2>
+    <ul>
+      <li>Khoảng cách hai hàng chân devkit: 9 bước (22.86mm) → header phải ở cột R; 10 bước (25.4mm) → cột S.</li>
+      <li>Số lỗ thật của tấm PCB: bố trí dùng 27×35; tấm 24×30 phải vẽ lại.</li>
+      <li>Phiên bản devkit (v1.1 để LED RGB ở GPIO38), loại LCD 7 hay 8 chân, thứ tự chân MAX98357.</li>
+      <li>R_EYE cho từng mắt (quy trình ở <code>wiring.md</code> mục 4.2); điện áp không tải, VSENSE khi có tải, nhiệt Q2, số lần reset (mục 6).</li>
+    </ul>
+  </section>
+
+  <figure id="he-thong">
+    <h2>Sơ đồ đấu dây hệ thống</h2>
+    <figcaption>ESP32-S3-DevKitC-1 ở giữa (nhãn L/R = chân hàng trái/phải trên devkit); âm thanh và nút bên trái, LCD, servo và mạch đèn mắt bên phải; khối nguồn nối hình sao và output dự phòng ở dưới.</figcaption>
+    <div class="frame"><img src="wiring.svg" alt="Sơ đồ đấu dây hệ thống Jarvis Helmet: ESP32-S3 nối INMP441, MAX98357A, ST7789, 2 servo, MOSFET đèn mắt, output dự phòng và khối nguồn"></div>
+    <p class="open"><a href="wiring.svg" target="_blank" rel="noopener">Mở wiring.svg cỡ đầy đủ</a></p>
+  </figure>
+
+  <figure id="pcb">
+    <h2>Bố trí PCB đục lỗ 7×9cm (lưới 27×35)</h2>
+    <figcaption>Nhìn từ mặt linh kiện, cạnh 9cm theo chiều dọc. Nét đứt là dây nguồn mặt dưới; dây tín hiệu không vẽ, đi theo bảng trong <code>wiring.md</code> mục 5.3.</figcaption>
+    <div class="frame"><img src="perfboard-7x9.svg" alt="Bố trí linh kiện trên PCB đục lỗ 27 cột × 35 hàng: devkit giữa, âm thanh trái, MOSFET và servo phải, khối nguồn dưới"></div>
+    <p class="open"><a href="perfboard-7x9.svg" target="_blank" rel="noopener">Mở perfboard-7x9.svg cỡ đầy đủ</a></p>
+  </figure>
+
+  <figure id="breadboard">
+    <h2>Bản thử trên breadboard (P1, P3)</h2>
+    <figcaption>Hai tấm 63 cột + 3 ray như ảnh; devkit cắm hàng h tấm trên và hàng b tấm dưới, cột 42–63. Ray trên là 5V_MAIN/GND cho servo, MOSFET, amply; bảng chân giữ nguyên HW2. Bảng lỗ và thứ tự thử B0–B9 ở <code>breadboard.md</code>.</figcaption>
+    <div class="frame"><img src="breadboard.svg" alt="Bố trí bản thử breadboard: ESP32-S3 devkit ở giữa bên trái, servo và MOSFET ở tấm trên bên phải sát đầu vào nguồn, amply đè ray trên, LCD và VSENSE dưới devkit, hai nút ở tấm dưới"></div>
+    <p class="open"><a href="breadboard.svg" target="_blank" rel="noopener">Mở breadboard.svg cỡ đầy đủ</a></p>
+  </figure>
+</main>
+<footer>
+  Nguồn: <code>docs/modules/HW1–HW4</code>. Mọi thay đổi chân hoặc linh kiện phải sửa đồng thời <code>wiring.md</code>, <code>wiring.svg</code>, <code>perfboard-7x9.svg</code>, <code>BOM.md</code> và bố trí breadboard (<code>tools/hardware/breadboard_layout.py</code>, chạy lại để sinh <code>breadboard.svg</code> và bảng trong <code>breadboard.md</code>).
+</footer>
+</body>
+</html>
