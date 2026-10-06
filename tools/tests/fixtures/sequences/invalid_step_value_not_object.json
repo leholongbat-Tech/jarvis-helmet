@@ -1,0 +1,11 @@
+{
+  "name": "invalid_step_value_not_object",
+  "steps": [
+    {"mask": "open"}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "mask",
+  "estimated_ms": null,
+  "note": "Giá trị của mask phải là object."
+}

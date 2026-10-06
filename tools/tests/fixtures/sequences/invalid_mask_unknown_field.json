@@ -1,0 +1,11 @@
+{
+  "name": "invalid_mask_unknown_field",
+  "steps": [
+    {"mask": {"action": "open", "color": "red"}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "color",
+  "estimated_ms": null,
+  "note": "Trường lạ trong bước."
+}

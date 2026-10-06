@@ -1,0 +1,11 @@
+{
+  "name": "invalid_mask_action_uppercase",
+  "steps": [
+    {"mask": {"action": "OPEN"}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "action",
+  "estimated_ms": null,
+  "note": "action phân biệt hoa thường."
+}

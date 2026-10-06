@@ -1,0 +1,11 @@
+{
+  "name": "invalid_display_seconds_zero",
+  "steps": [
+    {"display": {"title": "A", "text": "B", "seconds": 0}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "seconds",
+  "estimated_ms": null,
+  "note": "seconds < 1."
+}

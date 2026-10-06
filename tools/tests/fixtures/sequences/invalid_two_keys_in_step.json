@@ -1,0 +1,11 @@
+{
+  "name": "invalid_two_keys_in_step",
+  "steps": [
+    {"mask": {"action": "open"}, "delay": 300}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": null,
+  "estimated_ms": null,
+  "note": "Mỗi phần tử phải có đúng một khóa."
+}

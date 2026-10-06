@@ -1,0 +1,11 @@
+{
+  "name": "valid_mask_position_full_travel",
+  "steps": [
+    {"mask": {"position": 50, "speed": 40}}
+  ],
+  "valid": true,
+  "error_step": null,
+  "error_contains": null,
+  "estimated_ms": 2000,
+  "note": "Bước position vẫn ước tính bằng cả hành trình (trường hợp xấu nhất): 800*100/40 = 2000."
+}

@@ -1,0 +1,11 @@
+{
+  "name": "invalid_eyes_duration_low",
+  "steps": [
+    {"eyes": {"effect": "blink", "duration_ms": 50}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "duration_ms",
+  "estimated_ms": null,
+  "note": "duration_ms < 100."
+}

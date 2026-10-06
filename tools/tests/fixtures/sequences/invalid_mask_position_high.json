@@ -1,0 +1,11 @@
+{
+  "name": "invalid_mask_position_high",
+  "steps": [
+    {"mask": {"position": 101}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "position",
+  "estimated_ms": null,
+  "note": "position > 100."
+}

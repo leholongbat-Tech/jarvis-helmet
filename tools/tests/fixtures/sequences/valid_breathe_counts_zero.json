@@ -1,0 +1,12 @@
+{
+  "name": "valid_breathe_counts_zero",
+  "steps": [
+    {"eyes": {"effect": "breathe"}},
+    {"eyes": {"effect": "breathe", "duration_ms": 10000}}
+  ],
+  "valid": true,
+  "error_step": null,
+  "error_contains": null,
+  "estimated_ms": 0,
+  "note": "breathe lặp đến lệnh sau nên không chặn runner: luôn tính 0."
+}

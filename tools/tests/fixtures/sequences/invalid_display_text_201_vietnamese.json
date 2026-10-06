@@ -1,0 +1,11 @@
+{
+  "name": "invalid_display_text_201_vietnamese",
+  "steps": [
+    {"display": {"title": "STATUS", "text": "Hệ thống giáp đã sẵn sàng, mọi chỉ số đều ổn định. Hệ thống giáp đã sẵn sàng, mọi chỉ số đều ổn định. Hệ thống giáp đã sẵn sàng, mọi chỉ số đều ổn định. Hệ thống giáp đã sẵn sàng, mọi chỉ số đều ổn đị!"}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "text",
+  "estimated_ms": null,
+  "note": "text 201 ký tự."
+}

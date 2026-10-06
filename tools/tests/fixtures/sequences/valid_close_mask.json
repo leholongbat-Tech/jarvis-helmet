@@ -1,0 +1,13 @@
+{
+  "name": "valid_close_mask",
+  "steps": [
+    {"mask": {"action": "close"}},
+    {"delay": 300},
+    {"eyes": {"effect": "power_up", "duration_ms": 1200}}
+  ],
+  "valid": true,
+  "error_step": null,
+  "error_contains": null,
+  "estimated_ms": 2642,
+  "note": "Chuỗi close_mask (interfaces.md mục 5): mask tốc độ mặc định 70 -> 80000/70=1142 (chia nguyên) + 300 + 1200."
+}

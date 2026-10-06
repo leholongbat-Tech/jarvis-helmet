@@ -1,0 +1,9 @@
+{
+  "name": "invalid_not_array_object",
+  "steps": {"mask": {"action": "open"}},
+  "valid": false,
+  "error_step": null,
+  "error_contains": "array",
+  "estimated_ms": null,
+  "note": "steps phải là mảng JSON, không phải object (lỗi cấp trên, không gắn bước)."
+}

@@ -1,0 +1,12 @@
+{
+  "name": "valid_output_on_off",
+  "steps": [
+    {"output": {"on": true}},
+    {"output": {"on": false}}
+  ],
+  "valid": true,
+  "error_step": null,
+  "error_contains": null,
+  "estimated_ms": 0,
+  "note": "output chỉ có trường on (bool)."
+}

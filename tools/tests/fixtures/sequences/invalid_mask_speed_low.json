@@ -1,0 +1,11 @@
+{
+  "name": "invalid_mask_speed_low",
+  "steps": [
+    {"mask": {"action": "open", "speed": 5}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "speed",
+  "estimated_ms": null,
+  "note": "speed < 10."
+}

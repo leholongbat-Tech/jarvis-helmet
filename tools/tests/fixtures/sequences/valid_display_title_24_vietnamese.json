@@ -1,0 +1,11 @@
+{
+  "name": "valid_display_title_24_vietnamese",
+  "steps": [
+    {"display": {"title": "Hệ thống vũ khí sẵn sàng", "text": "Sẵn sàng"}}
+  ],
+  "valid": true,
+  "error_step": null,
+  "error_contains": null,
+  "estimated_ms": 0,
+  "note": "title đúng 24 ký tự (code point) nhưng 33 byte UTF-8 -> hợp lệ; thiếu seconds -> mặc định 5; display tính 0 ms."
+}

@@ -1,0 +1,12 @@
+{
+  "name": "valid_sound",
+  "steps": [
+    {"sound": {"name": "power_up"}},
+    {"sound": {"name": "beep_2"}}
+  ],
+  "valid": true,
+  "error_step": null,
+  "error_contains": null,
+  "estimated_ms": 0,
+  "note": "sound.name khớp [a-z0-9_]{1,32}; không tốn thời gian."
+}

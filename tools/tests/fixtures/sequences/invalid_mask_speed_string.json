@@ -1,0 +1,11 @@
+{
+  "name": "invalid_mask_speed_string",
+  "steps": [
+    {"mask": {"action": "open", "speed": "fast"}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "speed",
+  "estimated_ms": null,
+  "note": "Sai kiểu: speed là chuỗi."
+}

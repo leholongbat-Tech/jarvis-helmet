@@ -1,0 +1,11 @@
+{
+  "name": "invalid_mask_missing_action_position",
+  "steps": [
+    {"mask": {"speed": 50}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": null,
+  "estimated_ms": null,
+  "note": "Thiếu cả action lẫn position."
+}

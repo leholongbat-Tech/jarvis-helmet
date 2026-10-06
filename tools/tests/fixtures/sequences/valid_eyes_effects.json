@@ -1,0 +1,15 @@
+{
+  "name": "valid_eyes_effects",
+  "steps": [
+    {"eyes": {"effect": "breathe", "duration_ms": 2500}},
+    {"eyes": {"effect": "blink", "duration_ms": 100}},
+    {"eyes": {"effect": "flicker", "duration_ms": 10000}},
+    {"eyes": {"effect": "power_up"}},
+    {"eyes": {"effect": "fade_out", "duration_ms": 700}}
+  ],
+  "valid": true,
+  "error_step": null,
+  "error_contains": null,
+  "estimated_ms": 11800,
+  "note": "Đủ 5 hiệu ứng; breathe tính 0, thiếu duration_ms -> mặc định 1000: 0+100+10000+1000+700."
+}

@@ -1,0 +1,11 @@
+{
+  "name": "invalid_output_on_number",
+  "steps": [
+    {"output": {"on": 1}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": null,
+  "estimated_ms": null,
+  "note": "on phải là true/false, không phải số."
+}

@@ -1,0 +1,11 @@
+{
+  "name": "valid_mask_default_speed",
+  "steps": [
+    {"mask": {"action": "open"}}
+  ],
+  "valid": true,
+  "error_step": null,
+  "error_contains": null,
+  "estimated_ms": 1142,
+  "note": "Không có speed -> ước tính theo tốc độ mặc định 70: 800*100/70 = 1142 (chia nguyên kiểu C++)."
+}

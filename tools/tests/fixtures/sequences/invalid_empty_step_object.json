@@ -1,0 +1,12 @@
+{
+  "name": "invalid_empty_step_object",
+  "steps": [
+    {"delay": 100},
+    {}
+  ],
+  "valid": false,
+  "error_step": 2,
+  "error_contains": null,
+  "estimated_ms": null,
+  "note": "Object rỗng (0 khóa) không phải bước hợp lệ."
+}

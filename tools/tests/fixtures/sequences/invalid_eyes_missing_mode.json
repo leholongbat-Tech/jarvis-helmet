@@ -1,0 +1,11 @@
+{
+  "name": "invalid_eyes_missing_mode",
+  "steps": [
+    {"eyes": {"brightness": 50}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": null,
+  "estimated_ms": null,
+  "note": "Thiếu cả on lẫn effect."
+}

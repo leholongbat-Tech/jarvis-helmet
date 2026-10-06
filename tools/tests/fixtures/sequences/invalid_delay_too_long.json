@@ -1,0 +1,11 @@
+{
+  "name": "invalid_delay_too_long",
+  "steps": [
+    {"delay": 10001}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "delay",
+  "estimated_ms": null,
+  "note": "delay > 10000."
+}

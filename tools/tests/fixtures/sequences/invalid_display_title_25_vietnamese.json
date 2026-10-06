@@ -1,0 +1,11 @@
+{
+  "name": "invalid_display_title_25_vietnamese",
+  "steps": [
+    {"display": {"title": "Hệ thống vũ khí sẵn sàng!", "text": "x"}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "title",
+  "estimated_ms": null,
+  "note": "title 25 ký tự (đếm code point)."
+}

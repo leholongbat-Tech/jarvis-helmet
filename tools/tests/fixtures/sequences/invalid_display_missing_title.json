@@ -1,0 +1,11 @@
+{
+  "name": "invalid_display_missing_title",
+  "steps": [
+    {"display": {"text": "Xin chào"}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "title",
+  "estimated_ms": null,
+  "note": "title bắt buộc (giống self.display.show_info)."
+}

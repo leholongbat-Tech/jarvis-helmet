@@ -1,0 +1,11 @@
+{
+  "name": "invalid_step_type_case",
+  "steps": [
+    {"Mask": {"action": "open"}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "Mask",
+  "estimated_ms": null,
+  "note": "Tên loại bước phân biệt hoa thường."
+}

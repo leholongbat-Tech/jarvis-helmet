@@ -1,0 +1,17 @@
+{
+  "name": "valid_total_breathe_at_limit",
+  "steps": [
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 10000},
+    {"eyes": {"effect": "breathe", "duration_ms": 10000}}
+  ],
+  "valid": true,
+  "error_step": null,
+  "error_contains": null,
+  "estimated_ms": 60000,
+  "note": "breathe 10000 vẫn tính 0 nên tổng = 60000 hợp lệ."
+}

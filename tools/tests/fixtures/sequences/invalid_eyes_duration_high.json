@@ -1,0 +1,11 @@
+{
+  "name": "invalid_eyes_duration_high",
+  "steps": [
+    {"eyes": {"effect": "flicker", "duration_ms": 10001}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "duration_ms",
+  "estimated_ms": null,
+  "note": "duration_ms > 10000."
+}

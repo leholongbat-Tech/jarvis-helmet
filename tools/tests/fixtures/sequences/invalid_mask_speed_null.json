@@ -1,0 +1,11 @@
+{
+  "name": "invalid_mask_speed_null",
+  "steps": [
+    {"mask": {"action": "open", "speed": null}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "speed",
+  "estimated_ms": null,
+  "note": "null không bao giờ được chấp nhận (là lỗi sai kiểu, không coi là bỏ trống)."
+}

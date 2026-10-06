@@ -1,0 +1,12 @@
+{
+  "name": "valid_delay_bounds",
+  "steps": [
+    {"delay": 0},
+    {"delay": 10000}
+  ],
+  "valid": true,
+  "error_step": null,
+  "error_contains": null,
+  "estimated_ms": 10000,
+  "note": "delay là số nguyên ms 0..10000."
+}

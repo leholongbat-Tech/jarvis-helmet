@@ -1,0 +1,15 @@
+{
+  "name": "invalid_error_at_last_step",
+  "steps": [
+    {"delay": 100},
+    {"mask": {"action": "open"}},
+    {"eyes": {"on": true}},
+    {"output": {"on": true}},
+    {"servo": {"id": 0, "angle": 200, "duration_ms": 100}}
+  ],
+  "valid": false,
+  "error_step": 5,
+  "error_contains": "angle",
+  "estimated_ms": null,
+  "note": "Chỉ bước 5 sai: kiểm tra đánh số từ 1 (D23) và không bỏ qua bước cuối."
+}

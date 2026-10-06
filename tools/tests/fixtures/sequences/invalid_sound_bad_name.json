@@ -1,0 +1,11 @@
+{
+  "name": "invalid_sound_bad_name",
+  "steps": [
+    {"sound": {"name": "Power-Up!"}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "name",
+  "estimated_ms": null,
+  "note": "sound.name chỉ gồm a-z, 0-9, _."
+}

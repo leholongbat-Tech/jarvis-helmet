@@ -1,0 +1,11 @@
+{
+  "name": "invalid_eyes_effect_with_brightness",
+  "steps": [
+    {"eyes": {"effect": "blink", "brightness": 50}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "brightness",
+  "estimated_ms": null,
+  "note": "brightness chỉ đi với dạng on."
+}

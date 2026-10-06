@@ -1,0 +1,11 @@
+{
+  "name": "invalid_servo_missing_angle",
+  "steps": [
+    {"servo": {"id": 0, "duration_ms": 100}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "angle",
+  "estimated_ms": null,
+  "note": "angle là bắt buộc."
+}

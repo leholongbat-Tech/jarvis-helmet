@@ -1,0 +1,17 @@
+{
+  "name": "valid_total_default_speed_at_limit",
+  "steps": [
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 8858},
+    {"mask": {"action": "open"}}
+  ],
+  "valid": true,
+  "error_step": null,
+  "error_contains": null,
+  "estimated_ms": 60000,
+  "note": "58858 + 1142 (mask mặc định 70) = 60000."
+}

@@ -1,0 +1,17 @@
+{
+  "name": "invalid_total_default_speed",
+  "steps": [
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 8859},
+    {"mask": {"action": "open"}}
+  ],
+  "valid": false,
+  "error_step": null,
+  "error_contains": "60000",
+  "estimated_ms": null,
+  "note": "58859 + 1142 = 60001 ms."
+}

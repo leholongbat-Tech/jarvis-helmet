@@ -1,0 +1,11 @@
+{
+  "name": "invalid_servo_missing_id",
+  "steps": [
+    {"servo": {"angle": 90}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": null,
+  "estimated_ms": null,
+  "note": "id là bắt buộc."
+}

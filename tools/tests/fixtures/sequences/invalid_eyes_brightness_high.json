@@ -1,0 +1,11 @@
+{
+  "name": "invalid_eyes_brightness_high",
+  "steps": [
+    {"eyes": {"on": true, "brightness": 101}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "brightness",
+  "estimated_ms": null,
+  "note": "brightness > 100."
+}

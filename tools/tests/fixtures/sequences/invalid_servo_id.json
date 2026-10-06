@@ -1,0 +1,11 @@
+{
+  "name": "invalid_servo_id",
+  "steps": [
+    {"servo": {"id": 2, "angle": 90, "duration_ms": 500}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": null,
+  "estimated_ms": null,
+  "note": "id chỉ 0..1 (error_contains để null vì 'id' trùng với chữ 'invalid')."
+}

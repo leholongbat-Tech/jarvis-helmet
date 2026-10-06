@@ -1,0 +1,11 @@
+{
+  "name": "invalid_eyes_on_with_duration",
+  "steps": [
+    {"eyes": {"on": true, "duration_ms": 500}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "duration_ms",
+  "estimated_ms": null,
+  "note": "duration_ms chỉ đi với dạng effect."
+}

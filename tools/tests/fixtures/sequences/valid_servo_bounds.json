@@ -1,0 +1,12 @@
+{
+  "name": "valid_servo_bounds",
+  "steps": [
+    {"servo": {"id": 0, "angle": 0, "duration_ms": 0}},
+    {"servo": {"id": 1, "angle": 180, "duration_ms": 5000}}
+  ],
+  "valid": true,
+  "error_step": null,
+  "error_contains": null,
+  "estimated_ms": 5000,
+  "note": "Biên id 0..1, angle 0..180, duration_ms 0..5000; ước tính = duration_ms."
+}

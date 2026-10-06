@@ -1,0 +1,12 @@
+{
+  "name": "invalid_step_not_object",
+  "steps": [
+    {"delay": 100},
+    "delay"
+  ],
+  "valid": false,
+  "error_step": 2,
+  "error_contains": null,
+  "estimated_ms": null,
+  "note": "Phần tử không phải object."
+}

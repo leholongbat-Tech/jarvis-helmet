@@ -1,0 +1,11 @@
+{
+  "name": "invalid_display_missing_text",
+  "steps": [
+    {"display": {"title": "HELLO"}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "text",
+  "estimated_ms": null,
+  "note": "text bắt buộc (giống self.display.show_info)."
+}

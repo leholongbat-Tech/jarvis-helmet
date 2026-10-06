@@ -1,0 +1,11 @@
+{
+  "name": "invalid_output_missing_on",
+  "steps": [
+    {"output": {}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": null,
+  "estimated_ms": null,
+  "note": "output.on là bắt buộc."
+}

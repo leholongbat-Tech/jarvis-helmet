@@ -1,0 +1,12 @@
+{
+  "name": "valid_open_mask",
+  "steps": [
+    {"eyes": {"effect": "fade_out", "duration_ms": 300}},
+    {"mask": {"action": "open", "speed": 80}}
+  ],
+  "valid": true,
+  "error_step": null,
+  "error_contains": null,
+  "estimated_ms": 1300,
+  "note": "Chuỗi open_mask (interfaces.md mục 5): fade_out 300 + mask 800*100/80=1000."
+}

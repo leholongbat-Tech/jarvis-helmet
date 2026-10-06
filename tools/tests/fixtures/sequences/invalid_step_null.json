@@ -1,0 +1,11 @@
+{
+  "name": "invalid_step_null",
+  "steps": [
+    null
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": null,
+  "estimated_ms": null,
+  "note": "Phần tử null."
+}

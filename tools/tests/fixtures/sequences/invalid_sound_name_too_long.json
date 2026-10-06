@@ -1,0 +1,11 @@
+{
+  "name": "invalid_sound_name_too_long",
+  "steps": [
+    {"sound": {"name": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "name",
+  "estimated_ms": null,
+  "note": "sound.name dài tối đa 32."
+}

@@ -1,0 +1,11 @@
+{
+  "name": "invalid_eyes_unknown_effect",
+  "steps": [
+    {"eyes": {"effect": "rainbow"}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "effect",
+  "estimated_ms": null,
+  "note": "effect chỉ nhận breathe|blink|flicker|power_up|fade_out."
+}

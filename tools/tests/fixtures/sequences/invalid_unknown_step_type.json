@@ -1,0 +1,12 @@
+{
+  "name": "invalid_unknown_step_type",
+  "steps": [
+    {"delay": 100},
+    {"laser": {"on": true}}
+  ],
+  "valid": false,
+  "error_step": 2,
+  "error_contains": "laser",
+  "estimated_ms": null,
+  "note": "Loại bước lạ ở bước 2 (đánh số từ 1, D23)."
+}

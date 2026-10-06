@@ -1,0 +1,17 @@
+{
+  "name": "invalid_total_default_effect_duration",
+  "steps": [
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 9001},
+    {"eyes": {"effect": "blink"}}
+  ],
+  "valid": false,
+  "error_step": null,
+  "error_contains": "60000",
+  "estimated_ms": null,
+  "note": "59001 + blink mặc định 1000 = 60001 ms."
+}

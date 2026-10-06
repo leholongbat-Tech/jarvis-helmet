@@ -1,0 +1,11 @@
+{
+  "name": "invalid_servo_angle_float",
+  "steps": [
+    {"servo": {"id": 0, "angle": 45.5, "duration_ms": 500}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "angle",
+  "estimated_ms": null,
+  "note": "angle phải là số nguyên."
+}

@@ -1,0 +1,11 @@
+{
+  "name": "invalid_display_title_nfd_code_points",
+  "steps": [
+    {"display": {"title": "Che\u0302\u0301 \u0111o\u0323\u0302 chie\u0302\u0301n \u0111a\u0302\u0301u sa\u0306\u0303n", "text": "x"}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "title",
+  "estimated_ms": null,
+  "note": "title d\u1ea1ng NFD: 20 k\u00fd t\u1ef1 khi NFC nh\u01b0ng 30 code point -> sai (\u0111\u1ebfm code point th\u00f4, kh\u00f4ng chu\u1ea9n h\u00f3a)."
+}

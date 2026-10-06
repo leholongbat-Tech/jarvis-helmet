@@ -1,0 +1,11 @@
+{
+  "name": "invalid_mask_bad_action",
+  "steps": [
+    {"mask": {"action": "toggle"}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": "action",
+  "estimated_ms": null,
+  "note": "action chỉ nhận open|close."
+}

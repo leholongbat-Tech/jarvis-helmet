@@ -1,0 +1,11 @@
+{
+  "name": "invalid_eyes_on_and_effect",
+  "steps": [
+    {"eyes": {"on": true, "effect": "blink"}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": null,
+  "estimated_ms": null,
+  "note": "on HOẶC effect, không được cả hai."
+}

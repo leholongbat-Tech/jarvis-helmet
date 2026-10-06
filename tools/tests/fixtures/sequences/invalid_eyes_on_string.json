@@ -1,0 +1,11 @@
+{
+  "name": "invalid_eyes_on_string",
+  "steps": [
+    {"eyes": {"on": "true"}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": null,
+  "estimated_ms": null,
+  "note": "on phải là bool, không phải chuỗi."
+}

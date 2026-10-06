@@ -1,0 +1,11 @@
+{
+  "name": "valid_display_seconds_min",
+  "steps": [
+    {"display": {"title": "STEALTH", "text": "Đã tắt đèn", "seconds": 1}}
+  ],
+  "valid": true,
+  "error_step": null,
+  "error_contains": null,
+  "estimated_ms": 0,
+  "note": "seconds = 1 (biên dưới)."
+}

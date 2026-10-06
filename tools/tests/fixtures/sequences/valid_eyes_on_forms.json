@@ -1,0 +1,15 @@
+{
+  "name": "valid_eyes_on_forms",
+  "steps": [
+    {"eyes": {"on": true}},
+    {"eyes": {"on": false}},
+    {"eyes": {"on": true, "brightness": 0}},
+    {"eyes": {"on": false, "brightness": 50}},
+    {"eyes": {"on": true, "brightness": 100}}
+  ],
+  "valid": true,
+  "error_step": null,
+  "error_contains": null,
+  "estimated_ms": 0,
+  "note": "Dạng on (+ brightness tùy chọn 0..100, cho phép cả khi on=false); không tốn thời gian."
+}

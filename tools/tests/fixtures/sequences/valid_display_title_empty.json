@@ -1,0 +1,11 @@
+{
+  "name": "valid_display_title_empty",
+  "steps": [
+    {"display": {"title": "", "text": "Đã sẵn sàng"}}
+  ],
+  "valid": true,
+  "error_step": null,
+  "error_contains": null,
+  "estimated_ms": 0,
+  "note": "title bắt buộc nhưng được rỗng (thẻ chỉ có nội dung); thiết bị và server phải cùng chấp nhận."
+}

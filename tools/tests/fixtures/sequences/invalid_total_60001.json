@@ -1,0 +1,17 @@
+{
+  "name": "invalid_total_60001",
+  "steps": [
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 1}
+  ],
+  "valid": false,
+  "error_step": null,
+  "error_contains": "60000",
+  "estimated_ms": null,
+  "note": "Tổng 60001 ms > 60000 (lỗi cấp trên)."
+}

@@ -1,0 +1,16 @@
+{
+  "name": "valid_total_exactly_60000",
+  "steps": [
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 10000},
+    {"delay": 10000}
+  ],
+  "valid": true,
+  "error_step": null,
+  "error_contains": null,
+  "estimated_ms": 60000,
+  "note": "Tổng ước tính đúng 60000 ms là hợp lệ."
+}

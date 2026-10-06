@@ -1,0 +1,11 @@
+{
+  "name": "invalid_mask_action_and_position",
+  "steps": [
+    {"mask": {"action": "open", "position": 50}}
+  ],
+  "valid": false,
+  "error_step": 1,
+  "error_contains": null,
+  "estimated_ms": null,
+  "note": "action HOẶC position, không được cả hai."
+}

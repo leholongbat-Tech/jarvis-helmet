@@ -1,0 +1,14 @@
+{
+  "name": "valid_mask_speed_bounds",
+  "steps": [
+    {"mask": {"action": "open", "speed": 10}},
+    {"mask": {"action": "close", "speed": 100}},
+    {"mask": {"position": 0}},
+    {"mask": {"position": 100, "speed": 70}}
+  ],
+  "valid": true,
+  "error_step": null,
+  "error_contains": null,
+  "estimated_ms": 11084,
+  "note": "speed 10 -> 8000, speed 100 -> 800, position 0/100 là biên hợp lệ, mỗi bước 1142: 8000+800+1142+1142."
+}
