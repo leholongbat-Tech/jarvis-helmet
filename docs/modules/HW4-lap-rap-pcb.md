@@ -48,7 +48,7 @@ hàng 35 └──────────────────────�
 - Công tắc SW1 và cổng cắm nguồn đặt ở chỗ dễ với tay khi đang đội mũ.
 
 ## 4. Công việc
-- [ ] Đo kích thước thật của devkit và MAX98357, vẽ `perfboard-7x9.svg` (lưới 27×35, đánh số hàng/cột)
+- [x] Vẽ `perfboard-7x9.svg` (lưới 27×35, đánh số hàng/cột) theo kích thước tra cứu; [ ] đo lại kích thước devkit và MAX98357 thật trước khi hàn
 - [ ] Hàn theo thứ tự ở mục 2, thử từng bước
 - [ ] Lắp vào mũ, chụp ảnh, cập nhật sơ đồ nếu có thay đổi
 
@@ -56,3 +56,8 @@ hàng 35 └──────────────────────�
 1. Đo thông mạch đúng 100% theo bảng HW2/HW3, không có chập.
 2. Các bài thử ở HW1 (thử tải nặng nhất) và HW3 vẫn đạt sau khi lên PCB.
 3. Lắc mạnh mũ (mô phỏng lúc đội) trong khi đang chạy: không reset, không mất tiếng, không mất hình.
+
+## Ghi chú triển khai (10/2026)
+
+**Trạng thái:** bố trí PCB đục lỗ xong ([`docs/hardware/perfboard-7x9.svg`](../hardware/perfboard-7x9.svg), xem cùng các hình khác
+trong `docs/hardware/index.html`), sinh bằng `tools/hardware/gen_perfboard.py`. **Chưa hàn.**

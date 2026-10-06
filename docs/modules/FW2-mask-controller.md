@@ -45,7 +45,7 @@ class MaskController {
 ```
 
 ## 2. Quy trình hiệu chỉnh (làm một lần sau khi lắp cơ khí)
-1. Gọi `self.servo.calibrate(servo=0, angle=…)` từ giao diện điều khiển của server, hoặc qua log/console, cho đến khi mặt nạ đóng khít. Ghi lại góc.
+1. Gọi `self.servo.calibrate(servo=0, angle=…)` cho đến khi mặt nạ đóng khít. Ghi lại góc. Thực tế: server v0.9.7 không lấy tool user-only, nên gọi qua WebSocket MCP cục bộ của mũ bằng `tools/servo_calibrate.py` (D7; hướng dẫn ở README của board, mục 8).
 2. Làm lại để tìm góc mở hết.
 3. Làm tương tự cho servo 1.
 4. Lưu bằng `self.servo.save_calibration`.
@@ -53,9 +53,9 @@ class MaskController {
 Giá trị mặc định trước khi hiệu chỉnh là 90° ± 10°, để lần chạy đầu không ép cơ khí.
 
 ## 3. Công việc
-- [ ] Viết `mask_controller.{h,cc}`: LEDC, task chuyển động, NVS
-- [ ] Đăng ký MCP tool kèm mô tả song ngữ
-- [ ] Gắn vào `JarvisHelmetBoard` (tạo đối tượng và gọi `RegisterMcpTools` trong `InitializeTools`)
+- [x] Viết `mask_controller.{h,cc}`: LEDC, task chuyển động, NVS
+- [x] Đăng ký MCP tool kèm mô tả song ngữ
+- [x] Gắn vào `JarvisHelmetBoard` (tạo đối tượng và gọi `RegisterMcpTools` trong `InitializeTools`)
 - [ ] Thử trên servo chưa lắp cơ khí, sau đó thử trên mũ
 
 ## 4. Tiêu chí nghiệm thu
@@ -65,3 +65,22 @@ Giá trị mặc định trước khi hiệu chỉnh là 90° ± 10°, để l�
 4. Giữ vị trí 5 phút không rung (khi đã bật `detach_after_ms`).
 5. Hiệu chỉnh vẫn còn sau khi rút điện.
 6. Gửi 10 lệnh mở/đóng liên tiếp thật nhanh: không treo, trạng thái cuối cùng đúng với lệnh cuối cùng.
+
+## Ghi chú triển khai (10/2026)
+
+**Trạng thái:** code xong theo đúng thiết kế trên; phần tính toán thuần (góc → xung, đường cong ease-in-out, thời gian chạy,
+góc khi khởi động) nằm trong `actuator_math.h` và có test chạy trên máy tính (`firmware/tests/host/test_actuator_math.cpp`).
+**Chưa thử với servo thật.**
+
+- Thông số trong `config.h`: xung 500–2400 µs, LEDC timer 1 / channel 1–2, 50 Hz, 14 bit, chu kỳ cập nhật 20 ms, servo S1 khởi
+  động trễ 30 ms (`MASK_S1_START_DELAY_MS`), `MASK_DETACH_AFTER_MS` = 0 (luôn giữ lực), góc mặc định trước khi hiệu chỉnh S0
+  80/100°, S1 100/80° (đóng/mở).
+- Thời gian chạy hết hành trình = `800 × 100 / speed` ms (speed 70 → 1142 ms); quãng ngắn tỉ lệ theo khoảng cách, tối thiểu 150 ms.
+  Sequence runner ước tính mỗi bước `mask` bằng cả hành trình (`docs/interfaces.md` mục 3).
+- Không giật khi khởi động: ngoài `mask_pos`, mỗi servo lưu góc nghỉ riêng (`s0_pos`, `s1_pos`), vì một bước `servo` có thể chỉ
+  xoay một bên; xung đầu tiên sau khi bật nguồn đúng bằng góc đã lưu.
+- API thực tế khác bản nháp ở chỗ: `speed = -1` nghĩa là tốc độ mặc định lưu trong NVS (`mask_speed`, mặc định 70); có thêm `Stop()`,
+  `Calibrate()`, `SaveCalibration()` (góc đóng và mở phải khác nhau).
+- Nút mặt nạ (FW5) gọi thẳng controller, không qua luồng chính (D9).
+
+**Tiêu chí nghiệm thu:** tất cả chờ mũ thật (servo + cơ khí).

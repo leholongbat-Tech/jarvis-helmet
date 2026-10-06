@@ -78,10 +78,10 @@ class JarvisHudDisplay : public SpiLcdDisplay {
 - Hiệu năng: SPI 40MHz, buffer một phần, chỉ vẽ lại vùng thay đổi. Mục tiêu animation ≥20 FPS; animation **không được làm vấp audio** (kiểm tra mức CPU).
 
 ## 4. Công việc
-- [ ] Tạo và tích hợp font tiếng Việt; thử một câu có đủ các loại dấu
-- [ ] Dựng bố cục tĩnh, sau đó thêm animation theo trạng thái
-- [ ] Thẻ thông tin, biểu tượng mặt nạ/mắt, điện áp
-- [ ] Đo FPS và mức CPU, chỉnh cho mượt
+- [x] Tạo và tích hợp font tiếng Việt; câu có đủ các loại dấu được `tools/fonts/check_glyphs.py` kiểm tra tự động
+- [x] Dựng bố cục, animation theo trạng thái
+- [x] Thẻ thông tin, biểu tượng mặt nạ/mắt, điện áp, nhãn OFFLINE
+- [ ] Đo FPS và mức CPU trên màn thật, chụp ảnh từng trạng thái
 
 ## 5. Tiêu chí nghiệm thu
 1. Câu "Ừ, đã bật chế độ chiến đấu – tôi sẵn sàng, thưa ngài!" hiện đủ dấu, không có ô vuông thay ký tự.
@@ -89,3 +89,19 @@ class JarvisHudDisplay : public SpiLcdDisplay {
 3. Animation ≥20 FPS. Trong lúc animation chạy, audio không vấp và nhận dạng giọng nói vẫn bình thường.
 4. Câu trả lời dài hơn vùng hiển thị thì tự cuộn, không bị cắt mất.
 5. Thanh trạng thái cập nhật giờ, WiFi, điện áp ít nhất mỗi 5 giây.
+
+## Ghi chú triển khai (10/2026)
+
+**Trạng thái:** code xong, build OK; tài liệu chi tiết (bố cục đúng tọa độ pixel, màu, trạng thái, luồng dữ liệu, hiệu năng,
+cách chụp màn hình, đối chiếu tiêu chí): [`docs/hud.md`](../hud.md). **Chưa chạy trên màn thật.**
+
+| Kế hoạch | Thực tế | Lý do |
+|---|---|---|
+| Đổi `BUILTIN_TEXT_FONT` sang font tiếng Việt | Giữ `BUILTIN_TEXT_FONT font_noto_sans_basic_16_4` trong CMake (upstream kiểm tra bằng regex); font tiếng Việt là file `.c` riêng của board: `font_jarvis_vi_16_4`, `font_jarvis_vi_14_4` (Noto Sans Medium) và `font_jarvis_hud_16_4` (Rajdhani, chữ số/nhãn), sinh bằng `lv_font_conv` 1.5.3 `--no-compress` qua `tools/fonts/generate_fonts.py` | D10. Tổng ~49 KB flash (24,0 + 20,3 + 4,5 KB), nhỏ hơn dự tính 100–150 KB |
+| Dải ký tự như mục 1 | Thêm `0x2010-0x2027` (gạch nối, ngoặc kép, dấu ba chấm) và `0x20AB` (₫) | Câu trả lời của LLM hay có các ký tự này |
+| `class JarvisHudDisplay : public SpiLcdDisplay` ghi đè vài hàm | HUD vẽ **đè** lên giao diện gốc: gọi `SpiLcdDisplay::SetupUI()` trước, ẩn widget gốc, root HUD đục nằm trên cùng; ghi đè thêm `SetTheme`, `SetTextFont`, `ShowNotification`, `ClearChatMessages`, `SetPreviewImage`, `SetHideSubtitle` | Nhiều hàm upstream dùng widget gốc mà không kiểm tra null |
+| Mức âm mic/loa | Lấy từ `MeteredAudioCodec` (lớp bọc codec, đo RMS mỗi khối PCM) | Upstream không có callback mức âm |
+| Trạng thái "Đang nghĩ" | Suy ra: sau câu STT của người dùng cho tới khi chuyển sang nói | Upstream không có trạng thái "thinking" |
+| – | `CONFIG_JARVIS_HUD=n` dùng lại giao diện gốc để gỡ lỗi | – |
+
+**Tiêu chí nghiệm thu:** 1 đạt phần tự động (đủ glyph cho câu nghiệm thu và toàn bộ bảng chữ cái); 2–5 chờ màn thật.

@@ -80,3 +80,8 @@ GPIO9 ──[100Ω]──► Gate Q2 ──[100kΩ]──► GND
 2. PWM 0–100% thay đổi độ sáng mượt, không nháy thấy được bằng mắt (tần số ~5kHz).
 3. Q2 đóng tải 500mA liên tục 10 phút, MOSFET nguội hơn 50°C.
 4. Servo không rung khi đứng yên, không giật khi ESP32 khởi động.
+
+## Ghi chú triển khai (10/2026)
+
+**Trạng thái:** sơ đồ và quy trình đo chọn R_EYE xong ([`docs/hardware/wiring.md`](../hardware/wiring.md) mục 4); firmware điều
+khiển servo (FW2) và MOSFET đèn mắt/output (FW3) theo đúng chân và tần số PWM ở đây. **Chưa đo module đèn mắt và chưa thử tải.**

@@ -35,11 +35,11 @@
 - Partition: dùng bảng 16MB có sẵn của upstream (có phân vùng assets, model).
 
 ## 4. Công việc
-- [ ] Đưa mã upstream v2.5.0 vào repo
-- [ ] Tạo thư mục board, đăng ký ở Kconfig và CMake
-- [ ] Build với LCD `_240X240` và với `_240X240_7PIN`, chọn bản khớp màn thật
+- [x] Đưa mã upstream v2.5.0 vào repo (commit `vendor: xiaozhi-esp32 v2.5.0`)
+- [x] Tạo thư mục board, đăng ký ở Kconfig và CMake
+- [x] Build với LCD `_240X240` và với `_240X240_7PIN`; [ ] chọn bản khớp màn thật
 - [ ] Nạp, cấu hình WiFi, thử với server mặc định (P1), rồi với server nhà (P2)
-- [ ] Kiểm tra lưu nhiều SSID và việc tự chuyển mạng
+- [x] Đọc mã `esp-wifi-connect` về nhiều SSID (kết quả ở mục ghi chú); [ ] thử chuyển mạng trên mũ thật
 
 ## 5. Tiêu chí nghiệm thu
 1. Build không lỗi, không có cảnh báo mới trong thư mục board.
@@ -47,3 +47,22 @@
 3. Nói "Jarvis" → thiết bị chuyển sang trạng thái nghe. Hội thoại được với server.
 4. Log khởi động ghi đúng `board type: jarvis-helmet`.
 5. Tắt WiFi nhà → thiết bị tự kết nối hotspot trong vòng 30 giây.
+
+## Ghi chú triển khai (10/2026)
+
+**Trạng thái:** code xong; build 4 biến thể bằng ESP-IDF 6.1 trong Docker (`tools/fw_build_docker.sh`) không cảnh báo, còn
+trống ~31% phân vùng app; test chạy trên máy tính (`firmware/tests/host/`) đạt. **Chưa nạp vào mũ thật.** Hướng dẫn build,
+nạp, Wi-Fi, OTA: `firmware/main/boards/jarvis-helmet/README.md`; thay đổi trên file upstream: `firmware/PATCHES.md`.
+
+**Sai khác so với kế hoạch:**
+
+| Kế hoạch | Thực tế | Lý do |
+|---|---|---|
+| Bảng phân vùng 16MB có sẵn | `partitions_jarvis_16m.csv`: thêm `helmet` (NVS 0xC000) và `jsecrets` (NVS 0x4000) ở vùng trống 0x10000–0x1FFFF | D6: cài đặt, hiệu chỉnh, chuỗi đã lưu và bí mật tách khỏi NVS của upstream. Chỉ đổi được bằng cách nạp qua cáp |
+| 1–2 biến thể (LCD 8/7 chân) | 4 biến thể cùng `type` `jarvis-helmet`: `jarvis-helmet`, `-7pin`, `-multinet` (wake word B1), `-mww` (microWakeWord B2) | FW7 |
+| `SingleLed(GPIO48)` | LED WS2812 ở GPIO48; DevKitC-1 v1.1 đặt LED ở GPIO38 (ghi chú trong `config.h`) | D24 |
+| Cài đặt rải rác | Menu Kconfig "Jarvis Helmet" (`Kconfig.jarvis`): ngưỡng giữ PTT, WebSocket MCP cục bộ + cổng, ngắt bằng wake word, quét Wi-Fi nhanh, microWakeWord, header Cloudflare dự phòng | Gom một chỗ |
+| Kiểm tra nhiều SSID | `esp-wifi-connect` lưu tối đa 10 mạng, không có thứ tự ưu tiên (chọn mạng mạnh nhất khi quét), không tự chuyển khi đang kết nối. Board rút chu kỳ quét lại còn 3 s, tăng dần tới 30 s (`CONFIG_JARVIS_WIFI_FAST_RESCAN`) | Mục tiêu đổi mạng ≤30 s (tiêu chí 5) |
+| Header xác thực khi đi qua Internet (SV7) | Sổ đăng ký header theo host trong `main/protocols/extra_headers.cc`, áp cho OTA, tải firmware, WebSocket; chỉ gửi qua TLS (D13, D31). Bí mật đọc từ NVS `jsecrets` | Tải `assets` của upstream dùng client HTTP riêng nên chưa có header (hạn chế đã biết) |
+
+**Tiêu chí nghiệm thu:** 1 đạt (build không cảnh báo); 2–5 chờ mũ thật.

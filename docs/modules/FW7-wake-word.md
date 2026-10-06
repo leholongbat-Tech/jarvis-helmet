@@ -47,14 +47,33 @@
 Bộ thử: 20 lần gọi mỗi từ × 3 khoảng cách/điều kiện (yên tĩnh, có nhạc nền, đang đội mũ) + 1 giờ podcast/TV tiếng Việt để đếm số lần kích nhầm.
 
 ## 4. Công việc
-- [ ] Đo phương án A, lấy làm mốc
-- [ ] Thử B1, ghi kết quả
-- [ ] Nếu B1 không đạt: dựng pipeline train (B2), train, chuyển sang TFLite int8, tích hợp `CompositeWakeWord`
-- [ ] Thử ngắt lời bằng wake word khi bật/tắt khử vọng phía server
-- [ ] Viết báo cáo so sánh, chọn phương án cuối cùng
+- [x] Build phương án A (biến thể `jarvis-helmet`); [ ] đo trên mũ thật, lấy làm mốc
+- [x] Build B1 (biến thể `jarvis-helmet-multinet`); [ ] thử bằng giọng người dùng, ghi kết quả
+- [x] Dựng pipeline train (B2) và bộ nhận trên thiết bị (biến thể `jarvis-helmet-mww`); [ ] train model "Quản gia" trên 5090, đưa vào firmware
+- [x] Ngắt lời bằng wake word: khử vọng phía server không dùng được với WebSocket → mặc định tắt khi đang nói (`CONFIG_JARVIS_WAKE_WORD_BARGE_IN=n`), đã ghi giới hạn
+- [x] Mẫu báo cáo so sánh (`docs/wakeword-report.md`); [ ] điền số đo, chọn phương án cuối cùng
 
 ## 5. Tiêu chí nghiệm thu
 1. Mỗi từ nhận đúng ≥18/20 lần trong phòng yên tĩnh, ≥15/20 khi có nhạc nền, ở khoảng cách đội mũ.
 2. Kích nhầm ≤1 lần mỗi giờ khi phát podcast/TV.
 3. Độ trễ từ lúc nói xong wake word đến khi thiết bị phản hồi (âm báo/HUD) dưới 500ms.
 4. Không vấp audio, RAM còn trống ≥30KB internal sau khi bật đủ các thành phần.
+
+## Ghi chú triển khai (10/2026)
+
+**Trạng thái:** 3 phương án đều build được (D11); cách đo, bảng kết quả và tiêu chí chọn ở
+[`docs/wakeword-report.md`](../wakeword-report.md). **Chưa đo trên mũ thật, chưa train model "Quản gia".**
+
+| Kế hoạch | Thực tế | Lý do |
+|---|---|---|
+| B1 khai báo 2 lệnh | Biến thể `jarvis-helmet-multinet` (MultiNet7 tiếng Trung, lệnh `jia wei si;guan jia`); vá nhỏ `scripts/build_default_assets.py` để dấu `;` sinh nhiều lệnh | Upstream chỉ nhận một lệnh |
+| B2 `CompositeWakeWord` chạy song song | `MicroWakeWord` (lớp riêng theo interface `WakeWord`, mã tự viết trên thư viện Apache-2.0, không dùng mã GPL của ESPHome) được gọi từ `AfeAudioEngine::HandleWakeWordResult` trên cùng âm thanh AFE với WakeNet; đặc trưng `esphome/esp-micro-speech-features` 1.2.3, suy luận `espressif/esp-tflite-micro` 1.4.1 (tensor arena trong PSRAM), `esp-nn` ghim 1.4.1 | Ít sửa upstream hơn |
+| Model `.tflite` | Model biên dịch vào firmware từ `mww_model_data.c` (sinh bằng `tools/wakeword/export/tflite_to_c.py`); bản commit là placeholder rỗng: bộ nhận tự tắt và ghi cảnh báo | Chưa có model đã train |
+| Ngưỡng | `CONFIG_JARVIS_MWW_CUTOFF_PCT` (97%), `CONFIG_JARVIS_MWW_SLIDING_WINDOW` (5 khung) | Chỉnh khi đo |
+| Pipeline train | `tools/wakeword/`: `gen_positives.py` (VieNeu, Piper), `gen_negatives.py` (câu gần âm), `record_personal.py`, `augment.py`, `train.sh`, `eval_wakeword.py` (hướng dẫn trong README của thư mục) | – |
+| Ngắt lời bằng wake word | Mặc định tắt nhận wake word khi đang nói (`CONFIG_JARVIS_WAKE_WORD_BARGE_IN=n`, D12); server không trả lời riêng wake word (D15) | Không có khử vọng: giọng của chính mũ có thể tự kích hoạt |
+
+Biến thể `jarvis-helmet-mww` còn trống 26% phân vùng app (các biến thể khác 31%); 8 cảnh báo khi build đều nằm trong mã của
+thư viện esp-tflite-micro (`-Wshadow`), không có trong mã board.
+
+**Tiêu chí nghiệm thu:** tất cả chờ mũ thật và model đã train.

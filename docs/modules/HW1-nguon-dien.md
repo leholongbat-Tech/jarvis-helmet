@@ -63,7 +63,7 @@ Nguyên tắc:
 
 ## 5. Công việc
 
-- [ ] Vẽ sơ đồ nguồn (SVG) và viết mục nguồn trong `wiring.md`
+- [x] Vẽ sơ đồ nguồn (SVG) và viết mục nguồn trong `wiring.md` (mục 2: cây nguồn, nối đất hình sao, D1, tụ lọc, VSENSE, ngân sách dòng, quy trình đo)
 - [ ] Đo điện áp không tải của sạc ở cả cổng A và cổng C (nếu có)
 - [ ] Lắp thử nhánh nguồn trên breadboard, đo từng nhánh **trước khi** cắm ESP32 và các module
 - [ ] Thử tải bằng servo: 2 servo chạy qua lại liên tục, đo 5V_MAIN bằng đồng hồ hoặc máy hiện sóng
@@ -73,3 +73,10 @@ Nguyên tắc:
 1. Không tải: 5V_MAIN trong khoảng 4.9–5.25V, 5V_ESP (sau D1) ≥4.5V.
 2. Thử nặng nhất (2 servo chạy + loa âm lượng tối đa + WiFi phát liên tục) trong 10 phút: **không có lần reset nào**. Kiểm tra bằng log `esp_reset_reason`; giá trị ADC VSENSE ≥4.6V.
 3. Cắm cáp USB máy tính vào devkit trong lúc sạc dự phòng đang bật: không có dòng chảy ngược. Đo điện áp tại cổng USB khi sạc tắt.
+
+## Ghi chú triển khai (10/2026)
+
+**Trạng thái:** tài liệu và sơ đồ xong: [`docs/hardware/wiring.md`](../hardware/wiring.md) mục 2, `wiring.svg`, BOM phần nguồn
+trong [`docs/hardware/BOM.md`](../hardware/BOM.md), bản thử breadboard [`docs/hardware/breadboard.md`](../hardware/breadboard.md).
+Firmware đọc VSENSE (`VbusMonitor`, ADC1_CH0 ×2) và báo `vbus_mv` trong `self.system.get_status` và trên HUD.
+**Chưa lắp và đo** (các mục còn trống ở trên cần phần cứng thật).

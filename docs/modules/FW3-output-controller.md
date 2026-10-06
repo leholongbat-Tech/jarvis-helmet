@@ -43,13 +43,30 @@ class OutputController {
 - Khi chờ: mắt sáng mức mặc định.
 
 ## 2. Công việc
-- [ ] Viết `output_controller.{h,cc}`: LEDC, gamma, task hiệu ứng
-- [ ] Đăng ký MCP tool kèm mô tả song ngữ
-- [ ] Gắn vào board, mặc định tắt khi khởi động
-- [ ] (Tùy chọn) Mắt phản ứng theo trạng thái trợ lý
+- [x] Viết `output_controller.{h,cc}`: LEDC, gamma, task hiệu ứng
+- [x] Đăng ký MCP tool kèm mô tả song ngữ
+- [x] Gắn vào board, mặc định tắt khi khởi động
+- [x] (Tùy chọn) Mắt phản ứng theo trạng thái trợ lý (`CONFIG_JARVIS_EYES_FOLLOW_STATE`, mặc định tắt)
 
 ## 3. Tiêu chí nghiệm thu
 1. Đèn tắt suốt quá trình khởi động. Chỉ sáng khi có lệnh, hoặc theo cấu hình "sáng khi khởi động".
 2. Cả 5 hiệu ứng chạy đúng mô tả. Hiệu ứng mới hủy ngay hiệu ứng cũ, không bị chồng.
 3. Độ sáng 10%, 50%, 100% nhìn thấy khác nhau rõ rệt và đều; không nháy thấy được.
 4. Output dự phòng bật/tắt đúng lệnh, giữ nguyên trạng thái khi WiFi mất kết nối.
+
+## Ghi chú triển khai (10/2026)
+
+**Trạng thái:** code xong; phần tính toán (gamma, đường cong hiệu ứng) có test chạy trên máy tính. **Chưa thử với LED thật.**
+
+- PWM đúng như thiết kế: LEDC timer 2, 5 kHz, 10 bit, channel 3 → GPIO8 (mắt), channel 4 → GPIO9 (output), gamma 2.2
+  (`EYES_GAMMA`). LEDC của S3 chỉ fade tuyến tính theo duty, nên mỗi hiệu ứng là chuỗi các đoạn fade phần cứng 20 ms giữa các
+  điểm đã hiệu chỉnh gamma: mượt ở mức PWM mà độ sáng vẫn tăng đều với mắt người.
+- **Thời lượng (D26):** `duration_ms` 0 (hoặc thiếu trong bước sequence) = mặc định của hiệu ứng: `breathe` 2500 (một chu kỳ),
+  `flicker` 600, `blink`/`power_up`/`fade_out` 1000; khác 0 thì 100–10000. `blink` luôn gọn trong 150–600 ms; `power_up` dành tối
+  đa 1/4 thời lượng (≤300 ms) cho đoạn chập chờn. Bảng mặc định nằm ở `helmet_common.h`, server dùng cùng bảng (`taskslib.py`).
+- `SetEyes` chuyển độ sáng trong 150 ms. `EyesEffect` trả `false` khi tên lạ hoặc hàng đợi đầy (tool báo `eye lights busy`).
+- Đèn tắt khi khởi động (duty 0 ngay từ lúc cấu hình kênh); `CONFIG_JARVIS_EYES_ON_AT_BOOT` để bật sáng sau khởi động.
+- Theo trạng thái trợ lý (`CONFIG_JARVIS_EYES_FOLLOW_STATE`): nghe = 100%, nói = sáng theo âm lượng giọng (không thấp hơn 35% mức
+  nền), chờ = mức mặc định; chỉ khi đèn đang bật.
+
+**Tiêu chí nghiệm thu:** tất cả chờ phần cứng thật.

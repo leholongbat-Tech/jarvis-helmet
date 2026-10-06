@@ -97,7 +97,7 @@ Xem HW3. Dây tín hiệu servo: GPIO17 và GPIO18, mỗi dây qua điện trở
 ## 4. Công việc
 - [ ] Xác định đúng loại devkit đang có (DevKitC-1 hay bản clone) và kiểm tra các chân 39–42, 47, 48 có đưa ra header không
 - [ ] Xác định LCD loại 7 chân hay 8 chân (có CS hay không)
-- [ ] Viết bảng đấu dây và vẽ hình `wiring.svg`
+- [x] Viết bảng đấu dây và vẽ hình `wiring.svg` (`docs/hardware/wiring.md` mục 3; cùng bảng chân với `config.h` của firmware)
 - [ ] Lắp trên breadboard (P1) và nạp firmware gốc `bread-compact-wifi-lcd`, chỉnh `DISPLAY_RST_PIN` = 39 và chọn kích thước 240×240
 
 ## 5. Tiêu chí nghiệm thu
@@ -105,3 +105,9 @@ Xem HW3. Dây tín hiệu servo: GPIO17 và GPIO18, mỗi dây qua điện trở
 2. Mic thu được giọng nói: đánh thức "Jarvis" được trong phòng yên tĩnh ở khoảng cách 30cm.
 3. Loa phát rõ, không rè ở âm lượng 70%.
 4. Không chân nào trong bảng trên trùng với chân strapping, flash hoặc PSRAM.
+
+## Ghi chú triển khai (10/2026)
+
+**Trạng thái:** bảng chân và sơ đồ xong, đã đưa vào `firmware/main/boards/jarvis-helmet/config.h` (LCD RST = GPIO39, LED trạng
+thái GPIO48 – DevKitC-1 v1.1 dùng GPIO38, D24). Firmware có 2 biến thể cho LCD 8 chân và 7 chân (không CS). **Chưa xác định loại
+devkit/LCD thật và chưa lắp breadboard.**

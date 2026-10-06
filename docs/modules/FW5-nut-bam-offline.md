@@ -29,11 +29,11 @@ Lưu ý:
 - Đồng bộ chuỗi: khi kết nối lại, plugin SV6 có thể gửi `self.sequence.save` để cập nhật `open_mask` / `close_mask` theo `tasks.yaml` (tùy chọn `sync_to_device: true` trong YAML). Nhờ vậy nút bấm offline chạy đúng bản tác vụ mới nhất.
 
 ## 3. Công việc
-- [ ] Thêm 2 đối tượng `Button` (GPIO10, GPIO11) vào board
-- [ ] Viết logic phân biệt bấm 1 lần / nhấn giữ cho PTT, chỉnh ngưỡng
-- [ ] Logic nút mặt nạ dựa vào `MaskController::GetState()`
-- [ ] Hiện OFFLINE trên HUD và thông báo khi mất server
-- [ ] (Tùy chọn) Đồng bộ chuỗi từ `tasks.yaml` xuống thiết bị
+- [x] Thêm 2 đối tượng `Button` (GPIO10, GPIO11) vào board
+- [x] Viết logic phân biệt bấm 1 lần / nhấn giữ cho PTT (ngưỡng `CONFIG_JARVIS_PTT_HOLD_MS`, mặc định 400 ms); [ ] chỉnh ngưỡng trên mũ thật
+- [x] Logic nút mặt nạ dựa vào `MaskController::GetState()`
+- [x] Hiện OFFLINE trên HUD và thông báo khi mất server
+- [x] Đồng bộ chuỗi từ `tasks.yaml` xuống thiết bị (`sync_to_device`, SV6)
 
 ## 4. Tiêu chí nghiệm thu
 1. Rút điện server (hoặc tắt WiFi): nút mặt nạ vẫn mở/đóng được, nhấn giữ vẫn bật/tắt đèn mắt.
@@ -41,3 +41,21 @@ Lưu ý:
 3. Nhấn giữ PTT, nói, rồi thả: server nhận đúng đoạn đã nói.
 4. Bấm đúp nút mặt nạ khi mặt nạ đang chạy: dừng ngay tại chỗ.
 5. Không có lần nào nhận nhầm bấm 1 lần thành nhấn giữ hoặc ngược lại trong 20 lần thử mỗi loại.
+
+## Ghi chú triển khai (10/2026)
+
+**Trạng thái:** code xong, build OK. **Chưa thử trên mũ thật.** Bảng thao tác chính thức (người dùng đọc):
+`firmware/main/boards/jarvis-helmet/README.md` mục 6 và 9.
+
+- **PTT (D8):** bấm nhanh khi Jarvis đang nói → gửi abort và **xả ngay âm thanh đang phát** rồi nghe tiếp; trạng thái khác →
+  `ToggleChatState`. Giữ ≥400 ms (`CONFIG_JARVIS_PTT_HOLD_MS`, 200–1500) → nghe, thả → gửi câu; thả khi đang kết nối thì tự
+  dừng nghe ngay khi kết nối xong. "Bấm 1 lần" được nhận ~80 ms sau khi thả (PTT) và không bao giờ sinh thêm khi đã nhấn giữ.
+- **Nút mặt nạ (D9):** chạy thẳng trên controller/runner, **không** qua `Application::Schedule` (vòng lặp chính của upstream bị
+  chặn tới ~10 s khi đang kết nối server). Nhấn giữ ≥800 ms bật/tắt đèn mắt; bấm đúp dừng khẩn cấp ngay khi nhấn lần hai.
+- **OFFLINE:** bật theo trạng thái Wi-Fi, lần kết nối server thất bại, OTA không phản hồi sau 20 s lúc khởi động; tắt khi mở
+  được kênh hội thoại.
+- **Giới hạn của upstream (ghi nhận, không sửa sâu):** WebSocket chỉ mở khi bắt đầu hội thoại nên lúc chờ không biết server đã
+  tắt; wake word chỉ bật ở trạng thái Idle và model chỉ nạp sau lần kết nối Wi-Fi đầu tiên kể từ khi bật nguồn; không có mạng
+  nào trong tầm thì sau 60 s thiết bị vào chế độ cấu hình Wi-Fi.
+
+**Tiêu chí nghiệm thu:** tất cả chờ mũ thật.

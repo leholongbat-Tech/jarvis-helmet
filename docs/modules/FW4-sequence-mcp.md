@@ -44,10 +44,10 @@ LLM ─► server plugin task_open_mask ─► MCP tools/call self.sequence.run 
 ```
 
 ## 3. Công việc
-- [ ] `sequence_runner`: đọc JSON, kiểm tra, task chạy, hủy, đọc/ghi NVS
-- [ ] `helmet_tools`: đăng ký đủ tool như interfaces.md, mô tả song ngữ
-- [ ] Tách phần kiểm tra JSON thành code C++ thuần, chỉ phụ thuộc cJSON, để test được trên máy tính (CMake + Catch2, hoặc target `linux` của ESP-IDF). Tối thiểu 15 trường hợp: hợp lệ, sai khóa, ngoài khoảng, quá 64 bước, quá 60 giây
-- [ ] Thử thủ công bằng cách gửi MCP từ server (SV5) hoặc dùng `scripts/` của xiaozhi
+- [x] `sequence_runner`: đọc JSON, kiểm tra, task chạy, hủy, đọc/ghi NVS
+- [x] `helmet_tools`: đăng ký đủ tool như interfaces.md, mô tả song ngữ
+- [x] Tách phần kiểm tra JSON thành code C++ thuần (`sequence_validator.{h,cc}`, chỉ phụ thuộc cJSON), test trên máy tính bằng CMake + Catch2 (`firmware/tests/host/`): 28 test case của validator + toàn bộ fixture dùng chung với server (85 ca)
+- [ ] Thử thủ công với mũ thật: qua server (SV5) hoặc WebSocket MCP cục bộ (`tools/servo_calibrate.py --call`)
 
 ## 4. Tiêu chí nghiệm thu
 1. Chuỗi mẫu `open_mask` / `close_mask` trong interfaces.md chạy đúng thứ tự và đúng thời gian.
@@ -56,3 +56,21 @@ LLM ─► server plugin task_open_mask ─► MCP tools/call self.sequence.run 
 4. Tool trả kết quả về server trong vòng 50ms (đo bằng log của server).
 5. Chuỗi đã lưu vẫn còn sau khi khởi động lại và chạy được khi không có mạng.
 6. Hội thoại vẫn bình thường (không vấp tiếng) trong lúc một chuỗi đang chạy.
+
+## Ghi chú triển khai (10/2026)
+
+**Trạng thái:** code xong; validator và luật ước tính có test chạy trên máy tính, dùng chung bộ fixture
+`tools/tests/fixtures/sequences/` với server; đường gọi MCP đã chạy với server thật qua bộ giả lập mũ. **Chưa chạy trên mũ thật.**
+
+| Kế hoạch | Thực tế | Lý do |
+|---|---|---|
+| Stack 6KB, đặt trong PSRAM nếu được | Stack 6KB trong RAM trong (`xTaskCreate` của ESP-IDF cấp stack ở `MALLOC_CAP_INTERNAL`) | – |
+| Bước `display` qua `Application::Schedule` | Gọi HUD trực tiếp từ task runner (các hàm của display tự khóa) | `Schedule` có thể đứng khi kênh âm thanh đang mở |
+| `sound` làm sau | Đã có đường chạy: phát âm thanh trong assets nếu có, không có thì ghi log và bỏ qua | – |
+| Lỗi `invalid step #i` | n đếm từ 1 (D23); lỗi đã qua `SanitizeMessage` vì `ReplyError` không escape | D23 |
+| `duration_ms` của hiệu ứng mắt 100–10000, mặc định 1000 | 0 = mặc định theo hiệu ứng (breathe 2500, flicker 600, còn lại 1000); ước tính và thời gian chờ dùng giá trị đã thay mặc định | D26 |
+| – | `self.display.show_info`: tiêu đề được rỗng (D30), giới hạn đếm theo ký tự Unicode; `self.system.get_status` có thêm `sequence.running/name` và `free_heap` | – |
+| Gửi MCP để thử tay | WebSocket MCP cục bộ trên mũ (cổng 8080, D7) với danh sách tool được phép và token tùy chọn (D27) | Server không lấy tool user-only |
+
+**Tiêu chí nghiệm thu:** 2 (từ chối chuỗi sai, chỉ đúng bước) đã kiểm bằng test máy tính; 4 (trả lời ≤50 ms) đo được trên bộ
+giả lập (round-trip MCP trung vị 2 ms, chưa tính thời gian của ESP32); còn lại chờ mũ thật.

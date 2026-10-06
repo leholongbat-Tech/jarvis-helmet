@@ -54,10 +54,39 @@
 3. Lỗi tìm được ghi thành GitHub issue, gắn nhãn module (`HW2`, `SV3`…).
 
 ## 5. Công việc
-- [ ] Thêm log mốc thời gian (nếu xiaozhi-server chưa có đủ) và viết `latency.py`
-- [ ] Chuẩn bị file âm thanh cho E13 (ghi giọng thật)
-- [ ] Viết mẫu `docs/test-report.md`
-- [ ] Chạy các đợt thử theo từng giai đoạn và đợt nghiệm thu cuối
+- [x] Thêm log mốc thời gian (bản vá `[LAT]` trong xiaozhi-server) và viết `latency.py`
+- [x] Bộ giả lập mũ `device_sim.py` (OTA, WebSocket, MCP, Opus) tự chạy và chấm E1–E8, E11–E13; `make_wavs.py` tạo WAV bằng TTS; [ ] ghi giọng thật cho E13
+- [x] Viết mẫu `docs/test-report.md` và hướng dẫn từng kịch bản `tools/tests/e2e/scenarios.md`
+- [ ] Chạy các đợt thử theo từng giai đoạn và đợt nghiệm thu cuối (cần mũ thật, batai)
 
 ## 6. Tiêu chí nghiệm thu
 Đạt toàn bộ chỉ tiêu ở mục 3. Kịch bản E1–E14 đều pass, hoặc có ghi rõ lý do giới hạn đã được chấp nhận (ví dụ E8).
+
+## Ghi chú triển khai (10/2026)
+
+**Công cụ** (`tools/tests/e2e/`, hướng dẫn trong README và `scenarios.md`):
+
+| Công cụ | Dùng để |
+|---|---|
+| `device_sim.py` | Giả lập mũ ở mức giao thức: OTA như firmware, WebSocket v1, MCP server với đúng danh sách tool của firmware (lấy từ `tools/tests/llm/device_tools.json`), Opus 16 kHz lên / giải mã 24 kHz xuống; chạy kịch bản và tự chấm (`--scenario E4`…) |
+| `latency.py` | Đọc dòng `[LAT]` trong log server, tính trung vị/p90 từng chặng, so với chỉ tiêu mục 3 (`--check`) |
+| `heap_trend.py` | Đọc log serial của mũ (dòng heap in mỗi 10 s), kiểm tra heap không giảm dần trong E13 |
+| `make_wavs.py` | Tạo WAV đầu vào bằng TTS hoặc chuyển đổi bản ghi |
+
+Kiểm tra bổ sung so với bảng mục 2: E4 bỏ qua lệnh `self.sequence.save` lúc kết nối khi đo "lệnh đầu tiên"; E12 yêu cầu
+server **không trả lời riêng** wake word (`wake_word_silent`), nếu không là "Quản gia" chưa có trong `wakeup_words`.
+
+**Kết quả trên máy dev** (Docker Desktop, GTX 1660 6 GB, Whisper small thay large-v3, model 4B thay 30B; chỉ để kiểm tra
+chức năng, chưa phải nghiệm thu):
+
+| Kịch bản | Kết quả |
+|---|---|
+| E1, E3, E4 (chữ và PTT), E12, E13 (8 lượt) | Đạt (10/2026, sau các bản sửa review) |
+| E4 PTT | Nói xong → lệnh MCP 788 ms (≤800) |
+| Khớp nhanh (trung vị nhiều lượt) | 644 ms |
+| E3 | Hai tác vụ gộp thành một `self.sequence.run` (D4); bước LLM rất chậm vì model 4B chạy một phần trên CPU |
+
+Độ trễ ASR/LLM/tổng không đạt trên máy dev (dự kiến: GPU yếu). Phải đo lại trên batai (RTX 5090) và với mũ thật.
+
+**Giới hạn đã biết:** E8 (ngắt lời bằng wake word) – khử vọng phía server của v0.9.7 chỉ chạy với MQTT, mũ dùng WebSocket nên
+mặc định tắt nhận wake word khi đang nói (D12); dùng nút PTT (E7). E9, E10, E14 chỉ làm được trên mũ thật.

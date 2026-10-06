@@ -5,7 +5,7 @@ Tài liệu này mô tả giao diện HUD mà `JarvisHudDisplay`
 cách nó lấy dữ liệu, và cách chụp ảnh màn hình thật để nghiệm thu. Kế hoạch gốc:
 [`docs/modules/FW6-hud-display.md`](modules/FW6-hud-display.md).
 
-> Ảnh chụp từng trạng thái sẽ được bổ sung khi có phần cứng (mục 9). Các hình dưới đây là sơ
+> Ảnh chụp từng trạng thái sẽ được bổ sung khi có phần cứng (mục 12). Các hình dưới đây là sơ
 > đồ đúng toạ độ pixel của code.
 
 ## 1. Bố cục 240×240
@@ -245,20 +245,28 @@ vẫn tồn tại vì nhiều hàm upstream dùng chúng không kiểm tra null)
 
 | Dữ liệu font trong firmware | Flash |
 |---|---|
-| `font_jarvis_vi_16_4` | _(điền từ build map)_ |
-| `font_jarvis_vi_14_4` | _(điền từ build map)_ |
-| `font_jarvis_hud_16_4` | _(điền từ build map)_ |
+| `font_jarvis_vi_16_4` | 24,0 KB (324 glyph) |
+| `font_jarvis_vi_14_4` | 20,3 KB (324 glyph) |
+| `font_jarvis_hud_16_4` | 4,5 KB (96 glyph) |
+
+Số liệu lấy từ `xiaozhi.map` của bản build `jarvis-helmet` (10/2026): tổng `.rodata` của từng file font.
 
 ## 12. Chụp ảnh màn hình thật
 
 Firmware có sẵn tool MCP **user-only** `self.screen.snapshot` (`url`, `quality` 1…100): chụp
 màn hình bằng `lv_snapshot` (ảnh chính là HUD vì root HUD nằm trên cùng), nén JPEG, rồi `POST`
 `multipart/form-data` (trường `file`, `screenshot.jpg`, truyền dạng *chunked*) tới `url`. Server
-xiaozhi không liệt kê tool user-only, nên gọi qua MCP cục bộ của mũ
-(`ws://<ip-mũ>:8080/ws`, `CONFIG_JARVIS_LOCAL_MCP_WS=y`, contract D7) bằng
-`tools/servo_calibrate.py`.
+xiaozhi không liệt kê tool user-only, và **WebSocket MCP cục bộ của mũ từ chối tool này** (danh
+sách tool được phép, D27: nó tải dữ liệu lên một URL bất kỳ). Vì vậy:
 
-1. Trên laptop cùng mạng LAN, chạy bộ nhận ảnh (lưu thành `shot-<giờ>.jpg`):
+- Cách đơn giản: chụp màn hình bằng điện thoại.
+- Muốn ảnh đúng từng pixel: dùng một **bản build gỡ lỗi** thêm `"self.screen.snapshot"` vào
+  `kNames` trong `firmware/main/boards/jarvis-helmet/local_mcp_policy.h` (cùng file có test
+  `firmware/tests/host/test_local_mcp_policy.cpp` – sửa test tương ứng), chụp xong thì nạp lại
+  firmware thường. **Không phát hành** bản build này. Sau đó gọi qua MCP cục bộ
+  (`ws://<ip-mũ>:8080/ws`, contract D7) bằng `tools/servo_calibrate.py` như các bước dưới.
+
+1. (Bản build gỡ lỗi) Trên laptop cùng mạng LAN, chạy bộ nhận ảnh (lưu thành `shot-<giờ>.jpg`):
 
    ```python
    # snapshot_server.py - nhận ảnh từ self.screen.snapshot (chunked multipart)
