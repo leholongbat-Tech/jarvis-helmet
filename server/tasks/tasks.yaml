@@ -1,0 +1,136 @@
+# yaml-language-server: $schema=./schema.json
+#
+# Tác vụ của mũ Jarvis (SV6) — docs/interfaces.md mục 3 và 5, docs/modules/SV6-helmet-tasks.md.
+#
+# Sửa file này KHÔNG cần khởi động lại server: plugin helmet_tasks xem thời gian sửa file ở mỗi câu
+# nói và tự nạp lại. Tác vụ mới dùng được ngay từ câu nói tiếp theo. Nếu file mới bị lỗi, plugin giữ
+# bản cũ và ghi log kèm số dòng lỗi. Kiểm tra trước khi lưu:
+#     python tools/tasks_cli.py validate         (in lỗi kèm số dòng, exit 1 nếu sai)
+#     python tools/tasks_cli.py steps open_mask  (xem chuỗi JSON gửi xuống mũ)
+#     python tools/tasks_cli.py match "Jarvis, mở mặt nạ"
+#
+# Mỗi tác vụ (id: chữ thường, số, gạch dưới) thành một function "task_<id>" cho LLM:
+#   description     bắt buộc: mô tả cho LLM, nên song ngữ Việt / Anh.
+#   steps           bắt buộc: chuỗi bước, mỗi bước là một khóa:
+#                     mask:    {action: open|close}  hoặc {position: 0..100}; speed 10..100 (tùy chọn, mặc định 70)
+#                     servo:   {id: 0..1, angle: 0..180, duration_ms: 0..5000}
+#                     eyes:    {on: true|false, brightness: 0..100}
+#                              hoặc {effect: breathe|blink|flicker|power_up|fade_out, duration_ms: 100..10000}
+#                     output:  {on: true|false}
+#                     delay:   số ms 0..10000
+#                     display: {title: <=24 ký tự, text: <=200 ký tự, seconds: 1..30}
+#                     sound:   {name: tên âm thanh}           (giai đoạn sau)
+#                   Tối đa 64 bước và 60 giây ước tính (mask = cả hành trình 800*100/speed ms,
+#                   eyes effect = duration_ms trừ breathe = 0, servo = duration_ms, delay = giá trị).
+#   quick_phrases   tùy chọn: câu khớp nhanh, chạy ngay không qua LLM. So CẢ CÂU sau khi chuẩn hóa
+#                   (chữ thường, bỏ dấu câu, bỏ "Jarvis"/"Quản gia"/"Giắc vít" ở đầu câu), ngưỡng 90/100,
+#                   so cả bản có dấu và bản bỏ dấu. Câu có nhiều lệnh ("... rồi ...") luôn đi qua LLM.
+#   reply           tùy chọn: câu trả lời cố định; hoặc {vi: "...", en: "..."}. Không có thì LLM tự nói.
+#   sync_to_device  tùy chọn: true -> khi mũ kết nối, server lưu chuỗi vào NVS của mũ
+#                   (self.sequence.save) để nút bấm dùng được cả khi mất mạng. Cần id <= 11 ký tự.
+#
+# Lưu ý: khóa "on" được đọc đúng là chữ "on" (không bị YAML 1.1 đổi thành true).
+version: 1
+
+tasks:
+  open_mask:
+    description: "Mở mặt nạ (nâng tấm che mặt lên) / Open the mask, lift the faceplate"
+    quick_phrases:
+      - "mở mặt nạ"
+      - "mở mặt nạ ra"
+      - "mở mặt nạ đi"
+      - "nâng mặt nạ lên"
+      - "open mask"
+      - "open the mask"
+      - "open your mask"
+      - "open the faceplate"
+    reply: "Đã mở mặt nạ, thưa ngài."
+    sync_to_device: true
+    steps:                                   # giống interfaces.md mục 5 và chuỗi mặc định trong firmware
+      - eyes: {effect: fade_out, duration_ms: 300}
+      - mask: {action: open, speed: 80}
+
+  close_mask:
+    description: "Đóng mặt nạ (hạ tấm che mặt xuống) rồi bật đèn mắt / Close the mask (lower the faceplate), then power up the eyes"
+    quick_phrases:
+      - "đóng mặt nạ"
+      - "đóng mặt nạ lại"
+      - "đóng mặt nạ đi"
+      - "hạ mặt nạ xuống"
+      - "close mask"
+      - "close the mask"
+      - "close your mask"
+      - "close the faceplate"
+    reply: "Đã đóng mặt nạ, thưa ngài."
+    sync_to_device: true
+    steps:                                   # giống interfaces.md mục 5 và chuỗi mặc định trong firmware
+      - mask: {action: close}
+      - delay: 300
+      - eyes: {effect: power_up, duration_ms: 1200}
+
+  eyes_on:
+    description: "Bật đèn mắt (hiệu ứng khởi động) / Turn the eye lights on"
+    quick_phrases:
+      - "bật đèn mắt"
+      - "bật đèn mắt lên"
+      - "bật mắt"
+      - "mở đèn mắt"
+      - "eyes on"
+      - "turn on the eyes"
+      - "turn on your eyes"
+      - "turn the eyes on"
+    reply: "Đèn mắt đã bật, thưa ngài."
+    sync_to_device: true
+    steps:
+      - eyes: {effect: power_up, duration_ms: 1200}
+
+  eyes_off:
+    description: "Tắt đèn mắt (tắt dần) / Turn the eye lights off"
+    quick_phrases:
+      - "tắt đèn mắt"
+      - "tắt đèn mắt đi"
+      - "tắt mắt"
+      - "eyes off"
+      - "turn off the eyes"
+      - "turn off your eyes"
+      - "turn the eyes off"
+    reply: "Đèn mắt đã tắt, thưa ngài."
+    sync_to_device: true
+    steps:
+      - eyes: {effect: fade_out, duration_ms: 800}
+
+  combat_mode:
+    description: "Chế độ chiến đấu: đóng mặt nạ, mắt nhấp nháy rồi sáng tối đa, HUD hiện COMBAT MODE / Combat mode: close the mask, flicker the eyes up to full brightness, show COMBAT MODE"
+    reply: "Chế độ chiến đấu đã sẵn sàng, thưa ngài."
+    steps:
+      - mask: {action: close, speed: 90}
+      - eyes: {effect: flicker, duration_ms: 800}
+      - eyes: {on: true, brightness: 100}
+      - display: {title: "COMBAT MODE", text: "Hệ thống chiến đấu sẵn sàng", seconds: 5}
+
+  stealth_mode:
+    description: "Chế độ ẩn mình: tắt dần đèn mắt, tắt output phụ, HUD hiện STEALTH / Stealth mode: fade the eyes out, switch the aux output off, show STEALTH"
+    reply: "Đã chuyển sang chế độ ẩn mình, thưa ngài."
+    steps:
+      - eyes: {effect: fade_out, duration_ms: 1500}
+      - output: {on: false}
+      - display: {title: "STEALTH", text: "Đèn đã tắt. Chế độ ẩn mình.", seconds: 4}
+
+  salute:
+    description: "Chào kiểu Iron Man: mở mặt nạ, nháy mắt, chờ một giây rồi đóng mặt nạ / Salute: open the mask, blink the eyes, wait a second, close the mask"
+    reply: "Xin kính chào ngài."
+    steps:
+      - mask: {action: open, speed: 70}
+      - eyes: {effect: blink, duration_ms: 600}
+      - delay: 1000
+      - mask: {action: close, speed: 70}
+
+  # Ví dụ thêm tác vụ (bỏ dấu # để dùng; không cần khởi động lại gì). Sau khi lưu, nói
+  # "Jarvis, bật party mode" -> LLM gọi task_party_mode.
+  # party_mode:
+  #   description: "Chế độ tiệc tùng: mở mặt nạ, mắt thở nhịp nhàng, HUD hiện PARTY MODE / Party mode: open the mask, breathing eyes, show PARTY MODE"
+  #   reply: {vi: "Bật chế độ tiệc tùng, chúc ngài vui vẻ.", en: "Party mode on, enjoy, sir."}
+  #   steps:
+  #     - mask: {action: open}
+  #     - eyes: {effect: breathe, duration_ms: 1500}
+  #     - display: {title: "PARTY MODE", text: "Âm nhạc lên nào!", seconds: 5}

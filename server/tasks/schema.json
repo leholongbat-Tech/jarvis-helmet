@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jarvis-helmet.local/schemas/tasks.schema.json",
+  "title": "Jarvis Helmet tasks.yaml",
+  "description": "Khai báo tác vụ của mũ Jarvis (SV6). Chuỗi bước theo docs/interfaces.md mục 3. Ngoài schema này, server/tasks/taskslib.py còn kiểm tra: tổng thời gian ước tính <= 60000 ms, JSON gọn của steps <= 4000 byte, câu khớp nhanh không trùng nhau giữa các tác vụ (sau chuẩn hóa).",
+  "$comment": "Lỗi chuỗi bước được báo dạng 'invalid step #n: <lý do>' với n đếm từ 1 (contract D23). maxLength của chuỗi tính bằng code point Unicode, giống helmet::Utf8Length trên thiết bị.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "tasks"],
+  "properties": {
+    "version": {
+      "description": "Phiên bản định dạng file, luôn là 1.",
+      "const": 1
+    },
+    "tasks": {
+      "description": "Bảng tác vụ: id -> tác vụ. Mỗi tác vụ thành một function task_<id> cho LLM.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z0-9_]+$",
+        "maxLength": 59
+      },
+      "patternProperties": {
+        "^[a-z0-9_]{1,11}$": {
+          "$ref": "#/$defs/task"
+        },
+        "^[a-z0-9_]{12,}$": {
+          "$comment": "sync_to_device lưu vào NVS khóa seq_<id>: id phải <= 11 ký tự.",
+          "allOf": [
+            { "$ref": "#/$defs/task" },
+            { "properties": { "sync_to_device": { "const": false } } }
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["description", "steps"],
+      "properties": {
+        "description": {
+          "description": "Mô tả cho LLM, nên song ngữ Việt / Anh.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000,
+          "pattern": "\\S"
+        },
+        "quick_phrases": {
+          "description": "Câu khớp nhanh (không qua LLM): so cả câu sau khi chuẩn hóa (chữ thường, bỏ dấu câu, bỏ wake word).",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "\\S"
+          }
+        },
+        "reply": {
+          "description": "Câu trả lời cố định (tùy chọn): chuỗi, hoặc {vi, en}. Không có thì LLM tự diễn đạt.",
+          "oneOf": [
+            { "$ref": "#/$defs/reply_text" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "minProperties": 1,
+              "properties": {
+                "vi": { "$ref": "#/$defs/reply_text" },
+                "en": { "$ref": "#/$defs/reply_text" }
+              }
+            }
+          ]
+        },
+        "sync_to_device": {
+          "description": "true: khi thiết bị kết nối, gửi self.sequence.save(id, steps) để nút bấm offline dùng bản mới nhất. Cần id <= 11 ký tự.",
+          "type": "boolean",
+          "default": false
+        },
+        "steps": {
+          "description": "Chuỗi bước (interfaces.md mục 3), ít nhất 1 bước.",
+          "allOf": [
+            { "$ref": "#/$defs/steps" },
+            { "minItems": 1 }
+          ]
+        }
+      }
+    },
+    "reply_text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 300,
+      "pattern": "\\S"
+    },
+    "steps": {
+      "description": "Mảng bước, tối đa 64 bước (mảng rỗng hợp lệ đối với thiết bị).",
+      "type": "array",
+      "maxItems": 64,
+      "items": { "$ref": "#/$defs/step" }
+    },
+    "step": {
+      "description": "Mỗi bước là object có đúng một khóa: loại bước.",
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 1,
+      "propertyNames": {
+        "enum": ["mask", "servo", "eyes", "output", "delay", "display", "sound"]
+      },
+      "properties": {
+        "mask": { "$ref": "#/$defs/mask" },
+        "servo": { "$ref": "#/$defs/servo" },
+        "eyes": { "$ref": "#/$defs/eyes" },
+        "output": { "$ref": "#/$defs/output" },
+        "delay": { "$ref": "#/$defs/delay" },
+        "display": { "$ref": "#/$defs/display" },
+        "sound": { "$ref": "#/$defs/sound" }
+      }
+    },
+    "speed": {
+      "description": "Tốc độ 10..100; thiếu thì thiết bị dùng tốc độ mặc định (NVS mask_speed, 70). Ước tính: 800*100/speed ms.",
+      "type": "integer",
+      "minimum": 10,
+      "maximum": 100,
+      "default": 70
+    },
+    "mask": {
+      "description": "Mặt nạ: action (open|close) HOẶC position (0 = đóng, 100 = mở); chờ chuyển động xong.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "action": { "type": "string", "enum": ["open", "close"] },
+        "position": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "speed": { "$ref": "#/$defs/speed" }
+      },
+      "oneOf": [
+        { "required": ["action"] },
+        { "required": ["position"] }
+      ]
+    },
+    "servo": {
+      "description": "Một servo tới góc tuyệt đối (bị giới hạn trong khoảng đã hiệu chỉnh).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "angle"],
+      "properties": {
+        "id": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "angle": { "type": "integer", "minimum": 0, "maximum": 180 },
+        "duration_ms": { "type": "integer", "minimum": 0, "maximum": 5000, "default": 0 }
+      }
+    },
+    "eyes": {
+      "description": "Đèn mắt: {on, brightness} HOẶC {effect, duration_ms}. breathe lặp đến lệnh sau (ước tính 0 ms).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "on": { "type": "boolean" },
+        "brightness": { "type": "integer", "minimum": 0, "maximum": 100, "default": 100 },
+        "effect": { "type": "string", "enum": ["breathe", "blink", "flicker", "power_up", "fade_out"] },
+        "duration_ms": { "type": "integer", "minimum": 100, "maximum": 10000, "default": 1000 }
+      },
+      "oneOf": [
+        {
+          "required": ["on"],
+          "not": { "anyOf": [ { "required": ["effect"] }, { "required": ["duration_ms"] } ] }
+        },
+        {
+          "required": ["effect"],
+          "not": { "anyOf": [ { "required": ["on"] }, { "required": ["brightness"] } ] }
+        }
+      ]
+    },
+    "output": {
+      "description": "Kênh output dự phòng (GPIO9).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["on"],
+      "properties": {
+        "on": { "type": "boolean" }
+      }
+    },
+    "delay": {
+      "description": "Chờ (ms), số nguyên 0..10000.",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10000
+    },
+    "display": {
+      "description": "Thẻ thông tin trên HUD, giới hạn giống self.display.show_info (đếm ký tự).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "text"],
+      "properties": {
+        "title": { "type": "string", "maxLength": 24 },
+        "text": { "type": "string", "maxLength": 200 },
+        "seconds": { "type": "integer", "minimum": 1, "maximum": 30, "default": 5 }
+      }
+    },
+    "sound": {
+      "description": "Phát âm thanh có sẵn trong assets (làm ở giai đoạn sau).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-z0-9_]{1,32}$" }
+      }
+    }
+  }
+}
