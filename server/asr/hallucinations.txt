@@ -1,0 +1,109 @@
+# Whisper hallucination blocklist (ASR_HALLUCINATIONS_FILE). Reloaded automatically on change.
+# Danh sách câu Whisper hay bịa ra khi gặp im lặng/tiếng ồn. Sửa file là có hiệu lực, không cần restart.
+#
+# Format:
+#   phrase        -> any sentence that contains this phrase is removed (the rest of the text is kept)
+#   =phrase       -> reject only when the WHOLE utterance is exactly this phrase
+# Matching ignores case, punctuation and spacing (Unicode NFC). Keep phrases long and specific:
+# never add real commands, wake words ("Jarvis", "quản gia") or exit words ("tạm biệt", "goodbye").
+# server/tests/test_asr_filters.py checks that every sentence of tools/tests/asr/sentences.md survives.
+
+# --- Vietnamese: YouTube outro / subtitle credits -------------------------------------------
+Hãy subscribe cho kênh Ghiền Mì Gõ Để không bỏ lỡ những video hấp dẫn
+Hãy subscribe cho kênh
+subscribe cho kênh
+Ghiền Mì Gõ
+La La School
+Hãy đăng ký kênh
+Hãy đăng kí kênh
+Đăng ký kênh để
+Đăng kí kênh để
+đăng ký kênh của mình
+đăng ký kênh để ủng hộ
+Các bạn hãy đăng ký kênh
+like share và subscribe
+like và share video
+like và subscribe
+nhấn like và đăng ký
+bấm chuông thông báo
+Cảm ơn các bạn đã xem
+Cảm ơn các bạn đã theo dõi
+Cảm ơn các bạn đã lắng nghe
+Cảm ơn các bạn đã đón xem
+Cảm ơn các bạn đã quan tâm
+Cảm ơn các bạn
+Cảm ơn quý vị đã theo dõi
+Cảm ơn quý vị đã xem
+Cảm ơn quý vị khán giả
+Chúc các bạn xem video vui vẻ
+Chúc các bạn có một ngày vui vẻ
+Hẹn gặp lại các bạn
+Hẹn gặp lại trong video tiếp theo
+Hẹn gặp lại trong những video tiếp theo
+Chào mừng các bạn đến với kênh
+Chào mừng quý vị đến với bộ phim
+Phụ đề được thực hiện bởi
+Phụ đề bởi
+Phụ đề tiếng Việt
+Vietsub bởi
+Vietsub by
+Biên dịch và phụ đề
+Dịch và phụ đề
+=Xin chào các bạn
+=Nhạc
+=Âm nhạc
+=Nhạc nền
+=Vỗ tay
+=Tiếng vỗ tay
+=Tiếng cười
+
+# --- English ------------------------------------------------------------------------------
+Thanks for watching
+Thank you for watching
+Thank you so much for watching
+Thanks for watching and see you next time
+Please subscribe
+Please like and subscribe
+Like and subscribe
+Don't forget to like and subscribe
+Don't forget to subscribe
+Subscribe to my channel
+Subscribe to our channel
+See you in the next video
+I'll see you in the next one
+See you in the next one
+Subtitles by the Amara.org community
+Subtitles by
+Subtitled by
+Captions by
+Closed captioning by
+Transcription by CastingWords
+Transcribed by
+www.mooji.org
+Amara.org
+=Thank you
+=Thank you very much
+=Thank you so much
+=You
+=Oh
+=Uh
+=Um
+=Hmm
+=Music
+=Applause
+=Laughter
+=Silence
+=See you next time
+
+# --- Other languages (only matters with ASR_LANGUAGE=auto; CJK is also dropped by rule) -----
+Untertitel der Amara.org-Community
+Untertitel im Auftrag des ZDF
+Sous-titres réalisés par la communauté d'Amara.org
+Ondertitels ingediend door de Amara.org gemeenschap
+字幕由Amara.org社区提供
+请不吝点赞 订阅 转发 打赏支持明镜与点点栏目
+优优独播剧场——YoYo Television Series Exclusive
+中文字幕
+谢谢观看
+ご視聴ありがとうございました
+시청해주셔서 감사합니다

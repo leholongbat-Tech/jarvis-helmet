@@ -1,0 +1,36 @@
+# A/B configurations for eval.py (SV2). Each entry = one ASR endpoint + optional overrides sent
+# as form fields: server/asr understands `language` (vi | en | auto | vi,en) and `prompt`
+# ("none" disables the service's own ASR_INITIAL_PROMPT). Engines/models that cannot change per
+# request (Qwen3-ASR, PhoWhisper) run as extra jarvis/asr:dev containers on other ports
+# (see README.md, section "So sánh A/B").
+configs:
+  - name: large-v3+vi
+    url: http://127.0.0.1:9000/v1/audio/transcriptions
+    language: vi
+    prompt: none
+
+  - name: large-v3+auto
+    url: http://127.0.0.1:9000/v1/audio/transcriptions
+    language: auto
+    prompt: none
+
+  - name: large-v3+vi+prompt
+    url: http://127.0.0.1:9000/v1/audio/transcriptions
+    language: vi
+    prompt: "Jarvis, quản gia, open mask, close mask, mặt nạ, đèn mắt, combat mode, stealth mode, thưa ngài."
+
+  # Optional: auto-detect restricted to Vietnamese/English.
+  # - name: large-v3+vi,en
+  #   url: http://127.0.0.1:9000/v1/audio/transcriptions
+  #   language: vi,en
+  #   prompt: none
+
+  - name: qwen3-asr+vi
+    url: http://127.0.0.1:9001/v1/audio/transcriptions  # jarvis/asr:dev, ASR_ENGINE=qwen3_vllm
+    language: vi
+    prompt: none
+
+  - name: phowhisper+vi
+    url: http://127.0.0.1:9002/v1/audio/transcriptions  # jarvis/asr:dev, ASR_MODEL=phowhisper-large
+    language: vi
+    prompt: none

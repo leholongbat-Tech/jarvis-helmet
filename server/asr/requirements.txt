@@ -1,0 +1,14 @@
+# Direct dependencies of the ASR service (python3.12 venv in the Ubuntu 24.04 CUDA image).
+# Every transitive package is pinned in constraints.txt (generated with `pip freeze` in the image).
+faster-whisper==1.2.1
+ctranslate2==4.8.2  # >=4.7 re-enables INT8 on sm_120; CUDA 12.8 wheels built without cuDNN
+av==18.1.0  # imported by faster-whisper; 19.x breaks decode_audio() (unused: we decode with soundfile)
+huggingface-hub==1.33.0
+tokenizers==0.23.2
+onnxruntime==1.30.0  # Silero VAD for the speech gate (model file ships with faster-whisper)
+fastapi==0.142.2
+uvicorn==0.54.0
+python-multipart==0.0.32
+soundfile==0.14.0
+numpy==2.5.3
+httpx==0.28.1

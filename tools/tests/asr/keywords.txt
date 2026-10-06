@@ -1,0 +1,32 @@
+# Command keywords for "keyword accuracy" (SV2 acceptance #1: >= 95%).
+# Từ khóa lệnh dùng để tính tỷ lệ nhận đúng từ khóa (tiêu chí SV2 #1: >= 95%).
+# One keyword per line; accepted alternative spellings after "|". Matching uses the same
+# normalization as WER (NFC, lowercase, punctuation removed) on whole words.
+mask
+mặt nạ
+đèn mắt
+open
+close
+mở
+đóng
+bật
+tắt
+combat mode
+stealth mode
+party mode
+chế độ chiến đấu
+chế độ tàng hình
+eye | eyes
+light | lights
+salute
+sequence
+output
+status
+battery | pin
+breathe
+flicker
+power up
+fade out
+stop
+jarvis | giắc vít
+quản gia
