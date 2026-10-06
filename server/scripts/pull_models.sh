@@ -63,7 +63,7 @@ else
     run compose up -d ollama
     if [[ "$DRY_RUN" == "0" ]]; then
         for _ in $(seq 1 60); do
-            compose exec -T ollama ollama list >/dev/null 2>&1 && break
+            compose exec -T ollama ollama list </dev/null >/dev/null 2>&1 && break
             sleep 2
         done
     fi
@@ -71,17 +71,18 @@ fi
 
 step "Pull"
 for m in "${MODELS[@]}"; do
-    run compose exec -T ollama ollama pull "$m"
+    run compose exec -T ollama ollama pull "$m" </dev/null
 done
 
 if [[ "$PRELOAD" == "1" ]]; then
     step "Preload $MAIN_MODEL"
-    if [[ "$DRY_RUN" == "0" ]] && ! compose exec -T ollama ollama show "$MAIN_MODEL" >/dev/null 2>&1; then
+    if [[ "$DRY_RUN" == "0" ]] && ! compose exec -T ollama ollama show "$MAIN_MODEL" </dev/null >/dev/null 2>&1; then
         # `ollama run` would silently start the download of a model that is not pulled.
         warn "$MAIN_MODEL is not pulled: not preloading (add --model $MAIN_MODEL)"
     else
-        run compose exec -T ollama ollama run "$MAIN_MODEL" ""
-        run compose exec -T ollama ollama ps
+        # </dev/null: `ollama run` reads a prompt from stdin and would wait forever on a terminal.
+        run compose exec -T ollama ollama run "$MAIN_MODEL" "" </dev/null
+        run compose exec -T ollama ollama ps </dev/null
         info "check: SIZE ~20 GB for the default model, PROCESSOR '100% GPU', CONTEXT 8192"
     fi
 fi

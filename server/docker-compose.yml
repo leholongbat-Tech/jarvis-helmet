@@ -206,11 +206,13 @@ services:
     environment:
       TZ: ${TZ:-Asia/Ho_Chi_Minh}
       LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:?set LITELLM_MASTER_KEY in server/.env}
-      # Cloud keys: only the one CLOUD_MODEL uses is needed. Another provider = add its key here
-      # and in server/.env (README.md "Đổi nhà cung cấp / model cloud").
-      ANTHROPIC_API_KEY:
-      OPENAI_API_KEY:
-      GEMINI_API_KEY:
+      # Cloud keys: only the one CLOUD_MODEL uses is needed (README.md "Đổi nhà cung cấp / model
+      # cloud"). Renamed on purpose: LiteLLM's pass-through routes (/anthropic, /openai, /gemini)
+      # fall back to the provider's default env names and skip the router budget, so those names
+      # must never exist in this container; config.yaml reads the JARVIS_* names instead.
+      JARVIS_ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      JARVIS_OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      JARVIS_GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       LITELLM_MAIN_MODEL: ollama_chat/${OLLAMA_MODEL:-qwen3:30b-a3b-instruct-2507-q4_K_M}
       OLLAMA_API_BASE: ${OLLAMA_API_BASE:-http://ollama:11434}
       CLOUD_MODEL: ${CLOUD_MODEL:-anthropic/claude-opus-5-5}

@@ -26,7 +26,9 @@ Environment:
   JARVIS_LOG_LOCAL_CALLS       1 = also log successful local calls
   JARVIS_LLM_LOG_FILE          optional path; lines are appended there too
 
-Never raises: a logging problem must not break a request.
+The hooks never raise: a logging problem must not break a request. The one deliberate failure is
+at import (proxy start): CLOUD_MONTHLY_BUDGET_USD <= 0 or not a number refuses to start, because
+LiteLLM treats max_budget 0 as "no budget" and the cloud would then be uncapped.
 """
 
 import datetime as _dt
@@ -296,5 +298,31 @@ class JarvisCallLogger(CustomLogger):
         except Exception as exc:
             self._emit({"tag": TAG, "ts": _now_iso(), "event": "logger_error", "error": _short(repr(exc))})
 
+
+def check_cloud_budget(environ=None):
+    """Refuse a budget that LiteLLM would read as "unlimited" (0, negative, NaN) or cannot parse.
+
+    Returns the budget in USD, or None when the variable is not set (compose always sets it).
+    """
+    environ = os.environ if environ is None else environ
+    raw = environ.get("CLOUD_MONTHLY_BUDGET_USD")
+    if raw is None or not raw.strip():
+        return None
+    try:
+        value = float(raw.strip())
+    except ValueError:
+        value = float("nan")
+    if not value > 0 or value == float("inf"):
+        message = ("CLOUD_MONTHLY_BUDGET_USD=%r is not a positive number. LiteLLM treats 0 as no budget, "
+                   "so the cloud would be uncapped. Set a positive amount; to block the cloud entirely, "
+                   "leave ANTHROPIC_API_KEY empty or remove the jarvis-cloud fallback." % raw)
+        sys.stdout.write(json.dumps({"tag": TAG, "ts": _now_iso(), "event": "config_error",
+                                     "error": message}, ensure_ascii=False) + "\n")
+        sys.stdout.flush()
+        raise ValueError(message)
+    return value
+
+
+check_cloud_budget()
 
 proxy_handler_instance = JarvisCallLogger()

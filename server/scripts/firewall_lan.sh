@@ -3,9 +3,11 @@
 #
 # Docker-published ports bypass ufw and the INPUT chain (Docker DNATs them in PREROUTING and the
 # traffic is FORWARDed), so the filter goes into iptables' DOCKER-USER chain, matching the port
-# the client connected to (--ctorigdstport) before Docker's DNAT. The script only touches rules
-# tagged "jarvis-lan": other projects' containers on the host keep working. It never enables or
-# changes ufw and never restarts dockerd. Dry-run by default.
+# the client connected to (--ctorigdstport) before Docker's DNAT. Only connections Docker DNATed
+# for a published port are matched (--ctstate DNAT): containers' own outbound traffic to some
+# other host's port 8003/8100 and traffic between containers are never touched. The script only
+# touches rules tagged "jarvis-lan": other projects' containers on the host keep working. It never
+# enables or changes ufw and never restarts dockerd. Dry-run by default.
 #
 # Usage: scripts/firewall_lan.sh [--apply] [--subnet CIDR] [--ports "8100 8003"] [--status]
 #                                [--remove] [--persist] [--quiet]
@@ -22,6 +24,9 @@
 #
 # Test from a machine outside the subnet: curl -m 3 http://<server>:8100/ must time out.
 set -euo pipefail
+# The --persist @reboot entry runs under cron's PATH (/usr/bin:/bin), but iptables is in /usr/sbin.
+# Appended, so a PATH that already finds the commands keeps priority.
+export PATH="${PATH:+$PATH:}/usr/local/sbin:/usr/sbin:/sbin"
 # shellcheck source=_common.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/_common.sh"
 
@@ -107,9 +112,9 @@ install_rules() {
     local p
     # -I inserts at the top: insert the DROP first, then the RETURN above it, per port.
     for p in "${PORT_LIST[@]}"; do
-        ipt -I "$CHAIN" 1 -p tcp -m conntrack --ctorigdstport "$p" --ctdir ORIGINAL \
+        ipt -I "$CHAIN" 1 -p tcp -m conntrack --ctstate DNAT --ctorigdstport "$p" --ctdir ORIGINAL \
             -m comment --comment "$TAG" -j DROP
-        ipt -I "$CHAIN" 1 -p tcp -m conntrack --ctorigdstport "$p" --ctdir ORIGINAL \
+        ipt -I "$CHAIN" 1 -p tcp -m conntrack --ctstate DNAT --ctorigdstport "$p" --ctdir ORIGINAL \
             -s "$SUBNET" -m comment --comment "$TAG" -j RETURN
     done
 }
@@ -156,6 +161,11 @@ case "$MODE" in
             say "would delete every rule tagged '$TAG' (see --status)"
         fi
         remove_rules
+        # Also drop the --persist @reboot entry, or the rules come back after the next reboot.
+        if [[ "$DRY_RUN" == "1" ]] ||
+            { "${SUDO[@]}" crontab -l 2>/dev/null || true; } | grep -q 'jarvis firewall_lan'; then
+            run_sh "( ${SUDO[*]} crontab -l 2>/dev/null | grep -v 'jarvis firewall_lan' ) | ${SUDO[*]} crontab -"
+        fi
         ;;
     install)
         step "Allow ${PORT_LIST[*]} from $SUBNET only ($CHAIN)"

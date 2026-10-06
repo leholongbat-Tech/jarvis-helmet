@@ -97,6 +97,30 @@ def test_hallucinated_sentence_is_removed_but_command_kept(flt):
     assert any(n.startswith("blocklist:") for n in result.notes)
 
 
+def test_sentence_only_entries_need_the_whole_sentence():
+    pl = PhraseList(lines=["~Cảm ơn các bạn", "Hẹn gặp lại các bạn trong"])
+    assert pl.find_phrase(words("Cảm ơn các bạn!")) == "Cảm ơn các bạn"
+    assert pl.find_phrase(words("nói cảm ơn các bạn đã đến dự tiệc")) is None
+    assert pl.find_phrase(words("Hẹn gặp lại các bạn trong video sau")) == "Hẹn gặp lại các bạn trong"
+
+
+@pytest.mark.parametrize("command", [
+    "Jarvis, nói cảm ơn các bạn đã đến dự tiệc.",
+    "Jarvis, chào tạm biệt và hẹn gặp lại các bạn.",
+    "Jarvis, bấm chuông thông báo khi pin yếu.",
+])
+def test_commands_containing_short_outro_words_survive(flt, command):
+    result = flt.apply([seg(" " + command)])
+    assert result.dropped is None and result.text == command, result
+
+
+def test_trailing_short_outro_sentence_is_still_removed(flt):
+    result = flt.apply([seg(" Mở mặt nạ. Cảm ơn các bạn.")])
+    assert result.text == "Mở mặt nạ."
+    result = flt.apply([seg(" Bật đèn mắt. Hẹn gặp lại các bạn trong những video tiếp theo!")])
+    assert result.text == "Bật đèn mắt."
+
+
 def test_exact_only_entries_need_the_whole_utterance(flt):
     assert flt.filter_text("Thank you very much!").dropped == "blocklist"
     kept = flt.filter_text("Thank you, Jarvis.")

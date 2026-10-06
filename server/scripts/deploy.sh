@@ -82,12 +82,14 @@ SSH=(ssh "${ssh_opts[@]}")
 Q_DIR="$(printf '%q' "$DIR")"
 
 # remote 'shell command': run it on the host (printed single-quoted, as you would type it).
+# -n: never hand our terminal to the remote command (a stdin read would hang the deploy). The
+# copy step pipes tar/git archive into its own ssh in run_sh and keeps stdin.
 remote() {
     if [[ "$DRY_RUN" == "1" ]]; then
-        printf '  [dry-run] %s %s %s\n' "${SSH[*]}" "$HOST" "$(squote "$1")"
+        printf '  [dry-run] %s -n %s %s\n' "${SSH[*]}" "$HOST" "$(squote "$1")"
     else
-        printf '  + %s %s %s\n' "${SSH[*]}" "$HOST" "$(squote "$1")"
-        "${SSH[@]}" "$HOST" "$1"
+        printf '  + %s -n %s %s\n' "${SSH[*]}" "$HOST" "$(squote "$1")"
+        "${SSH[@]}" -n "$HOST" "$1"
     fi
 }
 

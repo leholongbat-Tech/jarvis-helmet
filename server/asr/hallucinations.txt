@@ -3,6 +3,8 @@
 #
 # Format:
 #   phrase        -> any sentence that contains this phrase is removed (the rest of the text is kept)
+#   ~phrase       -> a sentence is removed only when the WHOLE sentence is this phrase (use it for
+#                    short phrases a real command may contain, e.g. "nói cảm ơn các bạn đã đến")
 #   =phrase       -> reject only when the WHOLE utterance is exactly this phrase
 # Matching ignores case, punctuation and spacing (Unicode NFC). Keep phrases long and specific:
 # never add real commands, wake words ("Jarvis", "quản gia") or exit words ("tạm biệt", "goodbye").
@@ -16,8 +18,8 @@ Ghiền Mì Gõ
 La La School
 Hãy đăng ký kênh
 Hãy đăng kí kênh
-Đăng ký kênh để
-Đăng kí kênh để
+Đăng ký kênh để không bỏ lỡ
+Đăng kí kênh để không bỏ lỡ
 đăng ký kênh của mình
 đăng ký kênh để ủng hộ
 Các bạn hãy đăng ký kênh
@@ -25,25 +27,27 @@ like share và subscribe
 like và share video
 like và subscribe
 nhấn like và đăng ký
-bấm chuông thông báo
+bấm chuông thông báo để
 Cảm ơn các bạn đã xem
 Cảm ơn các bạn đã theo dõi
 Cảm ơn các bạn đã lắng nghe
 Cảm ơn các bạn đã đón xem
 Cảm ơn các bạn đã quan tâm
-Cảm ơn các bạn
+~Cảm ơn các bạn
 Cảm ơn quý vị đã theo dõi
 Cảm ơn quý vị đã xem
 Cảm ơn quý vị khán giả
 Chúc các bạn xem video vui vẻ
 Chúc các bạn có một ngày vui vẻ
-Hẹn gặp lại các bạn
+~Hẹn gặp lại các bạn
+Hẹn gặp lại các bạn trong
 Hẹn gặp lại trong video tiếp theo
 Hẹn gặp lại trong những video tiếp theo
 Chào mừng các bạn đến với kênh
 Chào mừng quý vị đến với bộ phim
 Phụ đề được thực hiện bởi
-Phụ đề bởi
+~Phụ đề bởi
+Phụ đề bởi cộng đồng
 Phụ đề tiếng Việt
 Vietsub bởi
 Vietsub by

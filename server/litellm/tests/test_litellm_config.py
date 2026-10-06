@@ -94,7 +94,8 @@ def test_production_values():
     assert "num_ctx" not in main, "a per-request num_ctx different from OLLAMA_CONTEXT_LENGTH reloads the model"
     cloud = deployment(cfg, "jarvis-cloud")["litellm_params"]
     assert cloud["model"] == "os.environ/CLOUD_MODEL"
-    assert cloud["api_key"] == "os.environ/ANTHROPIC_API_KEY"
+    # Renamed so LiteLLM's pass-through routes cannot pick the key up (they bypass max_budget).
+    assert cloud["api_key"] == "os.environ/JARVIS_ANTHROPIC_API_KEY"
     assert cloud["reasoning_effort"] == "low"  # -> thinking adaptive + output_config.effort=low
     assert "api_base" not in cloud
 
@@ -121,7 +122,8 @@ def test_only_current_claude_ids_are_named():
 def test_env_example_matches_default_cloud_model():
     env = (SERVER / ".env.example").read_text(encoding="utf-8")
     assert re.search(r"^CLOUD_MODEL=anthropic/claude-opus-5-5$", env, re.M)
-    assert re.search(r"^CLOUD_MONTHLY_BUDGET_USD=\d+(\.\d+)?$", env, re.M)
+    budget = re.search(r"^CLOUD_MONTHLY_BUDGET_USD=(\d+(\.\d+)?)$", env, re.M)
+    assert budget and float(budget.group(1)) > 0, "LiteLLM reads a budget of 0 as unlimited"
 
 
 def test_xiaozhi_llm_block_respects_d25():

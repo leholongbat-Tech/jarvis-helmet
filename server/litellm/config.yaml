@@ -20,6 +20,9 @@
 #     (router_utils/cooldown_handlers.py).
 # Environment comes from docker-compose.yml (LITELLM_MAIN_MODEL, OLLAMA_API_BASE, CLOUD_MODEL,
 # CLOUD_MONTHLY_BUDGET_USD) and server/.env (LITELLM_MASTER_KEY, ANTHROPIC_API_KEY, ...).
+# Provider keys arrive as JARVIS_<PROVIDER>_API_KEY: the default names (ANTHROPIC_API_KEY, ...)
+# would let LiteLLM's pass-through routes (/anthropic/*, /openai/*, /gemini/*) call the provider
+# with the server's key and bypass max_budget below. Never set use_in_pass_through.
 
 model_list:
   # ---- Local primary: Ollama --------------------------------------------------------------
@@ -53,7 +56,7 @@ model_list:
   - model_name: jarvis-cloud
     litellm_params:
       model: os.environ/CLOUD_MODEL             # anthropic/claude-opus-5-5
-      api_key: os.environ/ANTHROPIC_API_KEY
+      api_key: os.environ/JARVIS_ANTHROPIC_API_KEY
       # -> thinking {type: adaptive} + output_config {effort: low}. Remove for claude-haiku-4-5.
       reasoning_effort: low
       # xiaozhi sends temperature; Claude 5.x answers 400 to sampling params: always drop them.
@@ -77,8 +80,8 @@ model_list:
   #   model: anthropic/claude-haiku-4-5, REMOVE reasoning_effort,
   #   input_cost_per_token: 1.0e-06, output_cost_per_token: 5.0e-06
   # OpenAI / Gemini (check the model id and price on the provider's site at deploy time):
-  #   model: openai/<model-id>, api_key: os.environ/OPENAI_API_KEY
-  #   model: gemini/<model-id>, api_key: os.environ/GEMINI_API_KEY
+  #   model: openai/<model-id>, api_key: os.environ/JARVIS_OPENAI_API_KEY
+  #   model: gemini/<model-id>, api_key: os.environ/JARVIS_GEMINI_API_KEY
 
 router_settings:
   fallbacks: [{"jarvis-main": ["jarvis-cloud"]}]

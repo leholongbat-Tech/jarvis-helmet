@@ -79,11 +79,14 @@ class PhraseEntry:
     words: Tuple[str, ...]
     exact: bool
     source: str
+    sentence: bool = False  # '~' entry: drop a sentence only when it IS this phrase
 
 
 class PhraseList:
-    """hallucinations.txt: one phrase per line, '#' comments, '=' prefix = exact-only entry.
+    """hallucinations.txt: one phrase per line, '#' comments.
 
+    ``phrase`` drops any sentence containing it, ``~phrase`` drops a sentence only when the whole
+    sentence is the phrase, ``=phrase`` rejects the utterance only when all of it is the phrase.
     The file is re-read when its mtime changes (checked at most every 2 s).
     """
 
@@ -94,6 +97,7 @@ class PhraseList:
         self._checked = 0.0
         self.phrases: Dict[str, List[PhraseEntry]] = {}
         self.exact: set = set()
+        self.sentences: Dict[Tuple[str, ...], str] = {}
         self.count = 0
         if lines is not None:
             self._install(self.parse(lines))
@@ -108,23 +112,27 @@ class PhraseList:
             if not line or line.startswith("#"):
                 continue
             exact = line.startswith("=")
-            body = line[1:].strip() if exact else line
+            sentence = line.startswith("~")
+            body = line[1:].strip() if exact or sentence else line
             ws = tuple(words(body))
             if ws:
-                entries.append(PhraseEntry(ws, exact, body))
+                entries.append(PhraseEntry(ws, exact, body, sentence))
         return entries
 
     def _install(self, entries: List[PhraseEntry]) -> None:
         phrases: Dict[str, List[PhraseEntry]] = {}
         exact = set()
+        sentences: Dict[Tuple[str, ...], str] = {}
         for e in entries:
             if e.exact:
                 exact.add(e.words)
+            elif e.sentence:
+                sentences[e.words] = e.source
             else:
                 phrases.setdefault(e.words[0], []).append(e)
         for bucket in phrases.values():
             bucket.sort(key=lambda e: len(e.words), reverse=True)
-        self.phrases, self.exact, self.count = phrases, exact, len(entries)
+        self.phrases, self.exact, self.sentences, self.count = phrases, exact, sentences, len(entries)
 
     def _load(self, initial: bool = False) -> None:
         try:
@@ -156,7 +164,11 @@ class PhraseList:
                 self._load()
 
     def find_phrase(self, ws: Sequence[str]) -> Optional[str]:
-        """First blocklisted phrase occurring as a contiguous word run in ``ws``."""
+        """Blocklisted phrase for sentence ``ws``: a '~' entry equal to the whole sentence, or the
+        first plain phrase occurring as a contiguous word run."""
+        whole = self.sentences.get(tuple(ws))
+        if whole is not None:
+            return whole
         for i, w in enumerate(ws):
             for entry in self.phrases.get(w, ()):
                 n = len(entry.words)

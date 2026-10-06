@@ -56,6 +56,24 @@ def clean_env(monkeypatch):
         monkeypatch.delenv(key, raising=False)
 
 
+@pytest.mark.parametrize("raw", ["0", "0.0", "-1", "nan", "inf", "abc", " 0 "])
+def test_cloud_budget_guard_refuses_unlimited_values(cb, raw, capsys):
+    with pytest.raises(ValueError, match="CLOUD_MONTHLY_BUDGET_USD"):
+        cb.check_cloud_budget({"CLOUD_MONTHLY_BUDGET_USD": raw})
+    record = json.loads(capsys.readouterr().out.strip().splitlines()[-1])
+    assert record["event"] == "config_error"
+
+
+@pytest.mark.parametrize("raw, expected", [("10", 10.0), ("0.5", 0.5), (" 25 ", 25.0)])
+def test_cloud_budget_guard_accepts_positive_values(cb, raw, expected):
+    assert cb.check_cloud_budget({"CLOUD_MONTHLY_BUDGET_USD": raw}) == expected
+
+
+def test_cloud_budget_guard_ignores_unset(cb):
+    assert cb.check_cloud_budget({}) is None
+    assert cb.check_cloud_budget({"CLOUD_MONTHLY_BUDGET_USD": ""}) is None
+
+
 def payload(**overrides):
     base = {
         "model_group": "jarvis-cloud", "model": "claude-opus-5-5", "custom_llm_provider": "anthropic",

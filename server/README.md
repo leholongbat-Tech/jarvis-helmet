@@ -382,11 +382,19 @@ Các bước:
 4. Thử: `python tools/tests/llm/run_tool_calls.py --model jarvis-cloud --only expert_vi,open_vi ...` và xem
    dòng `cloud_call` (`cost_usd` phải > 0).
 
-Nhà cung cấp khác (OpenAI, Gemini): `OPENAI_API_KEY` / `GEMINI_API_KEY` đã được chuyển vào `litellm`; thay
-khối `jarvis-cloud` bằng `model: openai/<model-id>` + `api_key: os.environ/OPENAI_API_KEY` (hoặc
-`gemini/<model-id>` + `GEMINI_API_KEY`), bỏ `reasoning_effort` nếu model không hỗ trợ, khai báo giá trong
-`model_info`. Tra model ID và giá trên trang của nhà cung cấp lúc triển khai. Nhà cung cấp khác nữa: thêm
-`TEN_KHOA_API_KEY:` vào `environment` của `litellm` trong `docker-compose.yml` và vào `.env`.
+Nhà cung cấp khác (OpenAI, Gemini): `OPENAI_API_KEY` / `GEMINI_API_KEY` trong `.env` đã được chuyển vào `litellm`
+dưới tên `JARVIS_OPENAI_API_KEY` / `JARVIS_GEMINI_API_KEY`; thay khối `jarvis-cloud` bằng
+`model: openai/<model-id>` + `api_key: os.environ/JARVIS_OPENAI_API_KEY` (hoặc `gemini/<model-id>` +
+`JARVIS_GEMINI_API_KEY`), bỏ `reasoning_effort` nếu model không hỗ trợ, khai báo giá trong `model_info`. Tra model ID
+và giá trên trang của nhà cung cấp lúc triển khai. Nhà cung cấp khác nữa: thêm
+`JARVIS_TEN_KHOA_API_KEY: ${TEN_KHOA_API_KEY:-}` vào `environment` của `litellm` trong `docker-compose.yml` và
+`TEN_KHOA_API_KEY=` vào `.env`.
+
+> **Vì sao đổi tên khóa trong container litellm?** LiteLLM có các route chuyển tiếp thẳng (`/anthropic/*`, `/openai/*`,
+> `/gemini/*`) tự lấy khóa từ biến mặc định (`ANTHROPIC_API_KEY`…) và **không đi qua giới hạn chi phí** của router.
+> Ai có master key (xiaozhi có) sẽ gọi cloud không giới hạn. Trong container không có biến tên mặc định nên các route đó
+> trả 401; chỉ `jarvis-cloud` (có `max_budget`) gọi được cloud. Nên đặt thêm hạn mức chi tiêu tháng ngay trên trang
+> quản trị của Anthropic làm chốt chặn cuối.
 
 Luôn kiểm tra lại danh sách model và lịch ngừng hỗ trợ trên tài liệu của Anthropic trước khi đổi.
 

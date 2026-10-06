@@ -215,13 +215,29 @@ def test_litellm_env_matches_configs(services):
 
 def test_secrets_only_where_needed(services):
     allowed = {
-        "ANTHROPIC_API_KEY": {"litellm"}, "OPENAI_API_KEY": {"litellm"}, "GEMINI_API_KEY": {"litellm"},
+        "JARVIS_ANTHROPIC_API_KEY": {"litellm"}, "JARVIS_OPENAI_API_KEY": {"litellm"},
+        "JARVIS_GEMINI_API_KEY": {"litellm"},
         "LITELLM_MASTER_KEY": {"litellm", "xiaozhi"}, "XIAOZHI_AUTH_KEY": {"xiaozhi"},
         "TUNNEL_TOKEN": {"cloudflared"}, "HF_TOKEN": {"asr", "asr-qwen"},
     }
     for secret, owners in allowed.items():
         have = {name for name, svc in services.items() if secret in env_of(svc)}
         assert have <= owners, f"{secret} reaches {sorted(have - owners)}"
+
+
+def test_no_default_provider_key_names_anywhere(services):
+    # LiteLLM's pass-through routes read these default names and bypass the router budget.
+    default_names = {"ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "OPENAI_API_KEY", "GEMINI_API_KEY",
+                     "GOOGLE_API_KEY"}
+    for name, svc in services.items():
+        leaked = default_names & set(env_of(svc))
+        assert not leaked, f"{name} gets {sorted(leaked)} (use JARVIS_* names)"
+    env = env_of(services["litellm"])
+    for provider in ("ANTHROPIC", "OPENAI", "GEMINI"):
+        assert env[f"JARVIS_{provider}_API_KEY"] == "${" + provider + "_API_KEY:-}"
+    config = (SERVER / "litellm" / "config.yaml").read_text(encoding="utf-8")
+    code = "\n".join(ln.split("#", 1)[0] for ln in config.splitlines())
+    assert "use_in_pass_through" not in code
 
 
 def test_ollama_service(services):

@@ -1,7 +1,7 @@
 # Kịch bản thu âm bộ thử ASR (SV2)
 
 Đây là danh sách câu để **đọc khi thu bộ dữ liệu thật bằng mũ** (mic INMP441, xem `README.md`).
-Có 60 câu chia 3 nhóm; mã câu cho biết nhóm:
+Có 63 câu chia 3 nhóm; mã câu cho biết nhóm:
 
 - `M..` = lệnh điều khiển **trộn Việt–Anh** (nhóm `mixed`)
 - `V..` = câu **tiếng Việt thuần** (nhóm `vi`)
@@ -68,6 +68,9 @@ Cách đọc:
 | V18 | Giải thích ngắn gọn trí tuệ nhân tạo là gì. |
 | V19 | Nhắc tôi uống nước sau giờ làm. |
 | V20 | Tạm biệt Jarvis. |
+| V21 | Jarvis, nói cảm ơn các bạn đã đến dự tiệc. |
+| V22 | Jarvis, chào tạm biệt và hẹn gặp lại các bạn. |
+| V23 | Jarvis, bấm chuông thông báo khi pin yếu. |
 
 ## Nhóm 3 – Câu tiếng Anh thuần (`en`)
 

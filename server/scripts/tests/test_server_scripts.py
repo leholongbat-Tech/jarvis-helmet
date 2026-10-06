@@ -218,6 +218,7 @@ def test_deploy_dry_run_tar(stubs):
     assert "--exclude=server/docker-compose.override.yml" in out
     assert "tools/tasks_cli.py tools/tests/llm" in out
     assert "ssh -o BatchMode=yes batai" in out
+    assert "ssh -o BatchMode=yes -n batai" in out  # remote commands never get our stdin
     assert "docker compose pull --ignore-buildable --quiet" in out
     assert "docker compose build --pull" in out
     assert "docker compose up -d --remove-orphans" in out
@@ -336,6 +337,8 @@ def test_firewall_dry_run_rules(stubs):
         assert len(drop) == 1 and len(ret) == 1
         assert drop[0] < ret[0], "RETURN must be inserted after DROP (so it ends up above it)"
         assert "-s 192.168.1.0/24" in lines[ret[0]]
+        # Only published-port (DNATed) flows: container egress to port 8003/8100 elsewhere passes.
+        assert "--ctstate DNAT" in lines[drop[0]] and "--ctstate DNAT" in lines[ret[0]]
     assert all("DOCKER-USER" in ln and "--comment jarvis-lan" in ln for ln in lines)
     read_only = ("sudo -n iptables -S DOCKER-USER", "iptables -S DOCKER-USER")  # user / root
     assert all(c in read_only for c in stubs.calls()), stubs.calls()
@@ -355,6 +358,21 @@ def test_firewall_persist_uses_crontab_not_systemd(stubs):
     assert res.returncode == 0
     assert "crontab" in res.stdout and "@reboot" in res.stdout
     assert "systemctl" not in res.stdout
+    assert not any(c.startswith("crontab") for c in stubs.calls())
+
+
+def test_firewall_finds_iptables_under_cron_path():
+    """The @reboot entry runs with cron's PATH (/usr/bin:/bin); iptables is in /usr/sbin."""
+    text = (SCRIPTS / "firewall_lan.sh").read_text(encoding="utf-8")
+    export = text.index('export PATH="${PATH:+$PATH:}/usr/local/sbin:/usr/sbin:/sbin"')
+    assert export < text.index("require_cmd iptables")
+
+
+def test_firewall_remove_also_drops_the_reboot_entry(stubs):
+    res = run(SCRIPTS / "firewall_lan.sh", "--subnet", "192.168.1.0/24", "--remove", env=stubs.env())
+    assert res.returncode == 0, res.stdout + res.stderr
+    cleanup = [ln for ln in res.stdout.splitlines() if "[dry-run]" in ln and "crontab -" in ln]
+    assert cleanup and "grep -v 'jarvis firewall_lan'" in cleanup[0]
     assert not any(c.startswith("crontab") for c in stubs.calls())
 
 
@@ -393,6 +411,27 @@ def test_pull_models_extra_model_preloads_only_main(tmp_path, stubs):
     assert res.returncode == 0
     assert "ollama pull gemma4:26b-a4b-it-qat" in res.stdout
     assert "ollama run qwen3:30b-a3b-instruct-2507-q4_K_M" in res.stdout  # default OLLAMA_MODEL
+
+
+def test_pull_models_apply_does_not_wait_for_stdin(tmp_path, stubs):
+    """`ollama run` reads a prompt from stdin like the real CLI: with stdin left open (a terminal,
+    or deploy.sh over ssh) the preload step used to hang forever."""
+    root = copy_tree(tmp_path)
+    stubs.add("docker", 'case "$*" in *"ollama run"*) cat >/dev/null ;; esac\nexit 0')
+    cmd = [BASH, "-c", STUB_PREFIX, "bash", posix(root / "server" / "scripts" / "pull_models.sh"), "--apply"]
+    proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            env=stubs.env(), text=True, encoding="utf-8", errors="replace")
+    try:
+        proc.wait(timeout=90)  # stdin stays open on purpose (communicate() would close it)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait()
+        pytest.fail("pull_models.sh --apply waited for stdin at the preload step")
+    finally:
+        proc.stdin.close()
+    out = proc.stdout.read()
+    assert proc.returncode == 0, out + proc.stderr.read()
+    assert any("ollama run" in c for c in stubs.calls()), stubs.calls()
 
 
 def test_pull_models_rejects_bad_tag(stubs):
