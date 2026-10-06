@@ -1,0 +1,27 @@
+# Bộ câu thử TTS (SV4 §2): 20 câu, mỗi dòng một câu; dòng bắt đầu bằng "#" là chú thích.
+# Dòng "# @<nhóm>" đặt tên nhóm cho các câu phía sau (bench.py in ra cột nhóm).
+# @vi
+Vâng, thưa ngài.
+Mặt nạ đã mở, đèn mắt đang sáng ổn định.
+Chào buổi sáng thưa ngài, hôm nay trời khá đẹp để ra ngoài.
+Tôi đã ghi nhớ yêu cầu của ngài và sẽ nhắc lại sau.
+# @mixed
+Đã kích hoạt combat mode, thưa ngài.
+Stealth mode đã bật, đèn mắt đã tắt.
+Kết nối WiFi ổn định, USB và LED đều hoạt động OK.
+Xin chào, tôi là J.A.R.V.I.S, trợ lý AI của ngài.
+HUD đã cập nhật, mask đang ở trạng thái open.
+# @en
+Good evening, sir. All systems are online.
+The mask is now open and the eyes are at full brightness.
+I'm afraid I can't do that, sir.
+Combat mode activated, weapons systems standing by.
+# @numbers
+Bây giờ là 14:32, thứ Hai ngày 06/10/2026.
+Điện áp nguồn hiện tại là 5,02 V, dòng tiêu thụ 1.250 mA.
+Pin còn 85%, khoảng 2500 mAh, đủ dùng hơn 2 giờ nữa.
+Nhiệt độ bên ngoài là 31°C, độ ẩm 75%.
+Tốc độ hiện tại 45 km/h, quãng đường còn lại 12,5 km.
+Bộ nhớ còn trống 512 MB trên tổng số 4 GB, tần số 24 kHz.
+# @long40
+Thưa ngài, hệ thống đã hoàn tất kiểm tra: mặt nạ hoạt động bình thường, đèn mắt sáng ổn định, pin còn đủ cho khoảng hai giờ sử dụng, và tôi luôn sẵn sàng thực hiện mệnh lệnh của ngài.
