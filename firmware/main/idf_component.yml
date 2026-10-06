@@ -150,3 +150,26 @@ dependencies:
   m5stack/m5pm1: ^1.0.7
 
   cube32esp/xpowerslib: ^0.3.3
+
+  # [jarvis] microWakeWord runtime, only for CONFIG_JARVIS_MICRO_WAKE_WORD (Jarvis Helmet B2).
+  # Rules stop at the first false one, so other targets/boards never look up the board-only
+  # Kconfig symbol (a symbol missing from every Kconfig file would fail the configure step).
+  espressif/esp-tflite-micro:
+    version: ==1.4.1
+    rules:
+    - if: target in [esp32s3]
+    - if: $CONFIG{BOARD_TYPE_JARVIS_HELMET} == True
+    - if: $CONFIG{JARVIS_MICRO_WAKE_WORD} == True
+  # Pinned on purpose: newer esp-nn releases need a larger tensor arena.
+  espressif/esp-nn:
+    version: ==1.4.1
+    rules:
+    - if: target in [esp32s3]
+    - if: $CONFIG{BOARD_TYPE_JARVIS_HELMET} == True
+    - if: $CONFIG{JARVIS_MICRO_WAKE_WORD} == True
+  esphome/esp-micro-speech-features:
+    version: ==1.2.3
+    rules:
+    - if: target in [esp32s3]
+    - if: $CONFIG{BOARD_TYPE_JARVIS_HELMET} == True
+    - if: $CONFIG{JARVIS_MICRO_WAKE_WORD} == True

@@ -686,6 +686,36 @@ def read_custom_wake_word_from_sdkconfig(sdkconfig_path):
     return None
 
 
+def build_custom_wake_word_commands(wake_word, display):
+    """
+    [jarvis] Build the MultiNet command list for index.json.
+
+    ';' separates several commands, e.g. CONFIG_CUSTOM_WAKE_WORD="jia wei si;guan jia" with
+    CONFIG_CUSTOM_WAKE_WORD_DISPLAY="Jarvis;Quản gia". Display texts pair up by position and a
+    missing one repeats the last text (handy for pronunciation aliases). Without ';' the single
+    upstream command is returned unchanged.
+    """
+    if ';' not in wake_word and ';' not in display:
+        return [{"command": wake_word, "text": display, "action": "wake"}]
+
+    commands = [item.strip() for item in wake_word.split(';') if item.strip()]
+    texts = [item.strip() for item in display.split(';') if item.strip()]
+    if not commands:
+        raise ValueError("CONFIG_CUSTOM_WAKE_WORD does not contain any command")
+    if not texts:
+        texts = list(commands)
+    if len(texts) > len(commands):
+        print(f"Warning: ignoring {len(texts) - len(commands)} extra custom wake word display text(s)")
+
+    result = []
+    for index, command in enumerate(commands):
+        if len(command.encode('utf-8')) > 63:  # ESP_MN_MAX_PHRASE_LEN
+            print(f"Warning: MultiNet command longer than 63 bytes: {command}")
+        text = texts[index] if index < len(texts) else texts[-1]
+        result.append({"command": command, "text": text, "action": "wake"})
+    return result
+
+
 def get_language_from_multinet_models(multinet_models):
     """
     Determine language from multinet model names
@@ -985,15 +1015,12 @@ def main():
             "language": language,
             "duration": 3000,  # Default duration in ms
             "threshold": custom_wake_word_config['threshold'],
-            "commands": [
-                {
-                    "command": custom_wake_word_config['wake_word'],
-                    "text": custom_wake_word_config['display'],
-                    "action": "wake"
-                }
-            ]
+            "commands": build_custom_wake_word_commands(
+                custom_wake_word_config['wake_word'], custom_wake_word_config['display'])
         }
         print(f"  custom wake word: {custom_wake_word_config['wake_word']} ({custom_wake_word_config['display']})")
+        if len(multinet_model_info['commands']) > 1:
+            print(f"  custom wake word commands: {len(multinet_model_info['commands'])}")
         print(f"  wake word language: {language}")
         print(f"  wake word threshold: {custom_wake_word_config['threshold']}")
     

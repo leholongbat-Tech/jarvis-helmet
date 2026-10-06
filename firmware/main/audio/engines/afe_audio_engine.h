@@ -19,6 +19,9 @@
 #include "wake_words/wake_word_audio_cache.h"
 
 class CustomWakeWord;
+#ifdef CONFIG_JARVIS_MICRO_WAKE_WORD
+class MicroWakeWord;
+#endif
 
 class AfeAudioEngine : public AudioEngine {
 public:
@@ -82,6 +85,10 @@ private:
     WakeDetector wake_detector_ = WakeDetector::kNone;
 
     std::unique_ptr<CustomWakeWord> custom_wake_word_;
+#ifdef CONFIG_JARVIS_MICRO_WAKE_WORD
+    // [jarvis] Plan B2: extra microWakeWord detector fed with the same AFE output.
+    std::unique_ptr<MicroWakeWord> micro_wake_word_;
+#endif
     std::vector<std::string> wake_words_;
     std::string last_detected_wake_word_;
     std::vector<int16_t> input_buffer_;

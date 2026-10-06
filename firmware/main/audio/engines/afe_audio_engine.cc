@@ -12,6 +12,9 @@
 
 #include "audio_service.h"
 #include "wake_words/custom_wake_word.h"
+#ifdef CONFIG_JARVIS_MICRO_WAKE_WORD
+#include "boards/jarvis-helmet/micro_wake_word.h"
+#endif
 
 #define TAG "AfeAudioEngine"
 
@@ -122,6 +125,27 @@ bool AfeAudioEngine::Initialize(AudioCodec* codec, int frame_duration_ms,
         }
 #endif
     }
+
+#ifdef CONFIG_JARVIS_MICRO_WAKE_WORD
+    // [jarvis] Plan B2: microWakeWord runs next to WakeNet/MultiNet on the AFE output and
+    // reports like them. It stays off when no model is compiled in or the AFE is not used.
+    if (kUseAfeForVoiceProcessing || wake_detector_ != WakeDetector::kNone) {
+        micro_wake_word_ = std::make_unique<MicroWakeWord>();
+        micro_wake_word_->OnWakeWordDetected([this](const std::string& wake_word) {
+            last_detected_wake_word_ = wake_word;
+            xEventGroupClearBits(event_group_, kWakeWordEnabled);
+            UpdateActiveState();
+            if (wake_word_detected_callback_) {
+                wake_word_detected_callback_(wake_word);
+            }
+        });
+        if (!micro_wake_word_->Initialize(codec_, models_)) {
+            micro_wake_word_.reset();
+        }
+    } else {
+        ESP_LOGW(TAG, "microWakeWord needs the AFE (audio processor or a wake word model)");
+    }
+#endif
 
     const bool needs_afe = kUseAfeForVoiceProcessing || wake_detector_ != WakeDetector::kNone;
     if (!needs_afe) {
@@ -281,12 +305,22 @@ void AfeAudioEngine::EnableWakeWordDetection(bool enable) {
         if (wake_detector_ == WakeDetector::kMultiNet) {
             custom_wake_word_->Start();
         }
+#ifdef CONFIG_JARVIS_MICRO_WAKE_WORD
+        if (micro_wake_word_) {
+            micro_wake_word_->Start();
+        }
+#endif
         xEventGroupSetBits(event_group_, kWakeWordEnabled);
     } else {
         xEventGroupClearBits(event_group_, kWakeWordEnabled);
         if (wake_detector_ == WakeDetector::kMultiNet) {
             custom_wake_word_->Stop();
         }
+#ifdef CONFIG_JARVIS_MICRO_WAKE_WORD
+        if (micro_wake_word_) {
+            micro_wake_word_->Stop();
+        }
+#endif
     }
     UpdateActiveState();
 }
@@ -309,7 +343,13 @@ void AfeAudioEngine::EnableDeviceAec(bool enable) {
     UpdateAecState();
 }
 
+#ifdef CONFIG_JARVIS_MICRO_WAKE_WORD
+bool AfeAudioEngine::HasWakeWord() const {
+    return wake_detector_ != WakeDetector::kNone || micro_wake_word_ != nullptr;
+}
+#else
 bool AfeAudioEngine::HasWakeWord() const { return wake_detector_ != WakeDetector::kNone; }
+#endif
 
 bool AfeAudioEngine::IsWakeWordDetectionEnabled() const {
     return event_group_ != nullptr && (xEventGroupGetBits(event_group_) & kWakeWordEnabled) != 0;
@@ -442,6 +482,14 @@ void AfeAudioEngine::ProcessingTask() {
 }
 
 void AfeAudioEngine::HandleWakeWordResult(const afe_fetch_result_t* result) {
+#ifdef CONFIG_JARVIS_MICRO_WAKE_WORD
+    // [jarvis] Plan B2: FeedMono() never blocks; on a detection it has already run the
+    // callback (from this task, like WakeNet/MultiNet) and this frame is done.
+    if (micro_wake_word_ &&
+        micro_wake_word_->FeedMono(result->data, result->data_size / sizeof(int16_t))) {
+        return;
+    }
+#endif
     if (wake_detector_ == WakeDetector::kMultiNet) {
         custom_wake_word_->FeedMono(result->data, result->data_size / sizeof(int16_t));
         return;

@@ -1,0 +1,72 @@
+# Hard negatives for the "quản gia" model: words and sentences that sound close but must NOT
+# wake the helmet. One phrase per line, '#' starts a comment. Never put "quản gia" itself here.
+#
+# Same first syllable "quản"
+quản lý
+quản trị
+quản đốc
+quản giáo
+quản ca
+quản thúc
+quản tượng
+quản khu
+quản lý gia đình
+quản trị gia đình
+# Same second syllable "gia"
+gia đình
+gia sư
+gia vị
+gia hạn
+gia tăng
+gia công
+gia chủ
+gia nhân
+gia phả
+gia dụng
+# Similar sound (Northern "kwản za", Southern "wảng da/ya")
+quán gà
+quán gia
+quan gia
+quảng cáo
+quảng trường
+Quảng Ngãi
+Quảng Nam
+quang gánh
+quàng khăn
+hoàng gia
+Hoàng Gia
+toàn gia
+bảng giá
+khoản giá
+vàng da
+oán than
+quả na
+quá giang
+quán quân
+quân gia
+# Sentences with the confusable words
+Tôi là quản lý ở đây.
+Gia đình tôi có bốn người.
+Tối nay đi ăn quán gà không?
+Bảng giá hôm nay thế nào?
+Hoàng gia Anh vừa ra thông báo.
+Anh ấy làm quản trị mạng.
+Tắt quảng cáo đi.
+Gánh quang gánh nặng quá.
+Quản lý dự án đang họp.
+Cô ấy là gia sư tiếng Anh.
+Thêm chút gia vị nữa.
+Vợ tôi quản hết tiền trong nhà.
+Gia hạn hợp đồng thêm một năm.
+Quán gà rán đầu ngõ đóng cửa rồi.
+Hôm nay quân ta thắng lớn.
+# Other assistant names and mixed speech the helmet will hear
+Jarvis
+Jarvis ơi
+Hey Google
+Alexa
+open the mask
+bật đèn mắt lên
+mở mặt nạ ra
+được rồi, cảm ơn
+tạm biệt
