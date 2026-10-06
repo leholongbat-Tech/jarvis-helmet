@@ -1,5 +1,5 @@
 {
-  "_comment": "MCP tools/list result of the Jarvis helmet as the server receives it (firmware v2.5.0 + board jarvis-helmet). Order = firmware order: AddCommonTools() first, then helmet_tools::Register, MaskController, OutputController. User-only tools (self.servo.*) are not listed (the server never asks for them). Property JSON follows McpServer Property::to_json (no per-property descriptions). Kept in sync with firmware/main/boards/jarvis-helmet/*.cc by test_run_tool_calls.py. A real capture (e.g. from tools/tests/e2e/device_sim.py or a device log) can replace this file via --device-tools.",
+  "_comment": "MCP tools/list result of the Jarvis helmet as the server receives it (firmware v2.5.0 + board jarvis-helmet). Order = firmware order: AddCommonTools() first, then helmet_tools::Register, MaskController, OutputController. User-only tools (self.servo.*) are not in \"tools\" (the server never asks for them); \"userOnlyTools\" keeps them for tools/tests/e2e/device_sim.py, which builds its tool list from this file. Property JSON follows McpServer Property::to_json (no per-property descriptions). Kept in sync with firmware/main/boards/jarvis-helmet/*.cc by test_run_tool_calls.py. A real capture (e.g. from tools/tests/e2e/device_sim.py or a device log) can replace this file via --device-tools.",
   "tools": [
     {
       "name": "self.get_device_status",
@@ -78,13 +78,25 @@
     },
     {
       "name": "self.eyes.effect",
-      "description": "Hiệu ứng đèn mắt. / Eye light effect: breathe (repeats until another command, duration_ms = cycle, e.g. 2500), blink, flicker, power_up (light up), fade_out (dim to off).",
+      "description": "Hiệu ứng đèn mắt. / Eye light effect: breathe (repeats until another command, duration_ms = cycle), blink, flicker, power_up (light up), fade_out (dim to off). duration_ms 0 = default (breathe 2500, flicker 600, others 1000).",
       "inputSchema": {"type": "object", "properties": {"name": {"type": "string", "maxLength": 16}, "duration_ms": {"type": "integer", "default": 0, "minimum": 0, "maximum": 10000}}, "required": ["name"]}
     },
     {
       "name": "self.output.set",
       "description": "Bật/tắt ngõ ra phụ (kênh dự phòng). / Switch the auxiliary spare output on or off.",
       "inputSchema": {"type": "object", "properties": {"on": {"type": "boolean"}}, "required": ["on"]}
+    }
+  ],
+  "userOnlyTools": [
+    {
+      "name": "self.servo.calibrate",
+      "description": "Hiệu chỉnh: quay một servo tới góc thô. / Calibration: drive one servo (0 = left, 1 = right) to a raw angle 0-180 without the calibrated limits.",
+      "inputSchema": {"type": "object", "properties": {"servo": {"type": "integer", "minimum": 0, "maximum": 1}, "angle": {"type": "integer", "minimum": 0, "maximum": 180}}, "required": ["servo", "angle"]}
+    },
+    {
+      "name": "self.servo.save_calibration",
+      "description": "Lưu góc đóng/mở của một servo. / Save one servo's closed and open angles (0-180, must differ). Used for every later mask move.",
+      "inputSchema": {"type": "object", "properties": {"servo": {"type": "integer", "minimum": 0, "maximum": 1}, "closed_angle": {"type": "integer", "minimum": 0, "maximum": 180}, "open_angle": {"type": "integer", "minimum": 0, "maximum": 180}}, "required": ["servo", "closed_angle", "open_angle"]}
     }
   ]
 }

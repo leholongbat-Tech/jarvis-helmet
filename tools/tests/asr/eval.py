@@ -117,11 +117,12 @@ def transcribe(client: httpx.Client, cfg: Config, audio_path: str, timeout: floa
 
 
 def score_item(item: Dict[str, Any], out: Dict[str, Any], keywords) -> Dict[str, Any]:
-    ref_tokens, hyp_tokens = asrlib.tokenize(item["reference"]), asrlib.tokenize(out.get("text") or "")
+    lang = asrlib.lang_of_group(item["group"])
+    ref_tokens, hyp_tokens = asrlib.scoring_tokens(item["reference"], out.get("text") or "", lang)
     s, d, i = asrlib.edit_ops(ref_tokens, hyp_tokens)
     # Text before the hallucination filter (verbose_json only): measures what the filter removed.
     raw = out.get("raw_text")
-    raw_tokens = asrlib.tokenize(raw) if raw else hyp_tokens
+    raw_tokens = asrlib.scoring_tokens(item["reference"], raw, lang)[1] if raw else hyp_tokens
     rs, rd, ri = asrlib.edit_ops(ref_tokens, raw_tokens)
     row = {
         "id": item["id"],

@@ -147,6 +147,25 @@ def test_grouping_and_turn_metrics(log_file):
     assert m7["vad_wait"] == 700
 
 
+def test_passive_calls_and_ptt_ignore_offsets(tmp_path):
+    """tests-tools-1/6: a late connect-time save is not the command; PTT eos = listen stop."""
+    lines = [
+        lat("ppp", "vad_end", 5_000_000, src="listen_stop", mode="manual"),   # PTT, no speech_end
+        lat("ppp", "mcp_call", 5_000_125, tool="self_sequence_save", ms=20),  # sync, not the command
+        lat("ppp", "asr_done", 5_000_300, text_len=9),
+        lat("ppp", "mcp_call", 5_002_600, tool="self_sequence_run", ms=15),
+        lat("ppp", "first_packet_sent", 5_002_700),
+    ]
+    path = tmp_path / "ptt.log"
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    events, _ = latency.parse_files([str(path)])
+    user = [t for t in latency.group_turns(events) if t.is_user_turn]
+    assert len(user) == 1
+    m = latency.turn_metrics(user[0], vad_offset_ms=700)
+    assert m["eos_to_mcp"] == 2600
+    assert m["eos_to_audio"] == 2700
+
+
 def test_summary_statistics(log_file):
     events, _ = latency.parse_files([str(log_file)])
     turns = latency.group_turns(events)

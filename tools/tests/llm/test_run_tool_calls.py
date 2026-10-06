@@ -232,14 +232,48 @@ def _split_args(text: str) -> list[str]:
     return parts
 
 
-def _firmware_tools() -> dict:
-    """{tool name: {prop: schema}} for every AddTool (not AddUserOnlyTool) of the board sources."""
+_C_STRING_RE = re.compile(r'"((?:[^"\\]|\\.)*)"')
+
+
+def _c_unescape(s: str) -> str:
+    out, i = [], 0
+    while i < len(s):
+        if s[i] == "\\" and i + 1 < len(s):
+            out.append({"n": "\n", "t": "\t"}.get(s[i + 1], s[i + 1]))
+            i += 2
+        else:
+            out.append(s[i])
+            i += 1
+    return "".join(out)
+
+
+def firmware_descriptions() -> dict:
+    """{tool name: (description, user_only)}: the adjacent C string literals after the name."""
+    tools = {}
+    for path in sorted(BOARD.glob("*.cc")):
+        src = path.read_text(encoding="utf-8")
+        for m in re.finditer(r"\b(AddTool|AddUserOnlyTool)\(\s*\"([^\"]+)\"\s*,", src):
+            pos, parts = m.end(), []
+            while True:
+                while pos < len(src) and src[pos].isspace():
+                    pos += 1
+                lit = _C_STRING_RE.match(src, pos)
+                if not lit:
+                    break
+                parts.append(_c_unescape(lit.group(1)))
+                pos = lit.end()
+            tools[m.group(2)] = ("".join(parts), m.group(1) == "AddUserOnlyTool")
+    return tools
+
+
+def _firmware_tools(user_only: bool = False) -> dict:
+    """{tool name: {prop: schema}} for every AddTool (AddUserOnlyTool with user_only=True)."""
     consts = _constants()
     tools = {}
     for path in sorted(BOARD.glob("*.cc")):
         src = path.read_text(encoding="utf-8")
         for m in re.finditer(r"\b(AddTool|AddUserOnlyTool)\(\s*\"([^\"]+)\"", src):
-            if m.group(1) != "AddTool":
+            if m.group(1) != ("AddUserOnlyTool" if user_only else "AddTool"):
                 continue
             nxt = re.search(r"\b(?:AddTool|AddUserOnlyTool)\(", src[m.end():])
             block = src[m.end(): m.end() + nxt.start()] if nxt else src[m.end():]
@@ -285,3 +319,21 @@ def test_device_tools_match_firmware():
         assert schema.get("properties", {}) == props, name
         required = sorted(p for p, s in props.items() if "default" not in s)
         assert sorted(schema.get("required", [])) == required, name
+
+
+@pytest.mark.skipif(not BOARD.is_dir(), reason="firmware board sources not present")
+def test_device_tool_descriptions_and_user_only_tools_match_firmware():
+    """The LLM (and device_sim, tests-tools-5) see exactly the firmware's tool texts."""
+    data = json.loads((HERE / "device_tools.json").read_text(encoding="utf-8"))
+    described = firmware_descriptions()
+    for tool in data["tools"] + data["userOnlyTools"]:
+        if tool["name"] in COMMON_TOOLS:
+            continue
+        assert tool["description"] == described[tool["name"]][0], tool["name"]
+    user_only = {t["name"]: t for t in data["userOnlyTools"]}
+    firmware = _firmware_tools(user_only=True)
+    assert set(user_only) == set(firmware) == {n for n, (_, uo) in described.items() if uo}
+    for name, props in firmware.items():
+        schema = user_only[name]["inputSchema"]
+        assert schema["properties"] == props, name
+        assert sorted(schema["required"]) == sorted(p for p, s in props.items() if "default" not in s)

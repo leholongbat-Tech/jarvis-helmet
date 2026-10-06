@@ -291,20 +291,65 @@ def test_tools_call_success_payload_exact():
     ("self.display.show_info", {"title": "ệ" * 33, "text": "a"}, -32602,
      "Property 'title': string length 99 exceeds maximum 96"),
     ("self.display.show_info", {"title": "ệ" * 25, "text": "a"}, -32603,
-     "title longer than 24 characters"),
-    ("self.eyes.effect", {"name": "disco"}, -32603, "unknown effect: disco"),
+     "title too long (max 24 chars)"),
+    ("self.display.show_info", {"title": "a", "text": "ệ" * 201}, -32603,
+     "text too long (max 200 chars)"),
+    ("self.eyes.effect", {"name": "disco"}, -32603,
+     "unknown effect disco, use breathe, blink, flicker, power_up or fade_out"),
     ("self.eyes.effect", {"name": "blink", "duration_ms": 50}, -32603,
      "duration_ms must be 0 (effect default) or 100..10000"),
     ("self.eyes.effect", {"name": "blink", "duration_ms": -1}, -32602,
      "Property 'duration_ms': value -1 is below minimum 0"),
-    ("self.sequence.run_saved", {"name": "nope"}, -32603, "unknown sequence: nope"),
-    ("self.sequence.run", {"steps": "not json"}, -32603, "steps is not valid JSON"),
+    ("self.sequence.run_saved", {"name": "nope"}, -32603, "unknown sequence nope"),
+    ("self.sequence.run_saved", {"name": "Bad-Name"}, -32603,
+     "invalid sequence name (use [a-z0-9_]{1,11})"),
+    ("self.sequence.save", {"name": "x" * 11 + "!", "steps": "[]"}, -32602,
+     "Property 'name': string length 12 exceeds maximum 11"),
+    ("self.servo.save_calibration", {"servo": 0, "closed_angle": 40, "open_angle": 40}, -32603,
+     "closed_angle and open_angle must differ"),
+    ("self.sequence.run", {"steps": "not json"}, -32603, "steps must be a JSON array (invalid JSON)"),
     ("self.sequence.run", {"steps": '[{"delay":100},{"mask":{"action":"fly"}}]'}, -32603,
      "invalid step #2: action must be open or close"),
 ])
 def test_tools_call_errors_match_firmware(name, args, code, message):
     sim, _ = new_sim()
     assert err(call(sim, name, args)) == (code, message)
+
+
+FIRMWARE_BOARD = ds.REPO_ROOT / "firmware" / "main" / "boards" / "jarvis-helmet"
+
+
+@pytest.mark.skipif(not FIRMWARE_BOARD.is_dir(), reason="firmware sources not present")
+@pytest.mark.parametrize("fragment", [
+    '"invalid sequence name (use [a-z0-9_]{1,11})"',
+    '"unknown sequence " + name',
+    '"title too long (max "',
+    '"text too long (max "',
+    '" chars)"',
+    '"unknown effect " + name',
+    '", use breathe, blink, flicker, power_up or fade_out"',
+    '"duration_ms must be 0 (effect default) or "',
+    '"closed_angle and open_angle must differ"',
+    '"steps must be a JSON array (invalid JSON)"',
+    '"action must be open or close"',
+])
+def test_sim_error_texts_come_from_firmware(fragment):
+    """tests-tools-5: the device errors the LLM and the speech path see are the firmware's."""
+    src = "\n".join(p.read_text(encoding="utf-8") for p in FIRMWARE_BOARD.glob("*.cc"))
+    assert fragment in src
+
+
+def test_sim_tool_texts_equal_device_tools_json():
+    """tests-tools-5: descriptions and schemas exactly as the firmware sends them."""
+    data = json.loads(ds.DEVICE_TOOLS_FILE.read_text(encoding="utf-8"))
+    sim = ds.build_helmet_tool_list()
+    public = [json.loads(t.to_json()) for t in sim if not t.user_only]
+    assert [(t["name"], t["description"], t["inputSchema"]) for t in public] == \
+        [(t["name"], t["description"], t["inputSchema"]) for t in data["tools"]]
+    hidden = {t.name: json.loads(t.to_json()) for t in sim if t.user_only}
+    for tool in data["userOnlyTools"]:
+        assert hidden[tool["name"]]["description"] == tool["description"]
+        assert hidden[tool["name"]]["inputSchema"] == tool["inputSchema"]
 
 
 def test_tools_call_envelope_errors():
@@ -750,8 +795,9 @@ def test_task_steps_check_accepts_defaults_and_merges():
 class ScriptedServer:
     """Minimal xiaozhi stand-in on 127.0.0.1 (own thread + event loop): OTA + WebSocket."""
 
-    def __init__(self, auth_key="unit-key"):
+    def __init__(self, auth_key="unit-key", wake_words=("Jarvis", "Quản gia")):
         self.auth_key = auth_key
+        self.wake_words = set(wake_words)  # answered with nothing (wake_no_echo patch)
         self.texts, self.audio, self.ota_requests, self.tool_pages = [], [], [], []
         self.frames = []
         if HAVE_AUDIO:
@@ -857,12 +903,8 @@ class ScriptedServer:
                         await ws.send(json.dumps({"type": "mcp", "payload": {
                             "jsonrpc": "2.0", "id": 2, "method": "tools/list",
                             "params": {"cursor": p["result"]["nextCursor"]}}}))
-            elif kind == "listen" and m["state"] == "detect" and m["text"] == "Jarvis":
-                for state in ("start", "stop"):
-                    if state == "start":
-                        await ws.send(json.dumps({"type": "stt", "text": "Jarvis",
-                                                  "session_id": sid}))
-                    await ws.send(json.dumps({"type": "tts", "state": state, "session_id": sid}))
+            elif kind == "listen" and m["state"] == "detect" and m["text"] in self.wake_words:
+                pass  # patched server: a wake word gets no answer (enable_greeting=false)
             elif kind == "listen" and m["state"] in ("detect", "stop"):
                 text = m.get("text", "mở mặt nạ")
                 self.speak_task = asyncio.ensure_future(self._reply(ws, sid, text))
@@ -879,6 +921,10 @@ class ScriptedServer:
                 "jsonrpc": "2.0", "id": 10, "method": "tools/call", "params": {
                     "name": "self.sequence.run",
                     "arguments": {"steps": json.dumps(OPEN_MASK)}}}}))
+        elif "close the mask" in text:
+            await ws.send(json.dumps({"type": "mcp", "payload": {
+                "jsonrpc": "2.0", "id": 11, "method": "tools/call", "params": {
+                    "name": "self.sequence.run_saved", "arguments": {"name": "close_mask"}}}}))
         long_story = "câu chuyện" in text
         await ws.send(json.dumps({"type": "tts", "state": "sentence_start", "session_id": sid,
                                   "text": "Đã mở mặt nạ, thưa ngài."}))
@@ -894,6 +940,39 @@ def run_cli(capsys, argv):
     code = ds.main(argv + ["--no-save", "--quiet", "--settle-ms", "200", "--mcp-wait", "5"])
     out = capsys.readouterr().out
     return code, json.loads(out)
+
+
+def turn_wake_echo(summary, index=0):
+    return summary["turns"][index]["wake_echo"]
+
+
+def test_cli_e12_wake_word_must_get_no_answer(capsys):
+    """tests-tools-3: 'Quản gia' missing from wakeup_words is answered like a question."""
+    argv_tail = ["--scenario", "E12", "--input", "text"]
+    with ScriptedServer() as srv:
+        code, summary = run_cli(capsys, ["--ws-url", srv.ws_url, "--auth-key", srv.auth_key] + argv_tail)
+    assert code == 0, summary["assertions"]
+    with ScriptedServer(wake_words=("Jarvis",)) as srv:
+        code, summary = run_cli(capsys, ["--ws-url", srv.ws_url, "--auth-key", srv.auth_key] + argv_tail)
+    assert code == 1
+    assert [a["name"] for a in summary["assertions"] if not a["ok"]] == ["wake_word_silent"]
+    assert turn_wake_echo(summary)["stt"] == ["Quản gia"]
+
+
+def test_e4_latency_and_responses_ignore_passive_calls():
+    """tests-tools-1: the connect-time self.sequence.save is not the quick-phrase command."""
+    turn = ds.Turn(1, ds.TurnInput(text="mở mặt nạ"))
+    turn.eos = 100.0
+    turn.mcp_calls = [
+        {"_t": 100.125, "name": "self.sequence.save", "arguments": {"name": "open_mask"}, "error": None},
+        {"_t": 102.6, "name": "self.sequence.run", "arguments": {"steps": json.dumps(OPEN_MASK)}, "error": None},
+    ]
+    assert turn.metrics()["eos_to_first_mcp_ms"] == 2600.0
+    assert not ds.run_check("max:eos_to_first_mcp_ms:800", [turn], {}).ok
+    quiet = ds.Turn(2, ds.TurnInput(text="bật đèn mắt"))
+    quiet.eos = 200.0
+    quiet.mcp_calls = [{"_t": 200.1, "name": "self.sequence.save", "arguments": {}, "error": None}]
+    assert not ds.run_check("each_turn_responds", [quiet], {}).ok
 
 
 def _listen_trace(texts):
@@ -916,11 +995,12 @@ def test_cli_e4_text_scenario_end_to_end(capsys):
     headers, body = srv.ota_requests[0]
     assert headers["User-Agent"] == "jarvis-helmet/2.5.0" and body["board"]["type"] == \
         "jarvis-helmet"
-    # firmware sequence: detect(wake) + listen start, restart after the wake echo flip,
+    # firmware sequence: detect(wake) + listen start (the patched server sends nothing back),
     # then the injected text (the restart after the reply waits for playback to drain)
-    assert _listen_trace(srv.texts)[:5] == [("hello", None), ("detect", "Jarvis"),
-                                            ("start", "auto"), ("start", "auto"),
-                                            ("detect", "mở mặt nạ")]
+    assert _listen_trace(srv.texts)[:4] == [("hello", None), ("detect", "Jarvis"),
+                                            ("start", "auto"), ("detect", "mở mặt nạ")]
+    assert turn_wake_echo(summary) == {"stt": [], "sentences": [], "tts_start": 0, "audio_frames": 0,
+                                       "emotions": []}
     assert json.loads(srv.texts[0]) == json.loads(ds.build_hello())
     turn = summary["turns"][0]
     assert turn["completed"] and turn["stt"] == "mở mặt nạ"

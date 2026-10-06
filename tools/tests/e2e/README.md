@@ -43,7 +43,7 @@ chạy được không có chúng); `PyYAML` cho `--expect-task` và cho bộ ki
 |---|---|
 | `POST` OTA với header + JSON system-info như firmware (`main/ota.cc`) → nhận URL WebSocket và token | Âm học thật: mic INMP441, loa trong mũ, tiếng vọng |
 | WebSocket v1: `Authorization: Bearer`, `Protocol-Version`, `Device-Id`, `Client-Id` (+ header Cloudflare Access), `hello` của thiết bị | Wake word trên thiết bị: giả lập gửi chữ wake word bằng `listen`/`detect` như firmware khi đã nhận wake word |
-| MCP server: `initialize`, `tools/list` (trang 8000 byte, `nextCursor`), `tools/call` giống `main/mcp_server.cc`, đủ tool Jarvis + tool upstream; kiểm tra `self.sequence.run` bằng `taskslib.py` (hoặc bộ kiểm tra có sẵn) | Servo, đèn, HUD thật (chỉ kiểm tra font HUD có đủ glyph cho chữ hiển thị) |
+| MCP server: `initialize`, `tools/list` (trang 8000 byte, `nextCursor`), `tools/call` giống `main/mcp_server.cc`, đủ tool Jarvis + tool upstream với đúng mô tả và schema của firmware (đọc từ `tools/tests/llm/device_tools.json`), lỗi của callback chép nguyên văn từ firmware; kiểm tra `self.sequence.run` bằng `taskslib.py` (hoặc bộ kiểm tra có sẵn: cùng luật, câu báo lỗi của từng bước có thể khác firmware) | Servo, đèn, HUD thật (chỉ kiểm tra font HUD có đủ glyph cho chữ hiển thị) |
 | Trạng thái mũ mô phỏng theo thời gian (mặt nạ chạy, đèn, output, chuỗi đã lưu) cho `get_state`/`get_status` | Wi-Fi, chuyển mạng, nguồn, heap của ESP32 |
 | Âm thanh: WAV 16 kHz mono → Opus 60 ms theo thời gian thực; giải mã Opus server gửi xuống thành WAV | |
 | Đo từ lúc nói xong tới: `stt`, khung audio đầu tiên, lệnh MCP đầu tiên, `tts stop`; đo thời gian dừng sau `abort` | |
@@ -80,13 +80,13 @@ Giả lập dùng MAC `02:4a:48:4d:00:01` (đổi bằng `--mac`, `--uuid`), kh�
 | E1 | mấy giờ rồi? | `reply`, `no_device_action` | `glyphs`, `reply_has_hour` |
 | E2 | what's the weather like? | `reply` | `glyphs`, `reply_english` |
 | E3 | open mask rồi bật đèn mắt lên | `actions:mask_open,eyes_on` | `glyphs` |
-| E4 | mở mặt nạ | `actions:mask_open`, `max:eos_to_first_mcp_ms:800` | `glyphs` |
+| E4 | mở mặt nạ (`eos_to_first_mcp_ms` bỏ qua `self.sequence.save` lúc kết nối và các tool chỉ đọc) | `actions:mask_open`, `max:eos_to_first_mcp_ms:800` | `glyphs` |
 | E5 | bật party mode | `tool:self.sequence.run`, `task_steps` | `glyphs` |
 | E6 | hỏi chuyên gia: vì sao bầu trời có màu xanh? (timeout lượt 60 s) | `reply`, `no_device_action` | `glyphs` |
 | E7 | kể cho tôi nghe một câu chuyện thật dài về Iron Man (`abort` sau 1500 ms) | `max:abort_to_tts_stop_ms:300`, `max:abort_to_last_audio_ms:500` | `glyphs` |
 | E8 | như E7, `abort` lý do `wake_word_detected` | `max:abort_to_tts_stop_ms:300` | `glyphs` |
 | E11 | hãy đọc nguyên văn câu này: Ừ, đã bật chế độ chiến đấu – tôi sẵn sàng, thưa ngài! | `reply`, `glyphs`, `vi_diacritics` | – |
-| E12 | close the mask (wake word `Quản gia`) | `actions:mask_close` | `glyphs` |
+| E12 | close the mask (wake word `Quản gia`) | `wake_word_silent`, `actions:mask_close` | `glyphs` |
 | E13 | mở mặt nạ / đóng mặt nạ / bật đèn mắt / tắt đèn mắt, 50 lượt | `all_completed`, `each_turn_responds` | – |
 
 Mọi lần chạy còn có kiểm tra `no_errors` (không lỗi giao thức/lượt). E9, E10, E14 không giả lập được (mạng, nút bấm, nguồn).
@@ -204,7 +204,7 @@ docker compose logs --no-color --since 30m xiaozhi > xiaozhi.log
 | `--since`, `--until` | Epoch ms/s hoặc `YYYY-MM-DD HH:MM[:SS]` (giờ máy) |
 | `--last N` | Chỉ N lượt nói cuối |
 | `--kind` | `voice` (có `vad_end`), `text` (chèn văn bản), `quick` (khớp nhanh); lặp lại được |
-| `--vad-offset-ms` | Khi `vad_end` không có `speech_end_ms`: lúc nói xong = `vad_end` − offset (gợi ý 700) |
+| `--vad-offset-ms` | Chỉ cho log cũ có dòng `vad_end` (VAD) thiếu `speech_end_ms`: lúc nói xong = `vad_end` − offset. Không áp cho lượt PTT (`src=listen_stop`: nhả nút chính là lúc nói xong); log hiện tại luôn có `speech_end_ms` nên không cần |
 | `--mcp-t-is-end` | `t_ms` của `mcp_call` là lúc nhận trả lời (mặc định: lúc gửi) |
 | `--network` | `lan` (mục tiêu nói xong → audio 1500 ms) hoặc `4g` (2500 ms) |
 | `--csv` | Ghi mỗi lượt một dòng (UTF-8 có BOM, mở được bằng Excel) |
@@ -313,7 +313,7 @@ thật: IT1 yêu cầu E13 dùng **giọng thật ghi âm** (`convert`).
 | Kết nối bị đóng ngay sau `hello` | Token sai/hết hạn (`XIAOZHI_AUTH_KEY` khác giữa máy chạy `--auth-key` và server), hoặc server không chấp nhận thiết bị |
 | Cảnh báo `MCP tools/list not finished ... after hello` | Server khởi tạo MCP chậm: tăng `--mcp-wait` (mặc định 8 s) |
 | Cảnh báo `server did not react within 4000 ms of trailing silence` | VAD server không thấy hết câu: WAV quá nhỏ/ồn, hoặc tăng `--tail-ms`; thử `--mode manual` |
-| Cảnh báo `... ms of speech not sent: the device was in Speaking state` | Server còn đang phát câu đáp wake word khi WAV bắt đầu: thêm im lặng đầu file, hoặc kiểm tra `enable_greeting: false` |
+| Cảnh báo `... ms of speech not sent: the device was in Speaking state` | Server đã trả lời wake word (lẽ ra im lặng): kiểm tra `enable_greeting: false` và bản vá `wake_no_echo` trong image xiaozhi (`server/xiaozhi/patches/README.md`), hoặc wake word không có trong `wakeup_words` nên bị coi là câu hỏi (E12 báo `wake_word_silent` sai) |
 | `PyAV is required for audio` | `pip install -r tools/tests/e2e/requirements.txt` |
 | `task 'party_mode' not found` | Chưa bỏ comment `party_mode` trong `server/tasks/tasks.yaml` (hoặc `--tasks-file` trỏ sai) |
 | `latency.py: no [LAT] lines found` (mã 3) | Bản vá `[LAT]` chưa có trong image xiaozhi, log level khác INFO, hoặc file log sai |

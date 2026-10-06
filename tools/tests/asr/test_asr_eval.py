@@ -54,6 +54,18 @@ def test_tone_mark_canonicalization_leaves_other_words(word):
     assert asrlib.canonical_tone(word) == word
 
 
+def test_wer_spells_numbers_and_matches_spacing():
+    """tests-tools-7: a correct transcript with digits or "Good bye" is not an error."""
+    assert asrlib.wer("Một năm có bao nhiêu ngày?", "1 năm có bao nhiêu ngày") == 0.0
+    assert asrlib.wer("Goodbye.", "Good bye.", lang="en") == 0.0
+    assert asrlib.wer("Good bye.", "Goodbye.", lang="en") == 0.0
+    assert asrlib.wer("Set the volume to fifty.", "Set the volume to 50.", lang="en") == 0.0
+    assert asrlib.wer("Gọi không chín một hai.", "Gọi 0912.") == 0.0
+    assert asrlib.wer("Mở mặt nạ.", "mở mặt") == pytest.approx(1 / 3)
+    ref, hyp = asrlib.scoring_tokens("mở mặt nạ", "mở mặtnạ")
+    assert hyp == ["mở", "mặt", "nạ"]  # split only into adjacent reference words
+
+
 def test_edit_ops_and_wer():
     assert asrlib.edit_ops("a b c d".split(), "a x c d e".split()) == (1, 0, 1)
     assert asrlib.edit_ops("a b c".split(), "a c".split()) == (0, 1, 0)

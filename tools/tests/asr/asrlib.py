@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import math
 import re
+import sys
 import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
@@ -58,8 +59,80 @@ def normalize_text(text: str) -> str:
     return " ".join(canonical_tone(w) for w in "".join(out).split())
 
 
-def tokenize(text: str) -> List[str]:
+# Number words as the helmet's TTS reads them (server/tts/router), so a hypothesis "1 năm" scores
+# like the reference "Một năm". Without the server tree the digits stay digits.
+_ROUTER_DIR = HERE.parents[2] / "server" / "tts" / "router"
+_NUMBER_RE = re.compile(r"\d+(?:[.,]\d{3})+(?!\d)|\d+")
+
+
+def _load_number_words():
+    if str(_ROUTER_DIR) not in sys.path:
+        sys.path.append(str(_ROUTER_DIR))
+    try:
+        from tts_router import normalize_vi
+    except ImportError:
+        return None
+    return normalize_vi
+
+
+_NUMBER_WORDS = _load_number_words()
+
+
+def lang_of_group(group: str) -> str:
+    """Language the numbers of a manifest group are written in ("mixed" sentences are Vietnamese)."""
+    return "en" if group == "en" else "vi"
+
+
+def spell_numbers(text: str, lang: str) -> str:
+    """Digits -> words ("vi" or "en"); a leading zero means a code read digit by digit."""
+    nw = _NUMBER_WORDS
+    if nw is None:
+        return text
+
+    def words(m: "re.Match[str]") -> str:
+        digits = re.sub(r"[.,]", "", m.group(0))
+        if len(digits) > 1 and digits.startswith("0"):
+            spoken = nw.en_digits(digits) if lang == "en" else nw.vi_digits(digits)
+        else:
+            spoken = nw.en_int(int(digits)) if lang == "en" else nw.vi_int(int(digits))
+        return f" {spoken} "
+
+    return _NUMBER_RE.sub(words, text)
+
+
+def tokenize(text: str, lang: Optional[str] = None) -> List[str]:
+    """Normalized tokens; with `lang` the digits are spelled out first."""
+    if lang:
+        text = spell_numbers(text, lang)
     return normalize_text(text).split()
+
+
+def match_spacing(ref: Sequence[str], hyp: Sequence[str]) -> List[str]:
+    """Hypothesis tokens spaced like the reference: "good bye" -> "goodbye" when the reference
+    writes "goodbye", and "goodbye" -> "good bye" when it writes "good bye"."""
+    ref_set = set(ref)
+    pairs = {a + b: (a, b) for a, b in zip(ref, ref[1:])}
+    out: List[str] = []
+    i = 0
+    while i < len(hyp):
+        tok = hyp[i]
+        if (i + 1 < len(hyp) and tok + hyp[i + 1] in ref_set
+                and not (tok in ref_set and hyp[i + 1] in ref_set)):
+            out.append(tok + hyp[i + 1])
+            i += 2
+            continue
+        if tok not in ref_set and tok in pairs:
+            out.extend(pairs[tok])
+        else:
+            out.append(tok)
+        i += 1
+    return out
+
+
+def scoring_tokens(reference: str, hypothesis: str, lang: str = "vi") -> Tuple[List[str], List[str]]:
+    """(reference tokens, hypothesis tokens) ready for edit_ops."""
+    ref = tokenize(reference, lang)
+    return ref, match_spacing(ref, tokenize(hypothesis, lang))
 
 
 # ----------------------------------------------------------------------------- WER
@@ -90,8 +163,8 @@ def edit_ops(ref: Sequence[str], hyp: Sequence[str]) -> Tuple[int, int, int]:
     return sub, dele, ins
 
 
-def wer(reference: str, hypothesis: str) -> float:
-    ref, hyp = tokenize(reference), tokenize(hypothesis)
+def wer(reference: str, hypothesis: str, lang: str = "vi") -> float:
+    ref, hyp = scoring_tokens(reference, hypothesis, lang)
     s, d, i = edit_ops(ref, hyp)
     if not ref:
         return 0.0 if not hyp else 1.0

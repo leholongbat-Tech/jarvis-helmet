@@ -155,6 +155,8 @@ bị bỏ qua.
 
 - **Chuẩn hóa** trước khi so: Unicode NFC, chữ thường, bỏ dấu câu/ký hiệu, bỏ dấu nháy, thống nhất vị trí dấu thanh kiểu cũ/mới
   (`hòa` = `hoà`, `thủy` = `thuỷ`). Tiếng Việt tính theo âm tiết (mỗi từ cách nhau bằng khoảng trắng là một token).
+  Chữ số ở cả hai phía được đọc thành chữ như bộ TTS của mũ đọc (`1 năm` = `một năm`; nhóm `en`: `50` = `fifty`; số bắt
+  đầu bằng 0 đọc từng chữ số), và cách viết liền/rời của kết quả được chỉnh theo câu tham chiếu (`Good bye` = `Goodbye`).
 - **WER** = (thay thế + xóa + chèn) / số token tham chiếu, cộng dồn theo nhóm (không phải trung bình WER từng câu).
 - **WER thô**: WER của văn bản *trước* bộ lọc ảo giác (`raw_text`, cần `response_format=verbose_json`, server/asr có hỗ trợ).
   WER thô thấp hơn nhiều so với WER → bộ lọc đang xóa nhầm lời nói thật.

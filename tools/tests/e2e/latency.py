@@ -235,7 +235,15 @@ def eos_ms(turn: Turn, vad_offset_ms: float = 0.0) -> Optional[float]:
     if vad is None:
         return None
     end = speech_end(vad)
-    return end if end is not None else vad.t_ms - vad_offset_ms
+    if end is not None:
+        return end
+    if vad.fields.get("src") == "listen_stop":
+        return float(vad.t_ms)  # PTT release is the end of speech: no VAD silence to subtract
+    return vad.t_ms - vad_offset_ms  # legacy VAD line without speech_end
+
+
+PASSIVE_TOOLS = frozenset({"self_sequence_save", "self_mask_get_state", "self_system_get_status",
+                           "self_get_device_status"})
 
 
 def mcp_start_ms(ev: LatEvent, t_is_end: bool = False) -> float:
@@ -252,7 +260,9 @@ def turn_metrics(turn: Turn, vad_offset_ms: float = 0.0, mcp_t_is_end: bool = Fa
     eos = eos_ms(turn, vad_offset_ms)
     vad = g("vad_end")
     first_packet = g("first_packet_sent")
-    calls = sorted((mcp_start_ms(e, mcp_t_is_end) for e in turn.all("mcp_call")))
+    # The connect-time sync (self.sequence.save) and status reads move nothing.
+    calls = sorted(mcp_start_ms(e, mcp_t_is_end) for e in turn.all("mcp_call")
+                   if e.fields.get("tool", "") not in PASSIVE_TOOLS)
     after_eos = [c for c in calls if eos is not None and c >= eos]
     m = {
         "vad_wait": (vad.t_ms - speech_end(vad)) if speech_end(vad) is not None else None,
@@ -417,8 +427,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--kind", choices=("voice", "text", "quick"), action="append",
                    help="only these turn kinds")
     p.add_argument("--vad-offset-ms", type=float, default=0.0,
-                   help="end of speech = vad_end - offset when vad_end has no speech_end= "
-                        "(suggest min_silence_duration_ms, e.g. 700)")
+                   help="only for old logs whose VAD vad_end lines lack speech_end=: end of speech "
+                        "= vad_end - offset (never applied to PTT src=listen_stop turns)")
     p.add_argument("--mcp-t-is-end", action="store_true",
                    help="mcp_call t_ms marks the reply, not the request (default: request)")
     p.add_argument("--network", choices=("lan", "4g"), default="lan",

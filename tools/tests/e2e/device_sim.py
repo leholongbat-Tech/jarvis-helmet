@@ -920,7 +920,7 @@ class SequenceValidator:
         try:
             steps = json.loads(steps_json)
         except ValueError:
-            return False, "steps is not valid JSON"
+            return False, "steps must be a JSON array (invalid JSON)"  # firmware text
         if self._fn is None:
             ok, err, _ = builtin_validate_steps(steps)
             return ok, err
@@ -1031,48 +1031,18 @@ class HelmetSim:
         })
 
 
-# Short bilingual descriptions like the ones FW-B/FW-C register (exact texts may differ).
-TOOL_DESCRIPTIONS = {
-    "self.sequence.run": (
-        "Chạy chuỗi bước JSON trên mũ (mặt nạ, servo, đèn mắt, output, delay, hiển thị, âm "
-        "thanh); chạy nền, chuỗi mới hủy chuỗi cũ. / Run a JSON step sequence on the helmet in "
-        "the background; a new one cancels the running one. steps: JSON array of single-key "
-        "objects, e.g. [{\"mask\":{\"action\":\"open\"}},{\"delay\":300}]."),
-    "self.sequence.run_saved": "Chạy chuỗi đã lưu trên mũ (vd. open_mask). / Run a sequence "
-                               "saved on the helmet.",
-    "self.sequence.save": "Lưu chuỗi bước vào mũ để dùng khi offline. / Save a step sequence "
-                          "on the helmet for offline use.",
-    "self.sequence.stop": "Dừng chuỗi đang chạy. / Stop the running sequence.",
-    "self.display.show_info": "Hiện thẻ thông tin trên HUD (tiêu đề ≤24 ký tự, nội dung ≤200 "
-                              "ký tự). / Show an info card on the HUD.",
-    "self.system.get_status": "Trạng thái mũ: mặt nạ, đèn mắt, output, điện áp, Wi-Fi, thời "
-                              "gian chạy. / Helmet status: mask, eyes, output, voltage, Wi-Fi, "
-                              "uptime.",
-    "self.mask.open": "Mở mặt nạ / Open the mask (faceplate). Chạy nền / runs in background.",
-    "self.mask.close": "Đóng mặt nạ / Close the mask. Chạy nền / runs in background.",
-    "self.mask.set_position": "Đặt vị trí mặt nạ 0 (đóng) đến 100 (mở). / Move the mask to a "
-                              "position, 0 = closed, 100 = open.",
-    "self.mask.get_state": "Trạng thái mặt nạ (open/closed/moving) và vị trí. / Mask state "
-                           "and position.",
-    "self.servo.calibrate": "Hiệu chỉnh: đưa một servo tới góc thô. / Calibration: drive one "
-                            "servo to a raw angle.",
-    "self.servo.save_calibration": "Lưu góc đóng/mở của một servo. / Save one servo's "
-                                   "closed/open angles.",
-    "self.eyes.set": "Bật/tắt đèn mắt, độ sáng 0-100. / Turn the eye lights on/off, "
-                     "brightness 0-100.",
-    "self.eyes.effect": "Hiệu ứng đèn mắt: breathe, blink, flicker, power_up, fade_out. / Eye "
-                        "light effect.",
-    "self.output.set": "Bật/tắt kênh output dự phòng. / Switch the spare output on/off.",
-}
+# Tool descriptions exactly as the firmware registers them: tools/tests/llm/device_tools.json,
+# which test_run_tool_calls.py checks against the AddTool/AddUserOnlyTool calls of the board.
+DEVICE_TOOLS_FILE = REPO_ROOT / "tools" / "tests" / "llm" / "device_tools.json"
 
-UPSTREAM_DEVICE_STATUS_DESC = (
-    "Provides the real-time information of the device, including the current status of the "
-    "audio speaker, screen, battery, network, etc.\n"
-    "Use this tool for: \n"
-    "1. Answering questions about current condition (e.g. what is the current volume of "
-    "the audio speaker?)\n"
-    "2. As the first step to control the device (e.g. turn up / down the volume of the "
-    "audio speaker, etc.)")
+
+def _load_tool_descriptions() -> dict:
+    data = json.loads(DEVICE_TOOLS_FILE.read_text(encoding="utf-8"))
+    return {t["name"]: t["description"] for t in data["tools"] + data.get("userOnlyTools", [])}
+
+
+TOOL_DESCRIPTIONS = _load_tool_descriptions()
+FW_INVALID_NAME = "invalid sequence name (use [a-z0-9_]{1,11})"
 
 
 class ToolBox:
@@ -1099,19 +1069,20 @@ class ToolBox:
         self.helmet.run_steps(json.loads(a["steps"]))
         return True, "started"
 
+    # Error texts: copied from the firmware callbacks (test_tools_call_errors_match_firmware).
     def _run_saved(self, a: dict):
         name = a["name"]
         if not re.fullmatch(r"[a-z0-9_]{1,11}", name):
-            return False, "invalid sequence name: " + sanitize_message(name)
+            return False, FW_INVALID_NAME
         steps = self.helmet.saved.get(name)
         if steps is None:
-            return False, "unknown sequence: " + name
+            return False, sanitize_message("unknown sequence " + name)
         self.helmet.run_steps(json.loads(steps), name)
         return True, "started"
 
     def _save(self, a: dict):
         if not re.fullmatch(r"[a-z0-9_]{1,11}", a["name"]):
-            return False, "invalid sequence name: " + sanitize_message(a["name"])
+            return False, FW_INVALID_NAME
         ok, err = self.validator.validate(a["steps"])
         if not ok:
             return False, err
@@ -1120,9 +1091,9 @@ class ToolBox:
 
     def _show_info(self, a: dict):
         if len(a["title"]) > 24:
-            return False, "title longer than 24 characters"
+            return False, "title too long (max 24 chars)"
         if len(a["text"]) > 200:
-            return False, "text longer than 200 characters"
+            return False, "text too long (max 200 chars)"
         return True, "ok"
 
     def _eyes_set(self, a: dict):
@@ -1131,7 +1102,8 @@ class ToolBox:
 
     def _eyes_effect(self, a: dict):
         if a["name"] not in EYE_EFFECTS:
-            return False, "unknown effect: " + sanitize_message(a["name"])
+            return False, sanitize_message(f"unknown effect {a['name']}, use breathe, blink, flicker, "
+                                           "power_up or fade_out")
         if 0 < a["duration_ms"] < 100:
             return False, "duration_ms must be 0 (effect default) or 100..10000"
         self.helmet.run_steps([{"eyes": {"effect": a["name"], "duration_ms": a["duration_ms"]}}])
@@ -1141,6 +1113,8 @@ class ToolBox:
         return True, "ok"
 
     def _save_calibration(self, a: dict):
+        if a["closed_angle"] == a["open_angle"]:
+            return False, "closed_angle and open_angle must differ"
         self.helmet.calibration[a["servo"]] = (a["closed_angle"], a["open_angle"])
         return True, "saved"
 
@@ -1170,17 +1144,13 @@ class ToolBox:
         h, d = self.helmet, TOOL_DESCRIPTIONS
         speed = lambda: Property("speed", INTEGER, 70, 10, 100)  # noqa: E731
         common = [  # McpServer::AddCommonTools: moved to the front of the list
-            McpTool("self.get_device_status", UPSTREAM_DEVICE_STATUS_DESC, [],
-                    self._device_status),
-            McpTool("self.audio_speaker.set_volume",
-                    "Set the volume of the audio speaker. If the current volume is unknown, you "
-                    "must call `self.get_device_status` tool first and then call this tool.",
+            McpTool("self.get_device_status", d["self.get_device_status"], [], self._device_status),
+            McpTool("self.audio_speaker.set_volume", d["self.audio_speaker.set_volume"],
                     [Property("volume", INTEGER, minimum=0, maximum=100)], self._set_volume),
-            McpTool("self.screen.set_brightness", "Set the brightness of the screen.",
+            McpTool("self.screen.set_brightness", d["self.screen.set_brightness"],
                     [Property("brightness", INTEGER, minimum=0, maximum=100)],
                     self._set_brightness),
-            McpTool("self.screen.set_theme",
-                    "Set the theme of the screen. The theme can be `light` or `dark`.",
+            McpTool("self.screen.set_theme", d["self.screen.set_theme"],
                     [Property("theme", STRING)], self._set_theme),
         ]
         board = [  # board InitializeTools: helmet_tools::Register, then the controllers
@@ -1289,6 +1259,12 @@ def steps_to_actions(steps: Any) -> list[str]:
         elif kind in ("display", "servo", "sound"):
             actions.append(kind)
     return actions
+
+
+# Calls that move nothing: the connect-time sync of sync_to_device tasks and status reads. They
+# must not satisfy "first device command" latencies (E4) or "the turn did something" (E13).
+PASSIVE_TOOLS = frozenset({"self.sequence.save", "self.mask.get_state", "self.system.get_status",
+                           "self.get_device_status"})
 
 
 def call_to_actions(name: str, args: Any, saved: Optional[dict] = None) -> list[str]:
@@ -1530,6 +1506,7 @@ class SimConfig:
     connect_timeout: float = HELLO_TIMEOUT_S
     turn_timeout: float = 30.0
     settle_ms: int = 600
+    wake_quiet_ms: int = 800  # text mode: how long to watch the server's answer to a wake word
     tail_ms: int = 4000
     ptt_release_ms: int = 0
     opus_bitrate: int = 24000
@@ -1570,6 +1547,7 @@ class Turn:
         self.speech_end_in_wav_ms: Optional[int] = None
         self.wav_duration_ms: Optional[int] = None
         self.abort_t: Optional[float] = None
+        self.wake_echo: Optional[dict] = None  # what the server sent for the wake word alone
         self.errors: list = []
         self.warnings: list = []
         self.completed = False
@@ -1590,8 +1568,12 @@ class Turn:
     def first(self, items: list) -> Optional[float]:
         return next((x[0] for x in items if self.after_eos(x[0])), None)
 
+    def active_calls(self) -> list:
+        """Device calls that move something (not the connect-time sync or a status read)."""
+        return [c for c in self.mcp_calls if c.get("name") not in PASSIVE_TOOLS]
+
     def metrics(self) -> dict:
-        first_mcp = next((c["_t"] for c in self.mcp_calls if self.after_eos(c["_t"])), None)
+        first_mcp = next((c["_t"] for c in self.active_calls() if self.after_eos(c["_t"])), None)
         m = {
             "eos_to_stt_ms": self.rel(self.first(self.stt)),
             "eos_to_tts_start_ms": self.rel(self.first(self.tts_start)),
@@ -1642,6 +1624,7 @@ class Turn:
             "reply_wav": self.reply_wav,
             "mcp_calls": [{k: v for k, v in c.items() if not k.startswith("_")}
                           for c in self.mcp_calls],
+            "wake_echo": self.wake_echo,
             "actions": self.actions(),
             "metrics": self.metrics(),
             "completed": self.completed,
@@ -2008,26 +1991,23 @@ class DeviceSession:
 
     async def _wake(self, word: str, wait_ack: bool) -> None:
         # CONFIG_SEND_WAKE_WORD_DATA=y: listen/detect with the wake word, then Listening in
-        # the default mode (listen/start) without waiting for the server. Server v0.9.7 with
-        # enable_greeting=false answers stt + tts start + tts stop: the device flips to
-        # Speaking (mic audio is not sent) and back to Listening (a second listen/start).
+        # the default mode (listen/start) without waiting for the server. The patched server
+        # (wake_no_echo, enable_greeting=false) answers nothing; a word it does not take for a
+        # wake word is handled as a question instead (stt + LLM reply).
         turn = self.turn
-        stop_before = len(turn.tts_stop) if turn else 0
         await self.send_text(msg_listen_detect(self.session_id, word))
         self.log(f"wake word {word!r}")
         await self.listen_start(turn.inp.mode if turn else "auto")
         if wait_ack and turn is not None:
-            # Text injection only: let the wake echo finish so it is not taken for the
-            # command's stt/tts (audio mode streams right away, like the firmware).
-            t_end = time.perf_counter() + 2.0
-            while time.perf_counter() < t_end and not self.closed.is_set():
-                if len(turn.tts_stop) > stop_before and self.state != "speaking":
-                    break
-                await asyncio.sleep(0.02)
-            await asyncio.sleep(0.15)  # the restarted listen/start goes out first
-            turn.stt.clear()
-            turn.tts_start.clear()
-            turn.tts_stop.clear()
+            # Text injection only (audio streams right away, like the firmware): record what
+            # the wake word alone produced, then start the command with clean lists.
+            await asyncio.sleep(self.cfg.wake_quiet_ms / 1000)
+            turn.wake_echo = {"stt": [x for _, x in turn.stt], "sentences": [x for _, x in turn.sentences],
+                              "tts_start": len(turn.tts_start), "audio_frames": len(turn.frames),
+                              "emotions": list(turn.emotions)}
+            for items in (turn.stt, turn.sentences, turn.tts_start, turn.tts_stop, turn.frames,
+                          turn.emotions):
+                items.clear()
 
     async def _speak_wav(self, turn: Turn) -> None:
         inp = turn.inp
@@ -2193,7 +2173,7 @@ SCENARIOS = {
                     checks=("reply", "glyphs", "vi_diacritics"), soft_checks=(),
                     manual_part="ảnh chụp HUD: không có ô vuông"),
     "E12": Scenario("E12", "Wake word thứ hai 'Quản gia'", ["close the mask"], wake="Quản gia",
-                    checks=("actions:mask_close",),
+                    checks=("wake_word_silent", "actions:mask_close"),
                     manual_part="nhận wake word bằng giọng thật: cần mũ thật (FW7)"),
     "E13": Scenario("E13", "50 lệnh liên tiếp",
                     ["mở mặt nạ", "đóng mặt nạ", "bật đèn mắt", "tắt đèn mắt"], repeat=50,
@@ -2254,9 +2234,18 @@ def run_check(name: str, turns: list, ctx: dict, soft: bool = False) -> CheckRes
                            f"{len(turns) - len(bad)}/{ctx.get('expected_turns', len(turns))} "
                            f"turns completed" + (f", failed: {bad[:10]}" if bad else ""), soft)
     if name == "each_turn_responds":
-        bad = [t.index for t in turns if not (t.mcp_calls or t.frames)]
+        bad = [t.index for t in turns if not (t.active_calls() or t.frames)]
         return CheckResult(name, not bad, "every turn produced a device call or audio"
                            if not bad else f"silent turns {bad[:10]}", soft)
+    if name == "wake_word_silent":
+        measured = [t for t in turns if t.wake_echo is not None]
+        if not measured:
+            return CheckResult(name, True, "not measured (audio input streams right after the wake word)",
+                               soft=True)
+        bad = {t.index: t.wake_echo for t in measured
+               if any(t.wake_echo[k] for k in ("stt", "sentences", "tts_start", "audio_frames", "emotions"))}
+        return CheckResult(name, not bad, "the server answered nothing to the wake word alone" if not bad
+                           else f"wake word handled as a question (not in wakeup_words?): {bad}", soft)
     if name == "glyphs":
         bad = [w for t in turns for w in t.warnings if "HUD font lacks" in w or "NFC" in w]
         return CheckResult(name, not bad, "all displayed text renders with the HUD font"

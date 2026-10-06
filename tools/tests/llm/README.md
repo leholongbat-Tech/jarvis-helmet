@@ -94,9 +94,10 @@ Số liệu nghiệm thu thật phải đo với model 30B trên RTX 5090.
 - Thêm câu: xem chú thích đầu `tool_calls.yaml` (`calls`, `one_of`, `args` với `min`/`max`/`contains`/
   `contains_any`/`one_of`, `args_any`). `test_run_tool_calls.py` kiểm tra mọi tool mong đợi đều được
   đưa cho LLM và giá trị mong đợi hợp lệ theo schema.
-- Firmware đổi tool MCP → `test_device_tools_match_firmware` báo lỗi → cập nhật `device_tools.json`
-  (tên, kiểu, default, min/max, maxLength, thứ tự như firmware). Có thể thay cả file bằng kết quả
-  `tools/list` thật (log thiết bị hoặc `tools/tests/e2e/device_sim.py`) qua `--device-tools`.
+- Firmware đổi tool MCP → `test_device_tools_match_firmware` / `test_device_tool_descriptions_and_user_only_tools_match_firmware`
+  báo lỗi → cập nhật `device_tools.json` (tên, mô tả, kiểu, default, min/max, maxLength, thứ tự như firmware; tool
+  user-only trong `userOnlyTools`). `tools/tests/e2e/device_sim.py` dựng danh sách tool từ chính file này. Có thể chạy
+  với kết quả `tools/list` chụp từ mũ thật qua `--device-tools`.
 
 ```bash
 .venv/Scripts/python -m pytest tools/tests/llm -q
