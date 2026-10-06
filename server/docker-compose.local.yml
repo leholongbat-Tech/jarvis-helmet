@@ -1,0 +1,75 @@
+# Docker Desktop override (Windows/WSL2 or Linux dev box) for LOCAL TESTING ONLY.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml up -d
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml up -d redis litellm   # LLM only
+#
+# What changes compared to production:
+#   - GPU through the "nvidia" device driver that Docker Desktop provides (no CDI spec there).
+#   - LiteLLM loads litellm/config.local.yaml: jarvis-main = the host Ollama with a small model,
+#     jarvis-cloud = a local stand-in (no Anthropic key needed, priced like Claude so the cost
+#     log and the budget are exercised).
+#   - The ollama container is off unless `--profile local-ollama` (then point LOCAL_OLLAMA_BASE
+#     at http://ollama:11434 and pull a small model with scripts/pull_models.sh).
+#   - ASR uses a small Whisper model; ASR/VieNeu device can be switched to CPU.
+#
+# Knobs (shell environment or server/.env), defaults in brackets:
+#   LOCAL_OLLAMA_BASE   [http://host.docker.internal:11434]  Ollama used by jarvis-main
+#   LOCAL_OLLAMA_MODEL  [qwen3:4b-instruct]                  small stand-in for the 30B model
+#   LOCAL_MAIN_API_BASE [=LOCAL_OLLAMA_BASE]                 set to http://127.0.0.1:9 to test fallback
+#   LOCAL_CLOUD_BASE    [=LOCAL_OLLAMA_BASE]                 Ollama serving the stand-in cloud model
+#   LOCAL_CLOUD_MODEL   [=LOCAL_OLLAMA_MODEL]
+#   LOCAL_ASR_MODEL     [small]   LOCAL_ASR_COMPUTE_TYPE [int8_float16]   LOCAL_ASR_DEVICE [cuda]
+#   LOCAL_VIENEU_DEVICE [auto]    (cpu = CPU fallback, slow)
+#
+# No NVIDIA GPU at all: the device requests below fail. Add `deploy: !reset {}` to asr,
+# vieneu, kokoro, ollama and asr-qwen in a private override file, and set
+# LOCAL_ASR_DEVICE=cpu LOCAL_ASR_COMPUTE_TYPE=int8 LOCAL_VIENEU_DEVICE=cpu (see README.md).
+
+x-gpu-desktop: &gpu-desktop
+  resources:
+    reservations:
+      devices: !override
+        - driver: nvidia
+          count: all
+          capabilities: [gpu]
+
+services:
+  litellm:
+    command: ["--config", "/etc/litellm/config.local.yaml", "--port", "4000"]
+    environment:
+      LOCAL_MAIN_MODEL: ollama_chat/${LOCAL_OLLAMA_MODEL:-qwen3:4b-instruct}
+      LOCAL_MAIN_API_BASE: ${LOCAL_MAIN_API_BASE:-${LOCAL_OLLAMA_BASE:-http://host.docker.internal:11434}}
+      LOCAL_CLOUD_MODEL: ollama_chat/${LOCAL_CLOUD_MODEL:-${LOCAL_OLLAMA_MODEL:-qwen3:4b-instruct}}
+      LOCAL_CLOUD_API_BASE: ${LOCAL_CLOUD_BASE:-${LOCAL_OLLAMA_BASE:-http://host.docker.internal:11434}}
+      JARVIS_LOG_LOCAL_CALLS: ${JARVIS_LOG_LOCAL_CALLS:-1}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # The ollama container is optional here (host Ollama by default).
+    depends_on: !override
+      redis:
+        condition: service_healthy
+
+  ollama:
+    profiles: ["local-ollama"]
+    deploy: *gpu-desktop
+
+  asr:
+    environment:
+      ASR_MODEL: ${LOCAL_ASR_MODEL:-small}
+      ASR_MODEL_REVISION: ${LOCAL_ASR_MODEL_REVISION:-}
+      ASR_COMPUTE_TYPE: ${LOCAL_ASR_COMPUTE_TYPE:-int8_float16}
+      ASR_DEVICE: ${LOCAL_ASR_DEVICE:-cuda}
+    deploy: *gpu-desktop
+
+  vieneu:
+    environment:
+      VIENEU_DEVICE: ${LOCAL_VIENEU_DEVICE:-auto}
+      VIENEU_MAX_STREAMS: "2"
+    deploy: *gpu-desktop
+
+  kokoro:
+    deploy: *gpu-desktop
+
+  # Does not fit a 6 GB card next to the rest (needs ~6.4 GB); kept for syntax parity.
+  asr-qwen:
+    deploy: *gpu-desktop

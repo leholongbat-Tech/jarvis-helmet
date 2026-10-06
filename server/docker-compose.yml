@@ -1,0 +1,447 @@
+# Jarvis Helmet server stack (compose project "jarvis").
+#
+# Production target: Ubuntu 26.04 + RTX 5090, Docker Engine 29 (CDI on by default).
+# GPU access uses CDI device requests (nvidia.com/gpu=all), so it works without the legacy
+# "nvidia" runtime and without restarting dockerd (see README.md and scripts/bootstrap_host.sh).
+#
+#   docker compose up -d                                  # default stack
+#   docker compose --profile tunnel up -d                 # + Cloudflare tunnel (TUNNEL_TOKEN)
+#   docker compose --profile english-tts up -d            # + Kokoro English TTS
+#   docker compose --profile asr-qwen up -d               # + Qwen3-ASR (vLLM) for ASR_ENGINE=qwen3_vllm
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml ...   # Docker Desktop testing
+#   docker compose -f docker-compose.yml -f docker-compose.debug.yml ...   # internal APIs on 127.0.0.1
+#
+# Only xiaozhi publishes host ports (8000 on the host belongs to another project, and the
+# host already runs an Ollama on 11434). Everything else talks over the internal network.
+#
+# Environment: values come from server/.env (Compose interpolation). No service loads the
+# whole file: each container only gets the variables listed below (least privilege: the
+# internet-facing xiaozhi never sees the Anthropic key or the tunnel token). A new knob in
+# server/.env therefore also needs a line here (scripts/tests check the lists against the code).
+# `KEY:` without a value = pass-through: set in .env -> passed, absent -> unset in the container.
+
+name: jarvis
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "20m"
+    max-file: "3"
+
+# CDI device request: handled by Docker's generic "cdi" driver, whose spec cache refreshes
+# itself, so a spec generated after dockerd started is used without a daemon restart.
+# Compose requires `capabilities`; the CDI driver ignores it.
+x-gpu: &gpu-cdi
+  resources:
+    reservations:
+      devices:
+        - driver: cdi
+          device_ids: ["nvidia.com/gpu=all"]
+          capabilities: [gpu]
+
+services:
+  # --- Conversation server (WebSocket 8000 + OTA 8003), built by SV-C -----------------------
+  xiaozhi:
+    build:
+      # Context = server/ (the image also bakes server/tasks); xiaozhi/Dockerfile.dockerignore
+      # allow-lists what is sent to the builder (never .env).
+      context: .
+      dockerfile: xiaozhi/Dockerfile
+    image: jarvis/xiaozhi:${JARVIS_IMAGE_TAG:-dev}
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Asia/Ho_Chi_Minh}
+      HELMET_TASKS_FILE: /opt/jarvis/tasks/tasks.yaml
+      # Rendered into data/.config.yaml by xiaozhi/entrypoint.py at every start.
+      XIAOZHI_AUTH_KEY: ${XIAOZHI_AUTH_KEY:?set XIAOZHI_AUTH_KEY in server/.env}
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:?set LITELLM_MASTER_KEY in server/.env}
+      PUBLIC_WS_URL: ${PUBLIC_WS_URL:?set PUBLIC_WS_URL in server/.env}
+      PUBLIC_OTA_URL: ${PUBLIC_OTA_URL:?set PUBLIC_OTA_URL in server/.env}
+      PUBLIC_VISION_URL:
+      TTS_VOICE: ${TTS_VOICE:?set TTS_VOICE in server/.env}
+      XIAOZHI_LOG_LEVEL:
+      # Silence (ms) before an utterance counts as finished (D28): lower = faster quick phrases in
+      # wake-word mode, but slow speakers get cut off.
+      VAD_MIN_SILENCE_MS: ${VAD_MIN_SILENCE_MS:-700}
+      # 1 = start even with placeholder/weak secrets (local tests only; never on the server).
+      JARVIS_ALLOW_WEAK_SECRETS: ${JARVIS_ALLOW_WEAK_SECRETS:-0}
+    ports:
+      # LAN only: keep these off the internet (OTA hands a token to any caller). Docker-published
+      # ports bypass ufw; set XIAOZHI_BIND_IP=<LAN IP> to bind a single interface.
+      - "${XIAOZHI_BIND_IP:-0.0.0.0}:${XIAOZHI_WS_PORT:-8100}:8000"
+      - "${XIAOZHI_BIND_IP:-0.0.0.0}:${XIAOZHI_OTA_PORT:-8003}:8003"
+    volumes:
+      - ./tasks:/opt/jarvis/tasks:ro
+      - xiaozhi_tmp:/opt/xiaozhi-esp32-server/tmp
+      - xiaozhi_data:/opt/xiaozhi-esp32-server/data
+    depends_on:
+      litellm:
+        condition: service_healthy
+      asr:
+        condition: service_healthy
+      tts-router:
+        condition: service_healthy
+    healthcheck:
+      # OTA route (aiohttp, 8003) and the WebSocket port (plain GET answers 200 "Server is running").
+      test:
+        - CMD
+        - python3
+        - -c
+        - "import urllib.request as u; u.urlopen('http://127.0.0.1:8003/xiaozhi/ota/', timeout=4); u.urlopen('http://127.0.0.1:8000/', timeout=4)"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+      start_interval: 5s
+    logging: *default-logging
+
+  # --- Speech recognition (faster-whisper / Qwen3-ASR proxy), built by SV-A2 ----------------
+  asr:
+    build:
+      context: ./asr
+    image: jarvis/asr:${JARVIS_IMAGE_TAG:-dev}
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Asia/Ho_Chi_Minh}
+      # HF_HOME=/cache/hf and CUDA_CACHE_PATH=/cache/nv are set by the image.
+      HF_TOKEN:
+      # Unset = default of server/asr/jarvis_asr/config.py (large-v3, cuda, vi, beam 5 ...).
+      ASR_ENGINE:
+      ASR_MODEL:
+      ASR_MODEL_REVISION:
+      ASR_DEVICE:
+      ASR_DEVICE_INDEX:
+      ASR_COMPUTE_TYPE:
+      ASR_CPU_THREADS:
+      ASR_LANGUAGE:
+      ASR_INITIAL_PROMPT:
+      ASR_HOTWORDS:
+      ASR_BEAM_SIZE:
+      ASR_MAX_TOKENS_PER_S:
+      ASR_LOCAL_FILES_ONLY:
+      ASR_HALLUCINATIONS_FILE:
+      ASR_FILTER:
+      ASR_FILTER_LOGPROB_MIN:
+      ASR_FILTER_NO_SPEECH_MAX:
+      ASR_FILTER_NO_SPEECH_LOGPROB:
+      ASR_FILTER_COMPRESSION_MAX:
+      ASR_FILTER_REPEAT_MIN:
+      ASR_FILTER_DROP_CJK:
+      ASR_FILTER_PROMPT_ECHO_WORDS:
+      ASR_MIN_RMS_DBFS:
+      ASR_VAD_GATE:
+      ASR_VAD_THRESHOLD:
+      ASR_VAD_MIN_SPEECH_MS:
+      ASR_MAX_AUDIO_S:
+      ASR_MAX_UPLOAD_MB:
+      ASR_REQUEST_TIMEOUT_S:
+      # Dataset capture: ASR_SAVE_DIR=/data/asr-dataset in .env keeps wav + jsonl (asr_dataset volume).
+      ASR_SAVE_DIR:
+      ASR_VLLM_URL: ${ASR_VLLM_URL:-http://asr-qwen:8000}
+      ASR_VLLM_TIMEOUT_S:
+      ASR_VLLM_WAIT_S:
+      ASR_WARMUP:
+      ASR_LOG_TEXT:
+      ASR_LOG_LEVEL:
+    volumes:
+      # The image runs as the non-root user "asr" and creates these mount points owned by it; a
+      # fresh named volume inherits that owner (other paths would be root-owned: downloads fail).
+      - hf_cache:/cache/hf
+      - asr_cuda_cache:/cache/nv        # CUDA JIT cache, kept across container re-creation
+      - asr_dataset:/data
+    deploy: *gpu-cdi
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - "import urllib.request as u, sys; sys.exit(0 if u.urlopen('http://127.0.0.1:9000/health', timeout=5).status == 200 else 1)"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      # First start downloads the Whisper model (~3 GB) and warms up (PTX JIT on sm_120).
+      start_period: 900s
+      start_interval: 10s
+    logging: *default-logging
+
+  # --- Local LLM ---------------------------------------------------------------------------
+  ollama:
+    image: ollama/ollama:0.35.1@sha256:292ee7945dfc3d5840a181f3ab86fedb1e66703e02c8af98b50f4da56b7e278c
+    restart: unless-stopped
+    # ollama/entrypoint.sh runs `ollama serve` and preloads OLLAMA_MODEL in the background, so
+    # the first request after a reboot does not hit a cold model (LiteLLM would time out and
+    # fall back to the paid cloud model). init reaps the short-lived preload process.
+    init: true
+    entrypoint: ["/bin/sh", "/opt/jarvis/ollama-entrypoint.sh"]
+    environment:
+      TZ: ${TZ:-Asia/Ho_Chi_Minh}
+      OLLAMA_KEEP_ALIVE: "-1"
+      OLLAMA_NUM_PARALLEL: ${OLLAMA_NUM_PARALLEL:-1}
+      OLLAMA_CONTEXT_LENGTH: ${OLLAMA_CONTEXT_LENGTH:-8192}
+      OLLAMA_FLASH_ATTENTION: ${OLLAMA_FLASH_ATTENTION:-1}
+      OLLAMA_KV_CACHE_TYPE: ${OLLAMA_KV_CACHE_TYPE:-f16}
+      OLLAMA_MAX_LOADED_MODELS: "1"
+      OLLAMA_NO_CLOUD: "1"
+      OLLAMA_VULKAN: "0"
+      JARVIS_PRELOAD_MODEL: ${OLLAMA_MODEL:-qwen3:30b-a3b-instruct-2507-q4_K_M}
+    # No ports: the host already runs its own Ollama on 11434. Use `docker compose exec ollama ...`.
+    volumes:
+      - ollama_models:/root/.ollama
+      - ./ollama/entrypoint.sh:/opt/jarvis/ollama-entrypoint.sh:ro
+    deploy: *gpu-cdi
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+      start_interval: 5s
+    logging: *default-logging
+
+  # --- LLM router: jarvis-main (Ollama) -> jarvis-cloud (Claude) fallback, budget, logging ---
+  litellm:
+    image: ghcr.io/berriai/litellm:v1.104.0@sha256:625981c83410a3ea68eb0697590a57ec1d764d634514d54fa5db0591077ee839
+    restart: unless-stopped
+    command: ["--config", "/etc/litellm/config.yaml", "--port", "4000"]
+    environment:
+      TZ: ${TZ:-Asia/Ho_Chi_Minh}
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:?set LITELLM_MASTER_KEY in server/.env}
+      # Cloud keys: only the one CLOUD_MODEL uses is needed. Another provider = add its key here
+      # and in server/.env (README.md "Đổi nhà cung cấp / model cloud").
+      ANTHROPIC_API_KEY:
+      OPENAI_API_KEY:
+      GEMINI_API_KEY:
+      LITELLM_MAIN_MODEL: ollama_chat/${OLLAMA_MODEL:-qwen3:30b-a3b-instruct-2507-q4_K_M}
+      OLLAMA_API_BASE: ${OLLAMA_API_BASE:-http://ollama:11434}
+      CLOUD_MODEL: ${CLOUD_MODEL:-anthropic/claude-opus-5-5}
+      CLOUD_MONTHLY_BUDGET_USD: ${CLOUD_MONTHLY_BUDGET_USD:-10}
+      # Use the cost map bundled in the pinned image (no download at start-up).
+      LITELLM_LOCAL_MODEL_COST_MAP: "True"
+      LITELLM_LOG: ${LITELLM_LOG:-INFO}
+      # Retry back-off (default 0.5 s + up to 0.75 s jitter): the local model is on the same
+      # host, so retry quickly and reach the cloud fallback sooner.
+      INITIAL_RETRY_DELAY: "0.2"
+      JITTER: "0.1"
+      # litellm/jarvis_callbacks.py
+      JARVIS_CLOUD_MODEL_GROUPS: jarvis-cloud
+      JARVIS_CLOUD_MIN_MAX_TOKENS:
+      JARVIS_LOG_LOCAL_CALLS:
+      JARVIS_LLM_LOG_FILE:
+    volumes:
+      # config.yaml + jarvis_callbacks.py (callbacks are imported from the config directory).
+      - ./litellm:/etc/litellm:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+      # service_started, not service_healthy: LiteLLM must come up (cloud fallback) even when
+      # the local model server is broken.
+      ollama:
+        condition: service_started
+    healthcheck:
+      # /health/liveliness needs no auth and calls no model (/health would spend cloud tokens).
+      test:
+        - CMD
+        - python3
+        - -c
+        - "import urllib.request as u, sys; sys.exit(0 if u.urlopen('http://127.0.0.1:4000/health/liveliness', timeout=5).status == 200 else 1)"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+      start_interval: 5s
+    logging: *default-logging
+
+  # --- LiteLLM router state (cloud budget spend survives restarts) -------------------------
+  redis:
+    image: redis:7.4.11-alpine@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--save", "300", "1"]
+    environment:
+      TZ: ${TZ:-Asia/Ho_Chi_Minh}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging: *default-logging
+
+  # --- TTS router (normalization + per-sentence engine routing), built by SV-B --------------
+  tts-router:
+    build:
+      context: ./tts/router
+    image: jarvis/tts-router:${JARVIS_IMAGE_TAG:-dev}
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Asia/Ho_Chi_Minh}
+      VIENEU_URL: http://vieneu:8000
+      KOKORO_URL: http://kokoro:8880
+      # Unset = default of server/tts/router/tts_router/config.py.
+      TTS_VOICE:
+      TTS_ENGLISH_ENGINE:
+      TTS_ENGLISH_VOICE: ${TTS_ENGLISH_VOICE:-bm_george}
+      TTS_ENGLISH_MIN_WORDS:
+      TTS_ENGLISH_MIN_RATIO:
+      TTS_SPEED:
+      TTS_SAMPLE_RATE:
+      TTS_SENTENCE_GAP_MS:
+      TTS_CONNECT_TIMEOUT:
+      TTS_READ_TIMEOUT:
+      TTS_HEALTH_TIMEOUT:
+      TTS_HEALTH_INTERVAL:
+      TTS_NUM_ZERO_TENS:
+      TTS_NUM_THOUSAND:
+      TTS_ABBREV_FILE:
+      TTS_MAX_INPUT_CHARS:
+      VIENEU_MODEL:
+    depends_on:
+      vieneu:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - "import urllib.request as u, sys; sys.exit(0 if u.urlopen('http://127.0.0.1:8880/health', timeout=5).status == 200 else 1)"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+      start_interval: 5s
+    logging: *default-logging
+
+  # --- VieNeu-TTS v3 Turbo speech API (built from tag app-v0.18.9 by SV-B) ------------------
+  # Third-party code that loads remote model code: explicit environment only, no secrets.
+  vieneu:
+    build:
+      context: ./tts/vieneu
+    image: jarvis/vieneu:${JARVIS_IMAGE_TAG:-dev}
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Asia/Ho_Chi_Minh}
+      HOST: 0.0.0.0
+      PORT: "8000"
+      VIENEU_MAX_STREAMS: ${VIENEU_MAX_STREAMS:-4}
+      VIENEU_QUEUE: ${VIENEU_QUEUE:-8}
+      VIENEU_QUEUE_TIMEOUT: "10"
+      VIENEU_WATERMARK: "0"
+      # VieNeu loads its model and codec with trust_remote_code and no revision pin. The image
+      # entrypoint sets HF_HUB_OFFLINE: auto = offline as soon as both repos are cached,
+      # 1 = always offline, 0 = always online (only to fetch a new model).
+      JARVIS_HF_OFFLINE: ${TTS_HF_OFFLINE:-auto}
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      # Separate from hf_cache: VieNeu runs as uid 1000, the other model services as root.
+      - vieneu_hf_cache:/home/app/.cache/huggingface
+      - vieneu_voices:/voices
+    deploy: *gpu-cdi
+    healthcheck:
+      # Also restarts the container when VieNeu's stream scheduler died (it never recovers).
+      test: ["CMD", "python", "/opt/jarvis/healthcheck.py"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      # First start downloads the model + codec before the port opens.
+      start_period: 900s
+      start_interval: 10s
+    logging: *default-logging
+
+  # --- Optional English TTS (profile english-tts; TTS_ENGLISH_ENGINE=kokoro) ----------------
+  kokoro:
+    image: ghcr.io/remsky/kokoro-fastapi-gpu:v0.9.0-cu128@sha256:c6683ee24a3b3bc3b49130ecc52c32e8010a1052ae32781a91682fa09c6ba984
+    profiles: ["english-tts"]
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Asia/Ho_Chi_Minh}
+      DEFAULT_VOICE: ${TTS_ENGLISH_VOICE:-bm_george}
+      API_LOG_LEVEL: INFO
+    deploy: *gpu-cdi
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request as u, sys; sys.exit(0 if u.urlopen('http://127.0.0.1:8880/health', timeout=5).status == 200 else 1)"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 300s
+      start_interval: 10s
+    logging: *default-logging
+
+  # --- Optional ASR engine B: Qwen3-ASR-1.7B on vLLM (profile asr-qwen) --------------------
+  asr-qwen:
+    image: vllm/vllm-openai:v0.31.0-cu129@sha256:ff29e51a9457f191deb332b96fa6440584fa941aa2a548449b604e2b1e5e1eeb
+    profiles: ["asr-qwen"]
+    restart: unless-stopped
+    # The image entrypoint is `vllm serve`.
+    command:
+      - Qwen/Qwen3-ASR-1.7B
+      - --revision
+      - 7278e1e70fe206f11671096ffdd38061171dd6e5
+      - --gpu-memory-utilization
+      - "0.2"
+      - --max-model-len
+      - "4096"
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+    environment:
+      TZ: ${TZ:-Asia/Ho_Chi_Minh}
+      HF_HOME: /hf-cache
+      HF_TOKEN:
+    volumes:
+      # Own cache (vLLM runs as root; sharing the asr cache could leave it root-owned).
+      - asr_qwen_hf_cache:/hf-cache
+    shm_size: "2gb"
+    deploy: *gpu-cdi
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - "import urllib.request as u, sys; sys.exit(0 if u.urlopen('http://127.0.0.1:8000/health', timeout=5).status == 200 else 1)"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 900s
+      start_interval: 10s
+    logging: *default-logging
+
+  # --- Remote access: remote-managed Cloudflare tunnel (profile tunnel) ---------------------
+  # Ingress (public hostname routes) lives in Cloudflare: see cloudflared/README.md.
+  cloudflared:
+    image: cloudflare/cloudflared:2026.10.0@sha256:9b49eed8f62806d5d45ddf59ecefb5710429598ea6d3fcccd2af938f621b2b07
+    profiles: ["tunnel"]
+    restart: unless-stopped
+    # Image entrypoint: `cloudflared --no-autoupdate`. The token comes from TUNNEL_TOKEN.
+    command: ["tunnel", "--metrics", "0.0.0.0:20241", "run"]
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
+    depends_on:
+      xiaozhi:
+        condition: service_started
+    healthcheck:
+      # Distroless image: no shell or curl. `tunnel ready` exits 0 once an edge connection is up.
+      test: ["CMD", "cloudflared", "tunnel", "--metrics", "127.0.0.1:20241", "ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+      start_interval: 5s
+    logging: *default-logging
+
+volumes:
+  ollama_models:
+  hf_cache:
+  asr_cuda_cache:
+  asr_qwen_hf_cache:
+  vieneu_hf_cache:
+  vieneu_voices:
+  asr_dataset:
+  xiaozhi_tmp:
+  xiaozhi_data:
+  redis_data:

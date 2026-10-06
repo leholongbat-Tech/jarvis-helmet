@@ -1,0 +1,23 @@
+# Debug override: publish the internal APIs on 127.0.0.1 only (never on the LAN).
+#
+#   docker compose -f docker-compose.yml -f docker-compose.debug.yml up -d
+#   (combine with docker-compose.local.yml on Docker Desktop)
+#
+#   curl -s http://127.0.0.1:9000/health                       # ASR
+#   curl -s http://127.0.0.1:4000/health/liveliness            # LiteLLM
+#   curl -s http://127.0.0.1:8880/health                       # TTS router
+#
+# Ports can be moved if the host already uses them: DEBUG_ASR_PORT, DEBUG_LITELLM_PORT,
+# DEBUG_TTS_PORT. Ollama stays unpublished (the host runs its own Ollama on 11434); use
+# `docker compose exec ollama ollama ...`.
+
+services:
+  asr:
+    ports:
+      - "127.0.0.1:${DEBUG_ASR_PORT:-9000}:9000"
+  litellm:
+    ports:
+      - "127.0.0.1:${DEBUG_LITELLM_PORT:-4000}:4000"
+  tts-router:
+    ports:
+      - "127.0.0.1:${DEBUG_TTS_PORT:-8880}:8880"
