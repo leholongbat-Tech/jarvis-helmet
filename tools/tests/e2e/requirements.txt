@@ -1,0 +1,15 @@
+# Python packages imported by the e2e tools in this directory (tested with Python 3.12).
+#   pip install -r tools/tests/e2e/requirements.txt
+#
+# device_sim.py  websockets (WebSocket client, websockets.asyncio API);
+#                numpy + av (PyAV: Opus encode/decode, resampling) - only for audio input/output,
+#                text injection works without them;
+#                PyYAML (--expect-task, and server/tasks/taskslib.py used by --validator auto/taskslib).
+# make_wavs.py   av + numpy (through device_sim).
+# latency.py, heap_trend.py: standard library only.
+# test_*.py      pytest.
+websockets==17.2
+numpy==2.5.3
+av==18.1.0
+PyYAML==6.0.3
+pytest==9.1.1
