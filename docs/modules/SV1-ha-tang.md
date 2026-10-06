@@ -91,6 +91,11 @@ Ollama: đặt `OLLAMA_KEEP_ALIVE=-1` để model luôn nằm trên GPU (tránh 
 | `.env` cho mọi service | Mỗi service một danh sách biến; test đối chiếu danh sách với mã nguồn | Service hướng ra mạng (xiaozhi) không thấy khóa cloud / token tunnel |
 | – | `ollama/entrypoint.sh` nạp sẵn `OLLAMA_MODEL` sau mỗi lần khởi động | Câu đầu sau reboot không bị đẩy sang cloud (chậm, tốn tiền) |
 | – | `deploy.sh` chép `server/` lên `batai:/opt/jarvis` (rsync / tar / `git archive`), không bao giờ chép đè `.env` | Triển khai lặp lại được từ PC, mặc định chỉ chạy thử |
+| – | `deploy.sh` so mã băm cấu hình gắn vào container: đổi `litellm/config.yaml`/`jarvis_callbacks.py` → restart litellm, đổi `ollama/entrypoint.sh` → tạo lại ollama | Các file này chỉ được đọc khi container khởi động |
+| Một mạng Docker chung | 5 mạng: `edge` (cloudflared, xiaozhi), `app` (xiaozhi, litellm, asr, tts-router), `llm` (litellm, redis, ollama), `tts` (tts-router, vieneu, kokoro), `asrnet` (asr, asr-qwen); `no-new-privileges` cho xiaozhi, litellm, tts-router. Đã thử thật: từ xiaozhi/vieneu không phân giải được `redis` | Redis (bộ đếm ngân sách, không mật khẩu) và Ollama chỉ LiteLLM gọi được; VieNeu chạy mã bên thứ ba |
+| – | Danh sách ảo giác ASR ở `server/asr/config/` (mount cả thư mục) | Sửa trên server là có hiệu lực, không cần build lại |
+| – | Hướng dẫn sao lưu loại `.config.yaml` đã render (có khóa) khỏi bản sao lưu, file nén 0600 | Bản sao lưu không làm lộ khóa LiteLLM / khóa ký token |
+| – | `bootstrap_host.sh --apply` lần đầu (user chưa vào nhóm docker) kiểm tra Docker/CDI qua sudo, bỏ qua bước thử GPU kèm hướng dẫn đăng nhập lại | Lần chạy đầu không báo lỗi giả |
 
 **Tiêu chí nghiệm thu:**
 
