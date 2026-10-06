@@ -1,0 +1,14 @@
+{
+  "name": "valid_eyes_effect_defaults",
+  "steps": [
+    {"eyes": {"effect": "flicker"}},
+    {"eyes": {"effect": "power_up", "duration_ms": 0}},
+    {"eyes": {"effect": "flicker", "duration_ms": 0}},
+    {"eyes": {"effect": "breathe", "duration_ms": 0}}
+  ],
+  "valid": true,
+  "error_step": null,
+  "error_contains": null,
+  "estimated_ms": 2200,
+  "note": "D26: duration_ms thiếu hoặc 0 = mặc định theo hiệu ứng (flicker 600, power_up 1000, breathe tính 0): 600+1000+600+0."
+}

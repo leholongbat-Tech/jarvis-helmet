@@ -513,6 +513,9 @@ tasks:
     ({"servo": {"id": 0, "angle": 10, "duration_ms": 750}}, 750),
     ({"servo": {"id": 1, "angle": 10}}, 0),
     ({"eyes": {"effect": "blink"}}, 1000),
+    ({"eyes": {"effect": "flicker"}}, 600),
+    ({"eyes": {"effect": "power_up", "duration_ms": 0}}, 1000),
+    ({"eyes": {"effect": "breathe"}}, 0),
     ({"eyes": {"effect": "flicker", "duration_ms": 250}}, 250),
     ({"eyes": {"effect": "breathe", "duration_ms": 4000}}, 0),
     ({"eyes": {"on": True, "brightness": 30}}, 0),
@@ -642,7 +645,7 @@ def test_fixture_schema_parity(fixture, schema):
 def test_schema_is_valid_draft_2020_12(schema):
     jsonschema.Draft202012Validator.check_schema(schema)
     assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
-    assert schema["$defs"]["eyes"]["properties"]["duration_ms"]["default"] == 1000
+    assert schema["$defs"]["eyes"]["properties"]["duration_ms"]["default"] == 0
     assert schema["$defs"]["display"]["properties"]["seconds"]["default"] == 5
 
 

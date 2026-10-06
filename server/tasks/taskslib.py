@@ -63,6 +63,8 @@ SERVO_DURATION_MIN_MS, SERVO_DURATION_MAX_MS = 0, 5000
 BRIGHTNESS_MIN, BRIGHTNESS_MAX = 0, 100
 EFFECT_DURATION_MIN_MS, EFFECT_DURATION_MAX_MS = 100, 10000
 DEFAULT_EFFECT_DURATION_MS = 1000
+BREATHE_PERIOD_MS = 2500
+DEFAULT_FLICKER_MS = 600
 DELAY_MIN_MS, DELAY_MAX_MS = 0, 10000
 INFO_TITLE_MAX_CHARS = 24
 INFO_TEXT_MAX_CHARS = 200
@@ -90,6 +92,15 @@ REPLY_LANGS = ("vi", "en")
 SOUND_NAME_RE = re.compile(r"[a-z0-9_]{1,32}")  # fullmatch, like the firmware
 
 FIXTURE_KEYS = ("name", "steps", "valid", "error_step", "error_contains", "estimated_ms", "note")
+
+
+def eye_effect_default_ms(effect: str) -> int:
+    """Effect length when duration_ms is 0 or absent (D26), like helmet::EyeEffectDefaultMs."""
+    if effect == "breathe":
+        return BREATHE_PERIOD_MS
+    if effect == "flicker":
+        return DEFAULT_FLICKER_MS
+    return DEFAULT_EFFECT_DURATION_MS
 
 
 # ---------------------------------------------------------------------------
@@ -256,12 +267,17 @@ def _check_eyes(i: int, value: Any) -> int:
     if not isinstance(effect, str) or effect not in EYE_EFFECTS:
         raise StepError(i, f"eyes.effect must be one of {', '.join(EYE_EFFECTS)}",
                         ("eyes", "effect"))
-    duration = DEFAULT_EFFECT_DURATION_MS
+    duration = 0  # 0 = the effect's own default (D26)
     if "duration_ms" in obj:
-        duration = _int_field(i, "eyes", obj, "duration_ms", EFFECT_DURATION_MIN_MS,
-                              EFFECT_DURATION_MAX_MS)
+        duration = _int_field(i, "eyes", obj, "duration_ms", 0, EFFECT_DURATION_MAX_MS)
+        if 0 < duration < EFFECT_DURATION_MIN_MS:
+            raise StepError(i, f"eyes.duration_ms must be 0 (effect default) or "
+                               f"{EFFECT_DURATION_MIN_MS}..{EFFECT_DURATION_MAX_MS} (got {duration})",
+                            ("eyes", "duration_ms"))
     # breathe loops until the next command: it never blocks the runner.
-    return 0 if effect == "breathe" else duration
+    if effect == "breathe":
+        return 0
+    return duration or eye_effect_default_ms(effect)
 
 
 def _check_output(i: int, value: Any) -> int:

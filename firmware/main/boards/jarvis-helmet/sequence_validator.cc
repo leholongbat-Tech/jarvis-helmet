@@ -234,10 +234,17 @@ std::string ParseEyes(const cJSON* fields, Step& step) {
         return "unknown effect " + Echo(step.effect.c_str()) + " (use " + kEffectList + ")";
     }
     step.eyes_effect = true;
-    step.duration_ms = helmet::kDefaultEffectDurationMs;
+    step.duration_ms = 0;  // 0 = the effect's default duration (D26)
     if (found[3] != nullptr) {
-        return ReadInt(found[3], "duration_ms", helmet::kEffectDurationMinMs,
-                       helmet::kEffectDurationMaxMs, step.duration_ms);
+        error = ReadInt(found[3], "duration_ms", 0, helmet::kEffectDurationMaxMs, step.duration_ms);
+        if (!error.empty()) {
+            return error;
+        }
+        if (!helmet::IsValidEffectDuration(step.duration_ms)) {
+            return "duration_ms must be 0 (effect default) or " +
+                   std::to_string(helmet::kEffectDurationMinMs) + ".." +
+                   std::to_string(helmet::kEffectDurationMaxMs);
+        }
     }
     return {};
 }
@@ -378,7 +385,9 @@ int EstimateStepMs(const Step& step) {
         case StepType::kServo:
             return step.duration_ms;
         case StepType::kEyes:
-            return step.eyes_effect && step.effect != "breathe" ? step.duration_ms : 0;
+            return step.eyes_effect && step.effect != "breathe"
+                       ? helmet::ResolveEffectMs(step.effect, step.duration_ms)
+                       : 0;
         case StepType::kDelay:
             return step.delay_ms;
         case StepType::kOutput:

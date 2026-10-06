@@ -64,7 +64,7 @@ chỉ được dùng các trường liệt kê dưới đây; trường lạ là
 |---|---|---|
 | `mask` | `action` ∈ {`open`,`close`} **hoặc** `position` 0..100 (đúng một trong hai, bắt buộc); `speed` 10..100 (tùy chọn) | |
 | `servo` | `id` 0..1 (bắt buộc), `angle` 0..180 (bắt buộc), `duration_ms` 0..5000 (tùy chọn, mặc định 0) | |
-| `eyes` | dạng bật/tắt: `on` bool (bắt buộc) + `brightness` 0..100 (tùy chọn, dùng được cả khi `on=false`) **hoặc** dạng hiệu ứng: `effect` ∈ {`breathe`,`blink`,`flicker`,`power_up`,`fade_out`} (bắt buộc) + `duration_ms` 100..10000 (tùy chọn, mặc định 1000) | Không trộn hai dạng: `brightness` chỉ đi với `on`, `duration_ms` chỉ đi với `effect` |
+| `eyes` | dạng bật/tắt: `on` bool (bắt buộc) + `brightness` 0..100 (tùy chọn, dùng được cả khi `on=false`) **hoặc** dạng hiệu ứng: `effect` ∈ {`breathe`,`blink`,`flicker`,`power_up`,`fade_out`} (bắt buộc) + `duration_ms` 0 hoặc 100..10000 (tùy chọn, 0/thiếu = mặc định theo hiệu ứng, D26) | Không trộn hai dạng: `brightness` chỉ đi với `on`, `duration_ms` chỉ đi với `effect` |
 | `output` | `on` bool (bắt buộc) | |
 | `delay` | giá trị là **số nguyên trần** 0..10000 (ms), không phải object | |
 | `display` | `title` string ≤ 24 ký tự (bắt buộc, được rỗng), `text` string ≤ 200 ký tự (bắt buộc), `seconds` 1..30 (tùy chọn, mặc định 5) | Giống `self.display.show_info` |
@@ -85,7 +85,7 @@ Kiểu dữ liệu:
 |---|---|
 | `mask` | cả hành trình ở tốc độ của bước: `800 * 100 / speed` (chia nguyên kiểu C++; thiếu `speed` → 70 → 1142). Bước `position` cũng tính cả hành trình (trường hợp xấu nhất) |
 | `servo` | `duration_ms` (thiếu → 0) |
-| `eyes` dạng hiệu ứng | `duration_ms` (thiếu → 1000); riêng `breathe` = 0 vì lặp đến lệnh sau |
+| `eyes` dạng hiệu ứng | `duration_ms`; thiếu hoặc 0 → mặc định theo hiệu ứng (`flicker` 600, `blink`/`power_up`/`fade_out` 1000); riêng `breathe` = 0 vì lặp đến lệnh sau |
 | `delay` | giá trị của nó |
 | `eyes` dạng on, `output`, `display`, `sound` | 0 |
 
@@ -110,14 +110,14 @@ Ví dụ thông báo của server: `invalid step #1: mask.speed out of range 10.
 
 ## 6. Danh mục ca kiểm thử
 
-- `valid_*` (24 ca): mảng rỗng, `open_mask`/`close_mask`, ví dụ đủ 7 loại bước của interfaces.md,
-  biên của mọi khoảng giá trị, trường tùy chọn và giá trị mặc định, tiêu đề/nội dung tiếng Việt đúng
+- `valid_*` (25 ca): mảng rỗng, `open_mask`/`close_mask`, ví dụ đủ 7 loại bước của interfaces.md,
+  biên của mọi khoảng giá trị, trường tùy chọn và giá trị mặc định (kể cả `duration_ms` 0 = mặc định theo hiệu ứng), tiêu đề/nội dung tiếng Việt đúng
   24/200 ký tự, tiêu đề rỗng, đúng 64 bước, tổng đúng 60000 ms theo nhiều cách (delay, mask tốc độ 10, breathe = 0,
   mask tốc độ mặc định).
-- `invalid_*` (59 ca): không phải mảng, loại bước lạ, sai hoa thường, hai khóa trong một bước, object
+- `invalid_*` (60 ca): không phải mảng, loại bước lạ, sai hoa thường, hai khóa trong một bước, object
   rỗng, phần tử không phải object/null, trường lạ, mọi giá trị ngoài khoảng, sai kiểu (chuỗi, null,
   số thực, bool), trộn dạng (`action`+`position`, `on`+`effect`, `effect`+`brightness`,
-  `on`+`duration_ms`), thiếu trường bắt buộc, tên hiệu ứng/âm thanh sai, tiêu đề 25 ký tự, NFD,
+  `on`+`duration_ms`), thiếu trường bắt buộc, tên hiệu ứng/âm thanh sai (kể cả xuống dòng ở cuối tên), tiêu đề 25 ký tự, NFD,
   65 bước, tổng 60001 ms theo nhiều cách (`invalid_total_*`), lỗi chỉ ở bước cuối.
 
 Các ca `invalid_total_*` chỉ vi phạm giới hạn 60 s — luật mà JSON Schema (`server/tasks/schema.json`)

@@ -173,7 +173,15 @@ TEST_CASE("optional fields get their defaults", "[validator]") {
     CHECK(ValidStep(R"({"mask":{"position":40}})").mask_position == 40);
     CHECK_FALSE(ValidStep(R"({"mask":{"position":40}})").mask_by_action);
     CHECK(ValidStep(R"({"eyes":{"on":true}})").brightness == -1);
-    CHECK(ValidStep(R"({"eyes":{"effect":"blink"}})").duration_ms == 1000);
+    // D26: no duration_ms (or 0) means the effect's own default, resolved for the estimate.
+    CHECK(ValidStep(R"({"eyes":{"effect":"blink"}})").duration_ms == 0);
+    CHECK(seq::EstimateStepMs(ValidStep(R"({"eyes":{"effect":"blink"}})")) == 1000);
+    CHECK(seq::EstimateStepMs(ValidStep(R"({"eyes":{"effect":"flicker"}})")) == 600);
+    CHECK(seq::EstimateStepMs(ValidStep(R"({"eyes":{"effect":"breathe"}})")) == 0);
+    CHECK(seq::EstimateStepMs(ValidStep(R"({"eyes":{"effect":"power_up","duration_ms":0}})")) ==
+          1000);
+    CHECK(seq::EstimateStepMs(ValidStep(R"({"eyes":{"effect":"fade_out","duration_ms":300}})")) ==
+          300);
     CHECK(ValidStep(R"({"servo":{"id":1,"angle":90}})").duration_ms == 0);
     CHECK(ValidStep(R"({"display":{"title":"T","text":"x"}})").seconds == 5);
     CHECK_FALSE(ValidStep(R"({"eyes":{"on":false,"brightness":30}})").eyes_on);
@@ -286,9 +294,13 @@ TEST_CASE("eyes rules", "[validator][eyes]") {
     ExpectStep1Error(R"({"eyes":{"effect":"Blink"}})", "unknown effect Blink");
     ExpectStep1Error(R"({"eyes":{"effect":7}})", "effect must be a string");
     ExpectStep1Error(R"({"eyes":{"effect":"blink","duration_ms":99}})",
-                     "duration_ms out of range 100..10000");
+                     "duration_ms must be 0 (effect default) or 100..10000");
+    ExpectStep1Error(R"({"eyes":{"effect":"blink","duration_ms":1}})",
+                     "duration_ms must be 0 (effect default) or 100..10000");
+    ExpectStep1Error(R"({"eyes":{"effect":"blink","duration_ms":-1}})",
+                     "duration_ms out of range 0..10000");
     ExpectStep1Error(R"({"eyes":{"effect":"blink","duration_ms":10001}})",
-                     "duration_ms out of range 100..10000");
+                     "duration_ms out of range 0..10000");
     ExpectStep1Error(R"({"eyes":{"on":true,"effect":"blink"}})",
                      "eyes cannot mix on/brightness with effect/duration_ms");
     ExpectStep1Error(R"({"eyes":{"brightness":50,"duration_ms":500}})",

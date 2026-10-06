@@ -79,7 +79,7 @@
     {
       "name": "self.eyes.effect",
       "description": "Hiệu ứng đèn mắt. / Eye light effect: breathe (repeats until another command, duration_ms = cycle, e.g. 2500), blink, flicker, power_up (light up), fade_out (dim to off).",
-      "inputSchema": {"type": "object", "properties": {"name": {"type": "string", "maxLength": 16}, "duration_ms": {"type": "integer", "default": 1000, "minimum": 100, "maximum": 10000}}, "required": ["name"]}
+      "inputSchema": {"type": "object", "properties": {"name": {"type": "string", "maxLength": 16}, "duration_ms": {"type": "integer", "default": 0, "minimum": 0, "maximum": 10000}}, "required": ["name"]}
     },
     {
       "name": "self.output.set",

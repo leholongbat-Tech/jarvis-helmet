@@ -687,6 +687,11 @@ DEFAULT_SPEED = 70
 MASK_BASE_MS = 800
 
 
+def eye_effect_default_ms(effect: Any) -> int:
+    """Effect length when duration_ms is 0 or absent (D26), like helmet::EyeEffectDefaultMs."""
+    return {"breathe": 2500, "flicker": 600}.get(effect, 1000)
+
+
 def mask_full_travel_ms(speed: int) -> int:
     return MASK_BASE_MS * 100 // max(10, min(100, speed))
 
@@ -734,7 +739,7 @@ def estimate_step_ms(step_type: str, body: Any) -> int:
     if step_type == "eyes" and "effect" in body:
         if body.get("effect") == "breathe":
             return 0
-        return _as_int(body.get("duration_ms", 1000)) or 0
+        return _as_int(body.get("duration_ms", 0)) or eye_effect_default_ms(body.get("effect"))
     if step_type == "delay":
         return _as_int(body) or 0
     return 0
@@ -789,7 +794,9 @@ def _validate_step(step_type: str, body: Any) -> Optional[str]:
             return "brightness only applies to on"
         if body["effect"] not in EYE_EFFECTS:
             return "unknown effect: " + str(body["effect"])
-        _, err = _int_field(body, "duration_ms", 100, 10000, False)
+        ms, err = _int_field(body, "duration_ms", 0, 10000, False)
+        if err is None and ms is not None and 0 < ms < 100:
+            return "duration_ms must be 0 (effect default) or 100..10000"
         return err
     if step_type == "output":
         err = _check_fields(body, ("on",))
@@ -998,7 +1005,8 @@ class HelmetSim:
                     self.eyes_on = effect != "fade_out"
                     self.eyes_brightness = 100 if self.eyes_on else 0
                     if effect != "breathe":
-                        t += int(body.get("duration_ms", 1000)) / 1000.0
+                        ms = int(body.get("duration_ms", 0)) or eye_effect_default_ms(effect)
+                        t += ms / 1000.0
             elif kind == "output":
                 self.output_on = bool(body["on"])
             elif kind == "delay":
@@ -1124,6 +1132,8 @@ class ToolBox:
     def _eyes_effect(self, a: dict):
         if a["name"] not in EYE_EFFECTS:
             return False, "unknown effect: " + sanitize_message(a["name"])
+        if 0 < a["duration_ms"] < 100:
+            return False, "duration_ms must be 0 (effect default) or 100..10000"
         self.helmet.run_steps([{"eyes": {"effect": a["name"], "duration_ms": a["duration_ms"]}}])
         return True, "ok"
 
@@ -1212,7 +1222,7 @@ class ToolBox:
                     self._eyes_set),
             McpTool("self.eyes.effect", d["self.eyes.effect"],
                     [Property("name", STRING, max_length=16),
-                     Property("duration_ms", INTEGER, 1000, 100, 10000)], self._eyes_effect),
+                     Property("duration_ms", INTEGER, 0, 0, 10000)], self._eyes_effect),
             McpTool("self.output.set", d["self.output.set"], [Property("on", BOOLEAN)],
                     lambda a: (setattr(h, "output_on", a["on"]) or True, "ok")),
         ]
@@ -2295,7 +2305,7 @@ def run_check(name: str, turns: list, ctx: dict, soft: bool = False) -> CheckRes
 
 
 def normalize_steps(steps: Any) -> Any:
-    """Fills the schema defaults (eyes effect duration 1000 ms, display 5 s) for comparison."""
+    """Fills the defaults (eyes effect duration per effect, display 5 s) for comparison."""
     if not isinstance(steps, list):
         return steps
     out = []
@@ -2304,8 +2314,8 @@ def normalize_steps(steps: Any) -> Any:
             (kind, body), = step.items()
             if isinstance(body, dict):
                 body = dict(body)
-                if kind == "eyes" and "effect" in body:
-                    body.setdefault("duration_ms", 1000)
+                if kind == "eyes" and "effect" in body and body.get("duration_ms", 0) == 0:
+                    body["duration_ms"] = eye_effect_default_ms(body["effect"])
                 if kind == "display":
                     body.setdefault("seconds", 5)
             step = {kind: body}

@@ -100,6 +100,27 @@ TEST_CASE("limits match docs/interfaces.md", "[common][limits]") {
     CHECK(helmet::kDefaultInfoSeconds == 5);
 }
 
+TEST_CASE("eye effect durations: 0 means the per-effect default (D26)", "[common][eyes]") {
+    CHECK(helmet::EyeEffectDefaultMs("breathe") == 2500);
+    CHECK(helmet::EyeEffectDefaultMs("flicker") == 600);
+    CHECK(helmet::EyeEffectDefaultMs("blink") == 1000);
+    CHECK(helmet::EyeEffectDefaultMs("power_up") == 1000);
+    CHECK(helmet::EyeEffectDefaultMs("fade_out") == 1000);
+
+    CHECK(helmet::IsValidEffectDuration(0));
+    CHECK(helmet::IsValidEffectDuration(100));
+    CHECK(helmet::IsValidEffectDuration(10000));
+    CHECK_FALSE(helmet::IsValidEffectDuration(1));
+    CHECK_FALSE(helmet::IsValidEffectDuration(99));
+    CHECK_FALSE(helmet::IsValidEffectDuration(-1));
+    CHECK_FALSE(helmet::IsValidEffectDuration(10001));
+
+    CHECK(helmet::ResolveEffectMs("flicker", 0) == 600);
+    CHECK(helmet::ResolveEffectMs("breathe", 0) == 2500);
+    CHECK(helmet::ResolveEffectMs("flicker", 300) == 300);
+    CHECK(helmet::ResolveEffectMs("blink", 0) == 1000);
+}
+
 TEST_CASE("JsonNestingWithin bounds bracket depth outside strings", "[common][json]") {
     CHECK(helmet::JsonNestingWithin("", 1));
     CHECK(helmet::JsonNestingWithin("42", 0));

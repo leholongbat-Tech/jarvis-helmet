@@ -77,7 +77,6 @@ constexpr int kSetRampMs = 150;            // SetEyes transition
 constexpr int kBlinkMinMs = 150;           // double blink, whole effect
 constexpr int kBlinkMaxMs = 600;           // blinks stay quick whatever duration_ms says
 constexpr int kBlinkRestoreMs = 60;        // blink cancelled: back to the resting level
-constexpr int kDefaultFlickerMs = 600;     // flicker without an explicit duration
 constexpr int kPowerUpFlickerMaxMs = 300;  // power_up: flicker part, at most 1/4 of it
 constexpr int kPowerUpFlickerMinTotalMs = 240;
 constexpr float kBreatheLowFraction = 0.1f;
@@ -137,12 +136,13 @@ bool IsFinite(Effect effect) {
            effect == Effect::kFadeOut;
 }
 
+// duration_ms 0 = the effect's default (D26, table in helmet_common.h).
 int DefaultDurationMs(Effect effect) {
     switch (effect) {
         case Effect::kBreathe:
-            return helmet::kBreathePeriodMs;
+            return helmet::EyeEffectDefaultMs("breathe");
         case Effect::kFlicker:
-            return kDefaultFlickerMs;
+            return helmet::EyeEffectDefaultMs("flicker");
         default:
             return helmet::kDefaultEffectDurationMs;
     }
@@ -886,12 +886,12 @@ void OutputController::RegisterMcpTools() {
 
     mcp.AddTool("self.eyes.effect",
                 "Hiệu ứng đèn mắt. / Eye light effect: breathe (repeats until another command, "
-                "duration_ms = cycle, e.g. 2500), blink, flicker, power_up (light up), "
-                "fade_out (dim to off).",
+                "duration_ms = cycle), blink, flicker, power_up (light up), fade_out (dim to off). "
+                "duration_ms 0 = default (breathe 2500, flicker 600, others 1000).",
                 PropertyList(
                     {Property("name", kPropertyTypeString).SetMaxLength(16),
-                     Property("duration_ms", kPropertyTypeInteger, helmet::kDefaultEffectDurationMs,
-                              helmet::kEffectDurationMinMs, helmet::kEffectDurationMaxMs)}),
+                     Property("duration_ms", kPropertyTypeInteger, 0, 0,
+                              helmet::kEffectDurationMaxMs)}),
                 [this](const PropertyList& properties) -> ToolResult {
                     const std::string& name = properties["name"].value<std::string>();
                     if (!helmet::IsEyeEffect(name)) {
@@ -899,7 +899,14 @@ void OutputController::RegisterMcpTools() {
                             "unknown effect " + name +
                             ", use breathe, blink, flicker, power_up or fade_out"));
                     }
-                    if (!EyesEffect(name, properties["duration_ms"].value<int>())) {
+                    const int duration_ms = properties["duration_ms"].value<int>();
+                    if (!helmet::IsValidEffectDuration(duration_ms)) {
+                        return std::unexpected(helmet::SanitizeMessage(
+                            "duration_ms must be 0 (effect default) or " +
+                            std::to_string(helmet::kEffectDurationMinMs) + ".." +
+                            std::to_string(helmet::kEffectDurationMaxMs)));
+                    }
+                    if (!EyesEffect(name, duration_ms)) {
                         return std::unexpected(helmet::SanitizeMessage("eye lights busy"));
                     }
                     return std::string("ok");

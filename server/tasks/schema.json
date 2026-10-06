@@ -158,7 +158,14 @@
         "on": { "type": "boolean" },
         "brightness": { "type": "integer", "minimum": 0, "maximum": 100, "default": 100 },
         "effect": { "type": "string", "enum": ["breathe", "blink", "flicker", "power_up", "fade_out"] },
-        "duration_ms": { "type": "integer", "minimum": 100, "maximum": 10000, "default": 1000 }
+        "duration_ms": {
+          "description": "0 = mặc định của hiệu ứng: breathe 2500 (một chu kỳ), flicker 600, các hiệu ứng khác 1000.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000,
+          "default": 0,
+          "anyOf": [ { "const": 0 }, { "minimum": 100 } ]
+        }
       },
       "oneOf": [
         {

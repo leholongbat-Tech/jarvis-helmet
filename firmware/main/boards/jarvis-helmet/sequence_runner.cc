@@ -225,8 +225,12 @@ struct SequenceRunner::Impl {
                     ESP_LOGW(TAG, "Eye effect %s rejected", step.effect.c_str());
                     return true;
                 }
-                // breathe runs until the next eyes command and counts as idle.
-                return step.effect == "breathe" ? true : WaitEffect(step.effect, step.duration_ms);
+                // breathe runs until the next eyes command and counts as idle. duration_ms 0
+                // means the effect's default (D26): wait for the resolved length.
+                return step.effect == "breathe"
+                           ? true
+                           : WaitEffect(step.effect,
+                                        helmet::ResolveEffectMs(step.effect, step.duration_ms));
             case seq::StepType::kOutput:
                 output.SetOutput(step.output_on);
                 return true;

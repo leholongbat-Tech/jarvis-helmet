@@ -79,6 +79,29 @@ inline bool IsEyeEffect(const std::string& name) {
     return false;
 }
 
+// Effect duration when duration_ms is 0 or absent (D26): breathe = cycle period, flicker = the
+// short "failing lamp" burst, the others ramp/blink over 1 s. Same table in server/tasks/taskslib.py.
+constexpr int kDefaultFlickerMs = 600;
+
+inline int EyeEffectDefaultMs(const std::string& name) {
+    if (name == "breathe") {
+        return kBreathePeriodMs;
+    }
+    if (name == "flicker") {
+        return kDefaultFlickerMs;
+    }
+    return kDefaultEffectDurationMs;
+}
+
+// duration_ms of an eye effect: 0 (= effect default) or kEffectDurationMinMs..kEffectDurationMaxMs.
+inline bool IsValidEffectDuration(int ms) {
+    return ms == 0 || (ms >= kEffectDurationMinMs && ms <= kEffectDurationMaxMs);
+}
+
+inline int ResolveEffectMs(const std::string& name, int ms) {
+    return ms > 0 ? ms : EyeEffectDefaultMs(name);
+}
+
 inline bool IsLowerSnake(const std::string& s, size_t max_len) {
     if (s.empty() || s.size() > max_len) {
         return false;

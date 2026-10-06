@@ -5,7 +5,7 @@
   ],
   "valid": false,
   "error_step": 1,
-  "error_contains": "duration_ms",
+  "error_contains": "must be 0 (effect default) or 100..10000",
   "estimated_ms": null,
-  "note": "duration_ms < 100."
+  "note": "duration_ms 1..99 không hợp lệ; 0 nghĩa là mặc định theo hiệu ứng (D26)."
 }
