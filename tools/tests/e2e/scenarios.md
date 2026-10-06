@@ -227,7 +227,9 @@ trong phân vùng `jsecrets`). Log serial khi cần: `idf.py -p COM5 monitor | t
   .venv/Scripts/python tools/tests/e2e/heap_trend.py e13.log
   ```
   `--interval` phải dài hơn câu trả lời + chuyển động (lệnh tới lúc mũ còn đang nói sẽ bị bỏ qua). Đếm số lệnh được thực hiện (video
-  hoặc `latency.py <log> --turns`).
+  hoặc `latency.py <log> --turns`). Sau lệnh cuối, để mũ chờ **ít nhất 2 phút** rồi mới dừng ghi log và chạy `heap_trend.py`
+  (cần mẫu heap sau khi chạy xong). Firmware in heap mỗi 10 s ở mọi trạng thái; nếu log có khoảng trống > 30 s giữa hai mẫu thì
+  `heap_trend.py` báo `no_sample_gaps` KHÔNG ĐẠT (log không đo được, ví dụ firmware cũ hoặc mất dữ liệu serial).
 - **Đạt khi**: phần tự động PASS; mũ thực hiện đủ 50 lệnh, không treo/không reset; `heap_trend.py` ĐẠT (`no_steady_decrease`,
   `no_reset`, `minimal_sram` ≥ 30 KB).
 - **Bằng chứng**: `summary.json`, `e13.log` + kết quả `heap_trend.py --json`, video.

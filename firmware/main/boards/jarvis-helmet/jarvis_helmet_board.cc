@@ -10,6 +10,7 @@
 #include "display/lcd_display.h"
 #include "led/single_led.h"
 #include "ogg_demuxer.h"
+#include "system_info.h"
 #include "wifi_board.h"
 
 #include "cf_access.h"
@@ -73,6 +74,8 @@ constexpr int kWifiScanMaxSeconds = 30;
 
 constexpr uint32_t kStatusPeriodMs = 1000;
 constexpr uint32_t kSpeechLevelPeriodMs = 50;
+// Heap stats every 10 s in every device state (IT1 E13 heap trend, tools/tests/e2e/heap_trend.py).
+constexpr uint32_t kHeapLogEveryTicks = 10000 / kStatusPeriodMs;
 
 uint32_t NowMs() { return static_cast<uint32_t>(esp_timer_get_time() / 1000); }
 
@@ -209,6 +212,7 @@ private:
     SequenceRunner* runner_ = nullptr;
     std::atomic<bool> tools_ready_{false};  // button callbacks may fire before InitializeTools
     esp_timer_handle_t status_timer_ = nullptr;
+    uint32_t heap_log_ticks_ = 0;  // esp_timer task only
 #if CONFIG_JARVIS_EYES_FOLLOW_STATE
     esp_timer_handle_t speech_timer_ = nullptr;
 #endif
@@ -535,6 +539,11 @@ private:
     }
 
     void OnStatusTimer() {
+        // Upstream prints the heap from its clock timer but restarts that count on every state
+        // change, so it goes silent exactly while the helmet is busy (a 50-command E13 run).
+        if (++heap_log_ticks_ % kHeapLogEveryTicks == 0) {
+            SystemInfo::PrintHeapStats();
+        }
         auto& app = Application::GetInstance();
         // Set by the activation task once the OTA check got an answer: an activation that
         // waits for the user to bind a code is not "offline".

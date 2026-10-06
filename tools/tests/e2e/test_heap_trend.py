@@ -26,6 +26,25 @@ def test_stable_heap_passes(tmp_path, capsys):
     assert abs(res["drop_bytes"]) < 1000 and res["pass"] is True
 
 
+def test_gap_in_samples_fails_instead_of_hiding_a_leak(tmp_path, capsys):
+    # Idle samples, then 8 minutes without any heap line (busy device, old firmware), then one
+    # sample 12 KB lower: the 10 %-of-samples comparison used to average the leak away.
+    lines = [sram(10000 * (i + 1), 120000) for i in range(30)]
+    lines.append(sram(300000 + 480000, 108000))
+    assert heap_trend.main([write(tmp_path, lines), "--json"]) == 1
+    res = json.loads(capsys.readouterr().out)
+    gap = next(c for c in res["checks"] if c["name"] == "no_sample_gaps")
+    assert gap["ok"] is False and res["largest_gap_s"] == 480.0  # 300 s -> 780 s
+
+
+def test_time_windows_compare_start_and_end_of_the_run(tmp_path, capsys):
+    # Samples every 10 s from 10 s to 600 s; the last window (540-600 s, 7 samples) is 6 KB lower.
+    lines = [sram(10000 * (i + 1), 120000 if i < 53 else 114000) for i in range(60)]
+    heap_trend.main([write(tmp_path, lines), "--json"])
+    res = json.loads(capsys.readouterr().out)
+    assert res["drop_bytes"] == 6000
+
+
 def test_steady_leak_fails(tmp_path, capsys):
     lines = [sram(10000 * (i + 1), 120000 - 1000 * i) for i in range(30)]
     assert heap_trend.main([write(tmp_path, lines), "--json"]) == 1
