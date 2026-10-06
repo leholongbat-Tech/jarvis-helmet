@@ -1,0 +1,18 @@
+{
+  "config": {
+    "ingress": [
+      {
+        "hostname": "${JARVIS_HOSTNAME}",
+        "path": "^/xiaozhi/ota/",
+        "service": "http://xiaozhi:8003"
+      },
+      {
+        "hostname": "${JARVIS_HOSTNAME}",
+        "service": "http://xiaozhi:8000"
+      },
+      {
+        "service": "http_status:404"
+      }
+    ]
+  }
+}

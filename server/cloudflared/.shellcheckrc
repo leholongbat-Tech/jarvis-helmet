@@ -1,0 +1,4 @@
+# shellcheck settings for server/cloudflared (also used by the tests).
+# Resolve `source "$(...)/_common.sh"` relative to the script directory.
+source-path=SCRIPTDIR
+external-sources=true

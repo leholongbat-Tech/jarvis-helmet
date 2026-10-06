@@ -1,0 +1,22 @@
+# Ingress rules for a LOCALLY-MANAGED tunnel only (option B in cloudflared/README.md).
+#
+# The default setup is a REMOTE-managed tunnel: its routes live in Cloudflare (dashboard or
+# ingress.json + push_ingress.sh) and this file is not used. Cloudflare's remote configuration
+# always replaces local ingress rules, so do not mount this file for a remote-managed tunnel.
+#
+# Option B: `cloudflared tunnel create jarvis`, `cloudflared tunnel route dns jarvis <hostname>`,
+# TUNNEL_TOKEN=$(cloudflared tunnel token jarvis) in server/.env, replace jarvis.example.com
+# below, then start with the override next to this file:
+#   docker compose -f docker-compose.yml -f cloudflared/compose.locally-managed.yml --profile tunnel up -d
+# Never click "Migrate" for this tunnel in the dashboard (it becomes remote-managed and this
+# file stops being used).
+ingress:
+  # OTA (and /xiaozhi/ota/download/<file>) -> aiohttp port of xiaozhi
+  - hostname: jarvis.example.com
+    path: ^/xiaozhi/ota/
+    service: http://xiaozhi:8003
+  # everything else -> WebSocket server (wss://<hostname>/xiaozhi/v1/)
+  - hostname: jarvis.example.com
+    service: http://xiaozhi:8000
+  # catch-all
+  - service: http_status:404

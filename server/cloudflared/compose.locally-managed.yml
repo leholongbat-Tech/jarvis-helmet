@@ -1,0 +1,11 @@
+# Override for a LOCALLY-MANAGED tunnel (option B, see cloudflared/README.md): cloudflared reads
+# the ingress rules from cloudflared/config.yml. TUNNEL_TOKEN = `cloudflared tunnel token jarvis`.
+#
+#   docker compose -f docker-compose.yml -f cloudflared/compose.locally-managed.yml --profile tunnel up -d
+#
+# Relative paths resolve against server/ (the project directory).
+services:
+  cloudflared:
+    command: ["tunnel", "--metrics", "0.0.0.0:20241", "--config", "/etc/cloudflared/config.yml", "run"]
+    volumes:
+      - ./cloudflared/config.yml:/etc/cloudflared/config.yml:ro
