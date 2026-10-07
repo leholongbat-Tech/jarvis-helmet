@@ -12,6 +12,7 @@
 #include <cJSON.h>
 #include <wifi_manager.h>
 
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -53,10 +54,15 @@ std::string CheckInfoText(const std::string& title, const std::string& text) {
     return {};
 }
 
+// dBFS with one decimal: cJSON prints floats with up to 17 significant digits.
+double RoundTenth(float value) {
+    return std::round(static_cast<double>(value) * 10.0) / 10.0;
+}
+
 }  // namespace
 
 std::string BuildStatusJson(MaskController& mask, OutputController& output, SequenceRunner& runner,
-                            VbusMonitor& vbus) {
+                            VbusMonitor& vbus, const AudioLevels& audio) {
     CJsonUniquePtr root(cJSON_CreateObject());
     if (root == nullptr) {
         return "{}";
@@ -90,13 +96,17 @@ std::string BuildStatusJson(MaskController& mask, OutputController& output, Sequ
                             static_cast<double>(esp_timer_get_time() / 1000000));
     cJSON_AddNumberToObject(root.get(), "free_heap",
                             static_cast<double>(SystemInfo::GetFreeHeapSize()));
+    cJSON* audio_json = cJSON_AddObjectToObject(root.get(), "audio");
+    cJSON_AddNumberToObject(audio_json, "mic_dbfs", RoundTenth(audio.mic_dbfs));
+    cJSON_AddNumberToObject(audio_json, "speaker_dbfs", RoundTenth(audio.speaker_dbfs));
+    cJSON_AddStringToObject(audio_json, "mic_probe", audio.mic_probe);
 
     CJsonStringUniquePtr text(cJSON_PrintUnformatted(root.get()));
     return text != nullptr ? std::string(text.get()) : std::string("{}");
 }
 
 void Register(SequenceRunner& runner, MaskController& mask, OutputController& output,
-              VbusMonitor& vbus, ShowInfoFn show_info) {
+              VbusMonitor& vbus, ShowInfoFn show_info, AudioLevelsFn audio_levels) {
     auto& mcp = McpServer::GetInstance();
 
     mcp.AddTool(
@@ -176,8 +186,9 @@ void Register(SequenceRunner& runner, MaskController& mask, OutputController& ou
                 "Trạng thái mũ / Helmet status: mask, eyes, output, running sequence, 5V supply "
                 "(vbus_mv), Wi-Fi RSSI, uptime.",
                 PropertyList(),
-                [&runner, &mask, &output, &vbus](const PropertyList&) -> ToolResult {
-                    return BuildStatusJson(mask, output, runner, vbus);
+                [&runner, &mask, &output, &vbus, audio_levels](const PropertyList&) -> ToolResult {
+                    const AudioLevels audio = audio_levels ? audio_levels() : AudioLevels{};
+                    return BuildStatusJson(mask, output, runner, vbus, audio);
                 });
 
     ESP_LOGI(TAG, "Registered sequence, display and status tools");

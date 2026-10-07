@@ -28,7 +28,7 @@ Các quyết định đánh số Dxx là của hợp đồng triển khai; mục
 | `self.sequence.save` | `name` string `[a-z0-9_]{1,11}`, `steps` string ≤ 4000 byte | `"saved"` | Lưu vào NVS để dùng khi offline (nút bấm). Server tự lưu các tác vụ `sync_to_device` (mục 5) |
 | `self.sequence.stop` | – | `"stopped"` | |
 | `self.display.show_info` | `title` string 0–24 ký tự (được rỗng, D30), `text` string 0–200 ký tự, `seconds` int 1–30 (mặc định 5) | `"ok"` | Hiện thẻ thông tin trên HUD. Giới hạn đếm theo ký tự Unicode; ở tầng MCP `maxLength` là 96/800 byte UTF-8 |
-| `self.system.get_status` | – | JSON `{"mask":{"state","position"}, "eyes":{"on","brightness","effect"}, "output":{"on"}, "sequence":{"running","name"}, "vbus_mv", "rssi" (null khi mất Wi-Fi), "uptime_s", "free_heap"}` | |
+| `self.system.get_status` | – | JSON `{"mask":{"state","position"}, "eyes":{"on","brightness","effect"}, "output":{"on"}, "sequence":{"running","name"}, "vbus_mv", "rssi" (null khi mất Wi-Fi), "uptime_s", "free_heap", "audio":{"mic_dbfs","speaker_dbfs","mic_probe"}}` | `audio`: mức RMS đã làm mượt (dBFS, 1 chữ số lẻ) của mic và của âm thanh đã giải mã trước khi nhân âm lượng; -100 = toàn số 0 hoặc 300 ms qua không có dữ liệu (mic không gửi gì, loa không phát). Phòng yên tĩnh khoảng -60, nói gần mic -30 đến -10. `mic_probe`: kết quả dò mic lúc khởi động, `left` (đúng), `right` (chân L/R chưa nối GND; firmware dùng tạm kênh phải), `no_data` hoặc `stuck_low` (mic không đưa dữ liệu ra ở kênh nào: nguồn, dây SCK/WS/SD), `error` |
 | `self.servo.calibrate` *(user-only)* | `servo` int 0–1, `angle` int 0–180 | `"ok"` | Chỉnh góc thô khi hiệu chỉnh. Đăng ký bằng `AddUserOnlyTool` để LLM không tự gọi |
 | `self.servo.save_calibration` *(user-only)* | `servo` int 0–1, `closed_angle` int 0–180, `open_angle` int 0–180 (phải khác nhau) | `"saved"` | Lưu vào NVS |
 
@@ -63,7 +63,7 @@ Chuỗi bước là một mảng JSON. **Mỗi phần tử là một object có 
 | `output` | `on` bool | |
 | `delay` | số nguyên ms, 0–10000 | |
 | `display` | `title` 0–24 ký tự, `text` 0–200 ký tự (bắt buộc), `seconds` 1–30 (mặc định 5) | Giống `self.display.show_info` |
-| `sound` | `name` khớp `[a-z0-9_]{1,32}` | Âm thanh có sẵn trong assets; tùy chọn, làm ở giai đoạn sau |
+| `sound` | `name` khớp `[a-z0-9_]{1,32}` | Âm thanh có sẵn trong firmware: `popup`, `success`, `exclamation`, `vibration`, `low_battery`, `xin_chao` ("Xin chào thế giới", giọng VieNeu). Tên khác: thiết bị ghi log và bỏ qua. Không chờ phát xong |
 
 Quy tắc kiểm tra (thiết bị kiểm tra **toàn bộ chuỗi trước khi chạy**; sai một bước thì từ chối cả chuỗi và báo lỗi rõ ràng):
 - JSON gọn của `steps` ≤ 4000 byte; tối đa 64 bước; tổng thời gian ước tính ≤ 60000 ms.

@@ -18,7 +18,8 @@ với bộ giả lập mũ (`tools/tests/e2e/device_sim.py`).
 
 **Ngày 7/10/2026:** server đã chạy trên `batai` ở chế độ dùng chung GPU (LLM qua Ollama sẵn có của máy, ASR/TTS trên
 CPU – `server/README.md` mục 3.6); firmware đã nạp vào board thử (ESP32-S3 N16R8 + mic + loa), board vào Wi-Fi và nhận
-server qua LAN.
+server qua LAN. Mic của board thử chưa gửi dữ liệu (firmware dò thấy đường SD luôn ở mức thấp), nên chưa đánh thức được: cần
+kiểm tra nguồn và dây mic theo [board README mục 8.1](firmware/main/boards/jarvis-helmet/README.md).
 
 **Chưa làm:** lắp mũ hoàn chỉnh và đo đạc (HW1–HW4, servo/đèn, hiệu chỉnh, độ trễ thật), GPU riêng cho Jarvis (cần VRAM
 trống và NVIDIA Container Toolkit), Cloudflare Tunnel + Access và khóa Anthropic, huấn luyện wake word "Quản gia", thu

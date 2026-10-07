@@ -66,10 +66,10 @@ LLM ─► server plugin task_open_mask ─► MCP tools/call self.sequence.run 
 |---|---|---|
 | Stack 6KB, đặt trong PSRAM nếu được | Stack 6KB trong RAM trong (`xTaskCreate` của ESP-IDF cấp stack ở `MALLOC_CAP_INTERNAL`) | – |
 | Bước `display` qua `Application::Schedule` | Gọi HUD trực tiếp từ task runner (các hàm của display tự khóa) | `Schedule` có thể đứng khi kênh âm thanh đang mở |
-| `sound` làm sau | Đã có đường chạy: phát âm thanh trong assets nếu có, không có thì ghi log và bỏ qua | – |
+| `sound` làm sau | Đã có đường chạy: phát âm thanh trong assets nếu có, không có thì ghi log và bỏ qua. Có 5 hiệu ứng ngắn của upstream và `xin_chao` ("Xin chào thế giới", giọng VieNeu) để thử loa | – |
 | Lỗi `invalid step #i` | n đếm từ 1 (D23); lỗi đã qua `SanitizeMessage` vì `ReplyError` không escape | D23 |
 | `duration_ms` của hiệu ứng mắt 100–10000, mặc định 1000 | 0 = mặc định theo hiệu ứng (breathe 2500, flicker 600, còn lại 1000); ước tính và thời gian chờ dùng giá trị đã thay mặc định | D26 |
-| – | `self.display.show_info`: tiêu đề được rỗng (D30), giới hạn đếm theo ký tự Unicode; `self.system.get_status` có thêm `sequence.running/name` và `free_heap` | – |
+| – | `self.display.show_info`: tiêu đề được rỗng (D30), giới hạn đếm theo ký tự Unicode; `self.system.get_status` có thêm `sequence.running/name`, `free_heap` và `audio.mic_dbfs/speaker_dbfs/mic_probe` (kiểm tra mic, loa từ xa; dò kênh mic lúc khởi động) | – |
 | Gửi MCP để thử tay | WebSocket MCP cục bộ trên mũ (cổng 8080, D7) với danh sách tool được phép và token tùy chọn (D27) | Server không lấy tool user-only |
 
 **Tiêu chí nghiệm thu:** 2 (từ chối chuỗi sai, chỉ đúng bước) đã kiểm bằng test máy tính; 4 (trả lời ≤50 ms) đo được trên bộ

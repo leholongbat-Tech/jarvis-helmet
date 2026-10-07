@@ -89,9 +89,11 @@ bool Pending(uint32_t deadline, uint32_t now) {
     return deadline != 0 && static_cast<int32_t>(deadline - now) > 0;
 }
 
-// Sequence "sound" step names mapped to the OGG files embedded by the core. Only the short
-// effects (at most 18 Opus packets of 60 ms): each fits into the empty decoder queue
-// (MAX_DECODE_PACKETS_IN_QUEUE = 20), so queueing it never has to wait. The spoken
+// Sequence "sound" step names mapped to the OGG files embedded by the core. Only files of
+// at most 18 Opus packets: each fits into the empty decoder queue
+// (MAX_DECODE_PACKETS_IN_QUEUE = 20 packets of any length), so queueing it never has to
+// wait. The short effects use 60 ms packets; xin_chao ("Xin chào thế giới", VieNeu voice,
+// assets/common/xin_chao.ogg) packs 1.3 s into 11 packets of 120 ms. The upstream spoken
 // prompts (welcome, upgrade, activation, wificonfig: 27-88 packets) are not offered.
 std::string_view SoundByName(const std::string& name) {
     struct Entry {
@@ -104,6 +106,7 @@ std::string_view SoundByName(const std::string& name) {
         {"exclamation", Lang::Sounds::OGG_EXCLAMATION},
         {"vibration", Lang::Sounds::OGG_VIBRATION},
         {"low_battery", Lang::Sounds::OGG_LOW_BATTERY},
+        {"xin_chao", Lang::Sounds::OGG_XIN_CHAO},
     };
     for (const Entry& entry : kSounds) {
         if (name == entry.name) {
@@ -325,11 +328,18 @@ private:
         runner_ = new SequenceRunner(*mask_, *output_, show_info, MakePlaySound());
         runner_->Start();
 
-        helmet_tools::Register(*runner_, *mask_, *output_, *vbus_, show_info);
+        // First use of the codec, before the audio service starts: find the microphone slot.
+        MeteredAudioCodec* codec = Codec();
+        codec->ProbeMicrophone(AUDIO_I2S_MIC_GPIO_DIN);
+
+        helmet_tools::Register(*runner_, *mask_, *output_, *vbus_, show_info, [codec]() {
+            return helmet_tools::AudioLevels{
+                codec->GetInputDbfs(), codec->GetOutputDbfs(),
+                MeteredAudioCodec::MicProbeName(codec->mic_probe())};
+        });
         mask_->RegisterMcpTools();
         output_->RegisterMcpTools();
 
-        MeteredAudioCodec* codec = Codec();
 #if CONFIG_JARVIS_HUD
         HudDataSource source;
         source.mask_state = [this]() { return mask_->GetState(); };
@@ -342,8 +352,6 @@ private:
         source.mic_level = [codec]() { return codec->GetInputLevel(); };
         source.speaker_level = [codec]() { return codec->GetOutputLevel(); };
         hud_->SetDataSource(std::move(source));
-#else
-        (void)codec;
 #endif
 
         cf_access::Init();

@@ -1028,6 +1028,7 @@ class HelmetSim:
             "rssi": -52,
             "uptime_s": int(self.clock() - self.boot),
             "free_heap": self.free_heap,
+            "audio": {"mic_dbfs": -62.0, "speaker_dbfs": -100.0, "mic_probe": "left"},
         })
 
 

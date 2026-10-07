@@ -379,7 +379,8 @@ def test_sequence_tools_and_status():
     assert ok_text(call(sim, "self.sequence.run", {"steps": steps})) == "started"
     status = json.loads(ok_text(call(sim, "self.system.get_status")))
     assert list(status) == ["mask", "eyes", "output", "sequence", "vbus_mv", "rssi",
-                            "uptime_s", "free_heap"]
+                            "uptime_s", "free_heap", "audio"]
+    assert set(status["audio"]) == {"mic_dbfs", "speaker_dbfs", "mic_probe"}
     assert status["sequence"]["running"] is True and status["output"]["on"] is True
     assert ok_text(call(sim, "self.sequence.stop")) == "stopped"
     assert json.loads(ok_text(call(sim, "self.system.get_status")))["sequence"]["running"] \

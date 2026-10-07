@@ -212,6 +212,33 @@ Server cục bộ **không có xác thực**, nên `tools/call` chỉ nhận cá
 hiện chúng); frame JSON lồng quá 16 cấp cũng bị từ chối. Người cùng mạng vẫn điều khiển được mặt nạ, đèn, đổi hiệu chỉnh
 servo và chuỗi đã lưu: tắt `CONFIG_JARVIS_LOCAL_MCP_WS` khi không cần, nhất là khi dùng hotspot ở nơi công cộng.
 
+### 8.1 Kiểm tra mic và loa (không cần màn hình)
+
+Lúc khởi động, board dò kênh I2S mà mic đang gửi dữ liệu: đọc 64 ms cả hai kênh, có kéo lên chân SD, mất khoảng 0,4 s.
+Kết quả ghi vào log `MicProbe:` và vào `self.system.get_status` → `audio.mic_probe`:
+
+| `mic_probe` | Nghĩa | Cần làm |
+|---|---|---|
+| `left` | Đúng sơ đồ (L/R nối GND) | – |
+| `right` | Mic gửi ở kênh phải: L/R đang nối 3V3 hoặc để hở | Nối L/R xuống GND. Firmware tạm dùng kênh phải nên vẫn chạy, nhưng chân để hở có thể đổi kênh giữa các lần bật |
+| `no_data` | SD bị kéo lên mà không có dữ liệu: mic không đưa gì ra | Kiểm tra VDD (3V3) và GND của mic, dây SD → GPIO6, SCK → GPIO5, WS → GPIO4 (SCK và WS không bị đảo) |
+| `stuck_low` | SD luôn ở mức thấp ở cả hai kênh | Như `no_data` (module INMP441 thường có điện trở kéo xuống 100 kΩ trên SD, nên mic không chạy cũng đọc ra mức thấp), thêm: SD chập GND, mic hỏng |
+
+Phát câu thử rồi đọc mức âm thanh:
+
+```bash
+python tools/servo_calibrate.py --host 192.168.1.50 --call self.sequence.run '{"steps": "[{\"sound\": {\"name\": \"xin_chao\"}}]"}'
+python tools/servo_calibrate.py --host 192.168.1.50 --call self.system.get_status
+```
+
+- `audio.mic_dbfs`: -100 là mic không gửi dữ liệu (toàn số 0); phòng yên tĩnh khoảng -60; nói gần mic từ -30 đến -10.
+- `audio.speaker_dbfs`: khoảng -15 đến -20 trong lúc phát câu "Xin chào thế giới", -100 khi không phát. Số này đo trên dữ liệu
+  gửi ra amply: firmware không biết loa có kêu thật hay không. Không nghe thấy gì: amply MAX98357A phải có 5V ở chân VIN (trên
+  breadboard lấy từ ray RT, cần cắm sạc; cáp USB của máy tính không cấp điện cho ray này), DIN → GPIO7, BCLK → GPIO15,
+  LRC → GPIO16, loa nối vào cọc của amply.
+- Máy tính chạy Tailscale có nhận subnet route trùng dải LAN (ví dụ 192.168.1.0/24) thì gói tin tới mũ đi vào Tailscale và
+  hết giờ: tắt nhận subnet route trên máy đó (`tailscale set --accept-routes=false`), hoặc chạy lệnh từ máy khác trong LAN.
+
 ## 9. Khi mất mạng (offline)
 
 Vẫn hoạt động không cần mạng: nút mặt nạ, nhấn giữ bật/tắt đèn mắt, bấm đúp dừng khẩn cấp, các chuỗi đã lưu
@@ -290,8 +317,9 @@ Mặt nạ:
   vẫn đi mềm theo tốc độ đã chọn, tính trên góc thật (tối đa 8 giây). `save` khi servo đang ở ngoài khoảng mới thì servo tự đi
   chậm về giới hạn gần nhất.
 
-Bước `sound` trong chuỗi: tên `popup`, `success`, `exclamation`, `vibration`, `low_battery` (hiệu ứng ngắn ≤ 1,1 s; các câu nói
-dài của upstream không dùng được). Bước này **không chờ** âm thanh phát xong và bị bỏ qua khi Jarvis đang nói hoặc loa đang phát
+Bước `sound` trong chuỗi: tên `popup`, `success`, `exclamation`, `vibration`, `low_battery` (hiệu ứng ngắn ≤ 1,1 s) và
+`xin_chao` (câu "Xin chào thế giới" 1,3 s, giọng VieNeu, dùng để thử loa). Mỗi file phải ≤ 18 gói Opus để vào hết hàng đợi
+decoder mà không phải chờ, nên các câu nói dài của upstream không dùng được. Bước này **không chờ** âm thanh phát xong và bị bỏ qua khi Jarvis đang nói hoặc loa đang phát
 âm khác (để không làm mất tiếng TTS); muốn phát nối tiếp thì thêm bước `delay`.
 
 ## 13. Hạn chế đã biết
