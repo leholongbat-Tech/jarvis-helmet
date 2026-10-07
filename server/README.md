@@ -205,6 +205,30 @@ Kiểm tra LLM: `../tools/tests/llm/README.md` (bộ thử gọi tool, ≥ 95 % 
 (SV3 tiêu chí 3): `docker compose stop ollama`, nói một câu, xem `docker compose logs litellm | grep
 '"event": "fallback"'`, rồi `docker compose start ollama`.
 
+### 3.6 Chạy trên máy dùng chung GPU (cách đang chạy trên batai từ 7/10/2026)
+
+GPU của batai đang được người dùng khác chiếm gần hết (khoảng 31 GB trên 32 GB: một Ollama riêng của họ với `qwen3.6:35b`,
+một job training, một dịch vụ dịch), và chưa cài NVIDIA Container Toolkit (cần sudo). Vì vậy stack chạy theo mẫu
+`docker-compose.shared-host.example.yml`, chép trên host thành `docker-compose.override.yml` (file riêng của host,
+`deploy.sh` không đụng tới):
+
+| Thành phần | Thiết kế | Đang chạy |
+|---|---|---|
+| LLM | container `ollama` + `qwen3:30b-a3b-instruct-2507` | Ollama sẵn có của host (`OLLAMA_MODEL=qwen3.6:35b`), qua relay `ollama-relay`: host Ollama chỉ nhận kết nối từ 127.0.0.1, nên một socat chạy mạng host nghe ở gateway của mạng `llm` (`10.250.99.1:11436`, ghim dải `10.250.99.0/24`) và chuyển tiếp; từ LAN cổng này bị từ chối. LiteLLM không gửi `keep_alive`/`num_ctx`, nên không đổi chính sách giữ model hay ép nạp lại model của chủ Ollama |
+| ASR | large-v3 float16 trên GPU | `ASR_MODEL=medium`, `ASR_DEVICE=cpu`, `ASR_COMPUTE_TYPE=int8`, `ASR_CPU_THREADS=8` |
+| TTS | VieNeu trên GPU | VieNeu backend ONNX trên CPU (`VIENEU_DEVICE=cpu`, 8 luồng) |
+
+Đo ngày 7/10 bằng `tools/tests/e2e/device_sim.py` từ một PC trong LAN: câu khớp nhanh (chèn chữ) 3 ms tới lệnh MCP;
+nói bằng giọng (PTT) khoảng 1,5 s tới lệnh MCP (ASR CPU ~1,4 s, mục tiêu 0,8 s chưa đạt); câu qua LLM: lượt đầu sau khi
+chủ Ollama vừa dùng mất ~4,4 s tới token đầu (Ollama chỉ có một slot, cache prompt bị đẩy ra), các lượt sau ~0,6 s; TTS
+âm đầu ~0,13 s. Bộ thử gọi tool với `qwen3.6:35b` chỉ đạt khoảng 58 % (bỏ sót lệnh thứ hai, có câu trả lời "đã làm" mà
+không gọi tool); bật `think: true` còn tệ hơn (hết `max_tokens` trong phần suy nghĩ). Lệnh thường dùng vẫn chắc chắn nhờ
+khớp nhanh (`quick_phrases`, không qua LLM).
+
+Quay lại thiết kế GPU khi có đủ VRAM (~25 GB): cài toolkit + CDI (mục 3.3), xóa `docker-compose.override.yml`, trả các
+biến `OLLAMA_*`/`ASR_*` trong `.env` về giá trị của `.env.example`, `scripts/pull_models.sh --apply --asr`, rồi
+`docker compose up -d`.
+
 ## 4. Triển khai và cập nhật
 
 Từ PC (Git Bash trên Windows hoặc Linux/macOS), luôn chạy thử trước:

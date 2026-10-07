@@ -22,6 +22,7 @@ BASE = SERVER / "docker-compose.yml"
 LOCAL = SERVER / "docker-compose.local.yml"
 DEBUG = SERVER / "docker-compose.debug.yml"
 LOCALLY_MANAGED = SERVER / "cloudflared" / "compose.locally-managed.yml"
+SHARED_HOST = SERVER / "docker-compose.shared-host.example.yml"
 ENV_EXAMPLE = SERVER / ".env.example"
 
 GPU_SERVICES = {"asr", "ollama", "vieneu", "kokoro", "asr-qwen"}
@@ -368,7 +369,21 @@ VARIANTS = {
     "local+debug": ([BASE, LOCAL, DEBUG], []),
     "local+local-ollama": ([BASE, LOCAL], ["local-ollama"]),
     "locally-managed-tunnel": ([BASE, LOCALLY_MANAGED], ["tunnel"]),
+    "shared-host": ([BASE, SHARED_HOST], []),
 }
+
+
+def test_shared_host_template_keeps_the_relay_off_the_lan():
+    """The relay to the host Ollama binds the pinned llm gateway only, never 0.0.0.0."""
+    shared = load(SHARED_HOST)
+    relay = shared["services"]["ollama-relay"]
+    assert relay["network_mode"] == "host"
+    assert relay["image"].startswith("alpine/socat:") and "@sha256:" in relay["image"]
+    listen = relay["command"][0]
+    assert listen.startswith("TCP-LISTEN:11436,bind=10.250.99.1,")
+    gateway = shared["networks"]["llm"]["ipam"]["config"][0]["gateway"]
+    assert gateway == "10.250.99.1" and relay["command"][1] == "TCP:127.0.0.1:11434"
+    assert shared["services"]["ollama"]["profiles"] == ["own-ollama"]
 
 
 @pytest.fixture(scope="module")
@@ -398,7 +413,9 @@ def test_compose_config_validates(variant, dummy_env):
     for name, svc in cfg["services"].items():
         devices = ((svc.get("deploy") or {}).get("resources") or {}).get("reservations", {}).get("devices") or []
         if name in GPU_SERVICES:
-            assert [d["driver"] for d in devices] == [want_driver], (name, devices)
+            # shared host: ASR/VieNeu on the CPU, no GPU device requests at all
+            want = [] if SHARED_HOST in files else [want_driver]
+            assert [d["driver"] for d in devices] == want, (name, devices)
         ports = svc.get("ports") or []
         if name != "xiaozhi" and DEBUG not in files:
             assert not ports, name

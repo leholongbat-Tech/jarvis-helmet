@@ -31,7 +31,9 @@ model_list:
       model: os.environ/LITELLM_MAIN_MODEL      # ollama_chat/<OLLAMA_MODEL>
       api_base: os.environ/OLLAMA_API_BASE      # http://ollama:11434
       think: false                              # sent top-level to /api/chat (no thinking tokens)
-      keep_alive: -1                            # keep the model on the GPU
+      # No request-level keep_alive / num_ctx: our ollama container keeps the model loaded through
+      # OLLAMA_KEEP_ALIVE=-1 and OLLAMA_CONTEXT_LENGTH (compose). On a shared Ollama a request
+      # value would override the owner's policy (pin the model forever, or force a reload).
       timeout: 15                               # non-streaming requests (seconds)
       stream_timeout: 10                        # xiaozhi streams: give up fast, then fall back
       # LiteLLM maps frequency_penalty -> Ollama repeat_penalty: never forward it.

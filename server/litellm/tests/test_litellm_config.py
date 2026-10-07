@@ -89,7 +89,7 @@ def test_production_values():
     main = deployment(cfg, "jarvis-main")["litellm_params"]
     assert main["model"] == "os.environ/LITELLM_MAIN_MODEL"
     assert main["api_base"] == "os.environ/OLLAMA_API_BASE"
-    assert main["keep_alive"] == -1
+    assert "keep_alive" not in main, "the Ollama server keeps the model (OLLAMA_KEEP_ALIVE in compose)"
     assert main["timeout"] == 15 and main["stream_timeout"] == 10
     assert "num_ctx" not in main, "a per-request num_ctx different from OLLAMA_CONTEXT_LENGTH reloads the model"
     cloud = deployment(cfg, "jarvis-cloud")["litellm_params"]

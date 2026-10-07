@@ -8,7 +8,8 @@
                 "CONFIG_LCD_ST7789_240X240=y",
                 "CONFIG_PARTITION_TABLE_CUSTOM=y",
                 "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME=\"main/boards/jarvis-helmet/partitions_jarvis_16m.csv\"",
-                "CONFIG_HTTPD_WS_SUPPORT=y"
+                "CONFIG_HTTPD_WS_SUPPORT=y",
+                "CONFIG_OTA_URL=\"http://192.168.1.27:8003/xiaozhi/ota/\""
             ]
         },
         {
@@ -17,7 +18,8 @@
                 "CONFIG_LCD_ST7789_240X240_7PIN=y",
                 "CONFIG_PARTITION_TABLE_CUSTOM=y",
                 "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME=\"main/boards/jarvis-helmet/partitions_jarvis_16m.csv\"",
-                "CONFIG_HTTPD_WS_SUPPORT=y"
+                "CONFIG_HTTPD_WS_SUPPORT=y",
+                "CONFIG_OTA_URL=\"http://192.168.1.27:8003/xiaozhi/ota/\""
             ]
         },
         {
@@ -31,7 +33,8 @@
                 "CONFIG_USE_AFE_WAKE_WORD=n",
                 "CONFIG_SR_MN_CN_MULTINET7_QUANT=y",
                 "CONFIG_CUSTOM_WAKE_WORD=\"jia wei si;guan jia\"",
-                "CONFIG_CUSTOM_WAKE_WORD_DISPLAY=\"Jarvis;Quản gia\""
+                "CONFIG_CUSTOM_WAKE_WORD_DISPLAY=\"Jarvis;Quản gia\"",
+                "CONFIG_OTA_URL=\"http://192.168.1.27:8003/xiaozhi/ota/\""
             ]
         },
         {
@@ -41,7 +44,8 @@
                 "CONFIG_PARTITION_TABLE_CUSTOM=y",
                 "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME=\"main/boards/jarvis-helmet/partitions_jarvis_16m.csv\"",
                 "CONFIG_HTTPD_WS_SUPPORT=y",
-                "CONFIG_JARVIS_MICRO_WAKE_WORD=y"
+                "CONFIG_JARVIS_MICRO_WAKE_WORD=y",
+                "CONFIG_OTA_URL=\"http://192.168.1.27:8003/xiaozhi/ota/\""
             ]
         }
     ]

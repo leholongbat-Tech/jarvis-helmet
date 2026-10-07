@@ -1,0 +1,53 @@
+# Template for a SHARED GPU host (the setup running on batai since 2026-10-07, see README.md
+# "Chạy trên máy dùng chung GPU"). Copy it on the host as docker-compose.override.yml (host-local:
+# deploy.sh never copies, overwrites or deletes that file) and set in server/.env:
+#
+#   OLLAMA_API_BASE=http://10.250.99.1:11436   # the relay below
+#   OLLAMA_MODEL=<a model the host Ollama already serves, e.g. qwen3.6:35b>
+#   ASR_DEVICE=cpu  ASR_COMPUTE_TYPE=int8  ASR_MODEL=medium  ASR_MODEL_REVISION=  ASR_CPU_THREADS=8
+#
+# What changes compared to docker-compose.yml:
+#   - LLM: the Ollama that already runs on the host (it only answers on 127.0.0.1:11434). A
+#     host-network socat relay listens on the llm network's gateway (pinned to 10.250.99.1:
+#     reachable from the llm containers and the host, refused from the LAN) and forwards to it.
+#     Jarvis' own ollama container stays off (profile own-ollama).
+#   - ASR and VieNeu on the CPU, no GPU device requests (no NVIDIA container toolkit / CDI spec
+#     needed). VieNeu uses its ONNX backend; threads are capped to leave CPU for the other users.
+# Remove the override (and restore .env) to go back to the GPU design.
+services:
+  ollama-relay:
+    image: alpine/socat:1.8.0.3@sha256:beb4a68d9e4fe6b0f21ea774a0fde6c31f580dde6368939ed70100c5385b015e
+    network_mode: host
+    restart: unless-stopped
+    command: ["TCP-LISTEN:11436,bind=10.250.99.1,fork,reuseaddr", "TCP:127.0.0.1:11434"]
+    depends_on:
+      redis:
+        condition: service_started   # the jarvis_llm bridge (10.250.99.1) exists by then
+    logging:
+      driver: json-file
+      options: {max-size: "5m", max-file: "2"}
+  ollama:
+    profiles: ["own-ollama"]
+  litellm:
+    depends_on: !override
+      redis:
+        condition: service_healthy
+  asr:
+    deploy: !reset {}
+  vieneu:
+    deploy: !reset {}
+    environment:
+      VIENEU_DEVICE: cpu
+      OMP_NUM_THREADS: "8"
+      MKL_NUM_THREADS: "8"
+  kokoro:
+    deploy: !reset {}
+  asr-qwen:
+    deploy: !reset {}
+
+networks:
+  llm:
+    ipam:
+      config:
+        - subnet: 10.250.99.0/24
+          gateway: 10.250.99.1

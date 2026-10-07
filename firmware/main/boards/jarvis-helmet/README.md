@@ -100,13 +100,25 @@ Bảng phân vùng (`partitions_jarvis_16m.csv`, giống `partitions/v2/16m.csv`
 
 ## 4. Địa chỉ server (OTA URL)
 
-Thiết bị hỏi OTA URL để biết địa chỉ WebSocket. Thứ tự ưu tiên: NVS `wifi/ota_url` (đặt qua cổng cấu hình Wi-Fi) → `CONFIG_OTA_URL`
-(mặc định upstream `https://api.tenclass.net/xiaozhi/ota/`).
+Thiết bị hỏi OTA URL để biết địa chỉ WebSocket. Thứ tự ưu tiên: NVS `wifi/ota_url` (đặt qua cổng cấu hình Wi-Fi) → `CONFIG_OTA_URL`.
+**Cả 4 biến thể trong `config.json` đã đặt sẵn `CONFIG_OTA_URL` = `http://192.168.1.27:8003/xiaozhi/ota/`** (server batai trong
+LAN, từ 7/10/2026); bỏ dòng đó thì quay về mặc định upstream `https://api.tenclass.net/xiaozhi/ota/`.
 
 - **Cách 1 – cổng cấu hình Wi-Fi (không cần build lại):** vào chế độ cấu hình (mục 5), mở http://192.168.4.1,
   tab **Advanced**, điền OTA URL, lưu. Giá trị này thắng `CONFIG_OTA_URL`.
-- **Cách 2 – cố định lúc build:** thêm vào `sdkconfig_append` của biến thể trong `config.json`:
-  `"CONFIG_OTA_URL=\"http://192.168.1.27:8003/xiaozhi/ota/\""`. Không chỉnh bằng menuconfig (build.py tạo lại `sdkconfig`).
+- **Cách 2 – cố định lúc build:** sửa dòng `CONFIG_OTA_URL=...` trong `sdkconfig_append` của biến thể trong `config.json`
+  (ví dụ `https://jarvis.<domain>/xiaozhi/ota/` khi dùng Cloudflare). Không chỉnh bằng menuconfig (build.py tạo lại `sdkconfig`).
+
+**Nạp sẵn Wi-Fi qua cáp (không cần điện thoại):** esp-wifi-connect lưu mạng trong NVS namespace `wifi`, khóa `ssid`/`password`
+(mạng thứ hai `ssid1`/`password1`…). Tạo ảnh 16 KB rồi ghi vào phân vùng `nvs` (0x9000). Ảnh này **thay cả phân vùng `nvs`**
+(UUID thiết bị tự tạo lại; không đụng `helmet`/`jsecrets`), và file CSV chứa mật khẩu dạng chữ thường nên xóa ngay sau khi nạp:
+
+```bash
+pip install esp-idf-nvs-partition-gen esptool
+printf 'key,type,encoding,value\nwifi,namespace,,\nssid,data,string,<SSID>\npassword,data,string,<mật khẩu>\n' > wifi.csv
+python -m esp_idf_nvs_partition_gen generate wifi.csv wifi_nvs.bin 0x4000
+python -m esptool --chip esp32s3 -p COM9 write-flash 0x9000 wifi_nvs.bin && rm wifi.csv wifi_nvs.bin
+```
 
 Theo giai đoạn: P1 để mặc định (server xiaozhi.me) để thử phần cứng; P2 `http://<IP-LAN>:8003/xiaozhi/ota/`;
 P8 `https://jarvis.<domain>/xiaozhi/ota/` (qua Cloudflare, cần token ở mục 7).

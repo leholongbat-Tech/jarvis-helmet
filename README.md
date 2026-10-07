@@ -16,10 +16,13 @@ Mã nguồn của mọi module đã xong và đã kiểm thử trên máy dev: t
 (ESP-IDF 6.1), toàn bộ test Python (cũng chạy trong container Linux như CI), và smoke test cả stack server bằng Docker Desktop
 với bộ giả lập mũ (`tools/tests/e2e/device_sim.py`).
 
-**Chưa làm** (cần phần cứng hoặc quyền trên máy chủ): chạy trên mũ thật và đo đạc (HW1–HW4, hiệu chỉnh servo, độ trễ thật),
-triển khai lên máy chủ `batai` (cần quyền sudo: nhóm docker, NVIDIA Container Toolkit, CDI – `server/README.md` mục 3),
-Cloudflare Tunnel + Access và khóa Anthropic, huấn luyện wake word "Quản gia", thu dữ liệu giọng thật cho ASR/wake word.
-Kết quả nghiệm thu ghi vào [docs/test-report.md](docs/test-report.md).
+**Ngày 7/10/2026:** server đã chạy trên `batai` ở chế độ dùng chung GPU (LLM qua Ollama sẵn có của máy, ASR/TTS trên
+CPU – `server/README.md` mục 3.6); firmware đã nạp vào board thử (ESP32-S3 N16R8 + mic + loa), board vào Wi-Fi và nhận
+server qua LAN.
+
+**Chưa làm:** lắp mũ hoàn chỉnh và đo đạc (HW1–HW4, servo/đèn, hiệu chỉnh, độ trễ thật), GPU riêng cho Jarvis (cần VRAM
+trống và NVIDIA Container Toolkit), Cloudflare Tunnel + Access và khóa Anthropic, huấn luyện wake word "Quản gia", thu
+dữ liệu giọng thật cho ASR/wake word. Kết quả nghiệm thu ghi vào [docs/test-report.md](docs/test-report.md).
 
 ## Kiến trúc
 
