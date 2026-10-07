@@ -253,7 +253,8 @@ bash server/scripts/deploy.sh --apply --pull-models    # + scripts/pull_models.s
 - File cấu hình gắn vào container chỉ được đọc khi container khởi động, nên script so mã băm với lần
   triển khai trước (lưu ở `server/.deploy-*.sha` trên host): `litellm/config.yaml` hoặc
   `litellm/jarvis_callbacks.py` đổi → `docker compose restart litellm`; `ollama/entrypoint.sh` đổi →
-  tạo lại container `ollama` (nạp lại model, khoảng 1 phút). Lần đầu chạy bản script này luôn làm cả hai.
+  tạo lại container `ollama` (nạp lại model, khoảng 1 phút), nhưng chỉ khi service `ollama` đang bật: ở chế độ dùng chung
+  GPU (mục 3.6) nó nằm trong profile `own-ollama` không bật nên không bị khởi động. Lần đầu chạy bản script này luôn làm cả hai.
 - Lần đầu chưa có `.env`: file được chép xong, script dừng và hướng dẫn tạo `.env`.
 
 Cập nhật bằng tay trên host: `cd /opt/jarvis/server && docker compose pull --ignore-buildable &&

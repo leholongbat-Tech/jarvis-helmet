@@ -252,7 +252,10 @@ def test_deploy_reloads_changed_bind_mounted_config(tmp_path, stubs):
     (srv / "litellm" / "config.yaml").write_text("a: 1\n", encoding="utf-8")
     (srv / "litellm" / "jarvis_callbacks.py").write_text("# cb\n", encoding="utf-8")
     (srv / "ollama" / "entrypoint.sh").write_text("#!/bin/sh\n", encoding="utf-8")
-    stubs.add("docker", "exit 0")
+    services = tmp_path / "services.txt"  # what `docker compose config --services` prints
+    services.write_text("ollama\nlitellm\n", encoding="utf-8")
+    stubs.add("docker", f'case "$*" in "compose config --services") cat {shlex.quote(posix(services))} ;; esac\n'
+                        "exit 0")
     script = tmp_path / "host.sh"
     script.write_text(f"cd {shlex.quote(posix(srv))} && {remote_cmd[len(prefix):]}\n", encoding="utf-8",
                       newline="\n")
@@ -273,6 +276,13 @@ def test_deploy_reloads_changed_bind_mounted_config(tmp_path, stubs):
     third = deploy()
     assert restart in third and recreate not in third
     assert sorted(p.name for p in srv.glob(".deploy-*.sha")) == [".deploy-litellm.sha", ".deploy-ollama.sha"]
+    # Shared GPU host: ollama is in the inactive "own-ollama" profile, so a changed entrypoint
+    # must not start it (naming a service in `up` enables its profile).
+    services.write_text("litellm\nollama-relay\n", encoding="utf-8")
+    (srv / "ollama" / "entrypoint.sh").write_text("#!/bin/sh\n# v2\n", encoding="utf-8")
+    shared = deploy()
+    assert "docker compose config --services" in shared and recreate not in shared
+    assert deploy().count("docker compose config --services") == 0  # stamp written all the same
 
 
 def test_deploy_dry_run_rsync_copy_only(stubs):

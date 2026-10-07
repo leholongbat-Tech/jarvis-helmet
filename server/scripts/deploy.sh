@@ -179,7 +179,9 @@ compose_steps+=" && docker compose up -d --remove-orphans"
 # Bind-mounted config is read once at container start and `up -d` does not notice a changed file:
 # restart/recreate the service when its files differ from the last deploy (hash kept on the host in
 # server/.deploy-<service>.sha). The Ollama entrypoint is a single-file mount, which keeps showing
-# the old inode after a copy, so only a re-create applies it (that reloads the model).
+# the old inode after a copy, so only a re-create applies it (that reloads the model). Only when
+# the ollama service is enabled: on a shared GPU host it sits in the inactive "own-ollama" profile
+# (docker-compose.shared-host.example.yml), and naming it in `up` would start it anyway.
 reload_if_changed() { # stamp-name "command" files...
     local stamp=".deploy-$1.sha" cmd="$2"
     shift 2
@@ -188,7 +190,7 @@ reload_if_changed() { # stamp-name "command" files...
         "$*" "$stamp" "$cmd" "$stamp"
 }
 compose_steps+=" && $(reload_if_changed litellm "docker compose restart litellm" litellm/config.yaml litellm/jarvis_callbacks.py)"
-compose_steps+=" && $(reload_if_changed ollama "docker compose up -d --no-deps --force-recreate ollama" ollama/entrypoint.sh)"
+compose_steps+=" && $(reload_if_changed ollama "if docker compose config --services | grep -qx ollama; then docker compose up -d --no-deps --force-recreate ollama; fi" ollama/entrypoint.sh)"
 compose_steps+=" && docker compose ps"
 remote "cd $Q_DIR/server && ${profiles_env}${compose_steps}"
 
