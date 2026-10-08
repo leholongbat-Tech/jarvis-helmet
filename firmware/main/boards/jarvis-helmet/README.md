@@ -1,7 +1,7 @@
 # Board `jarvis-helmet`
 
 Firmware cho mũ Jarvis (ESP32-S3 **N16R8**: 16 MB flash, 8 MB PSRAM octal) dựa trên xiaozhi-esp32 v2.5.0.
-Phần cứng: mic INMP441 + amply MAX98357A (I2S simplex, vào 16 kHz / ra 24 kHz), LCD ST7789 1.54" 240×240,
+Phần cứng: mic INMP441 + amply MAX98357A (I2S simplex, vào 16 kHz / ra 48 kHz: MAX98357A không nhận LRCLK 24 kHz), LCD ST7789 1.54" 240×240,
 2 servo nâng mặt nạ, MOSFET đèn mắt + 1 output dự phòng, nút PTT, nút mặt nạ, cầu phân áp đo 5V.
 Bảng chân đầy đủ ở `config.h` (theo `docs/modules/HW2-dau-noi-tin-hieu.md`).
 

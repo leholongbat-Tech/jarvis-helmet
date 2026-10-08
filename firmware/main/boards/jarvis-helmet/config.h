@@ -14,7 +14,11 @@
 // Audio: INMP441 microphone + MAX98357A amplifier, simplex I2S.
 // ---------------------------------------------------------------------------
 #define AUDIO_INPUT_SAMPLE_RATE  16000
-#define AUDIO_OUTPUT_SAMPLE_RATE 24000
+// The MAX98357A accepts LRCLK of 8, 16, 32, 44.1, 48, 88.2 or 96 kHz only; 11.025, 12,
+// 22.05 and 24 kHz are "NOT supported" (datasheet, Digital Audio Interface) and come out
+// distorted. bread-compact-wifi's 24000 did exactly that, so the speaker runs at 48 kHz and
+// AudioService resamples the 24 kHz TTS stream (and the 16/24 kHz OGG sounds) up to it.
+#define AUDIO_OUTPUT_SAMPLE_RATE 48000
 
 #define AUDIO_I2S_METHOD_SIMPLEX
 

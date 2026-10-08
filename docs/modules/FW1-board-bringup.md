@@ -15,7 +15,7 @@
 
 | File | Nội dung |
 |---|---|
-| `firmware/main/boards/jarvis-helmet/config.h` | Bảng chân lấy từ HW2. `AUDIO_I2S_METHOD_SIMPLEX`. Audio vào 16 kHz, ra 24 kHz. Thông số LCD lấy từ khối `CONFIG_LCD_ST7789_240X240` (hoặc `_7PIN`) của `bread-compact-wifi-lcd/config.h`. Thêm định nghĩa chân servo, mắt, output, nút, VSENSE |
+| `firmware/main/boards/jarvis-helmet/config.h` | Bảng chân lấy từ HW2. `AUDIO_I2S_METHOD_SIMPLEX`. Audio vào 16 kHz, ra 48 kHz (MAX98357A không hỗ trợ LRCLK 24 kHz; firmware tự chuyển mẫu luồng TTS 24 kHz lên 48 kHz). Thông số LCD lấy từ khối `CONFIG_LCD_ST7789_240X240` (hoặc `_7PIN`) của `bread-compact-wifi-lcd/config.h`. Thêm định nghĩa chân servo, mắt, output, nút, VSENSE |
 | `firmware/main/boards/jarvis-helmet/config.json` | `"type": "jarvis-helmet"`, `"target": "esp32s3"`, `sdkconfig_append`: `CONFIG_LCD_ST7789_240X240=y` (hoặc `_7PIN`) |
 | `firmware/main/boards/jarvis-helmet/jarvis_helmet_board.cc` | Class `JarvisHelmetBoard : public WifiBoard`, chép từ `bread-compact-wifi-lcd/compact_wifi_board_lcd.cc`: `InitializeSpi`, `InitializeLcdDisplay`, `NoAudioCodecSimplex`, `PwmBacklight`, `SingleLed(GPIO48)`. Có các điểm gắn sẵn để FW2–FW6 thêm controller sau |
 | `firmware/main/boards/jarvis-helmet/README.md` | Hướng dẫn build và nạp |
