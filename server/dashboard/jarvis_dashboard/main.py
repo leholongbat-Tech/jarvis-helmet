@@ -81,8 +81,12 @@ class Monitor:
             await asyncio.sleep(0.5)
 
     async def poll_devices(self) -> None:
+        # Start-to-start cadence: a get_status round trip takes up to ~1 s while the helmet's
+        # Wi-Fi power save is on, so sleeping a full period after it would halve the rate.
+        loop = asyncio.get_running_loop()
         tick = 0
         while True:
+            started = loop.time()
             try:
                 hosts = self.device_hosts()
                 for host in hosts:
@@ -95,7 +99,7 @@ class Monitor:
             except Exception:  # noqa: BLE001
                 log.exception("device poll failed")
             tick += 1
-            await asyncio.sleep(self.settings.device_poll_s)
+            await asyncio.sleep(max(0.05, self.settings.device_poll_s - (loop.time() - started)))
 
     async def close(self) -> None:
         for link in self.links.values():
