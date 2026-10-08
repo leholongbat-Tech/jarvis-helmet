@@ -104,7 +104,7 @@ def test_pinned_images(services):
     for name, image in PINNED.items():
         assert services[name]["image"] == image, name
     assert re.fullmatch(r"redis:7\.4[.\d]*-alpine@sha256:[0-9a-f]{64}", services["redis"]["image"])
-    for name in ("xiaozhi", "asr", "tts-router", "vieneu"):
+    for name in ("xiaozhi", "asr", "tts-router", "vieneu", "dashboard"):
         assert services[name]["image"].startswith(f"jarvis/{name}:"), name
         assert "build" in services[name], name
 
@@ -113,19 +113,24 @@ def test_profiles(services):
     assert services["cloudflared"]["profiles"] == ["tunnel"]
     assert services["kokoro"]["profiles"] == ["english-tts"]
     assert services["asr-qwen"]["profiles"] == ["asr-qwen"]
+    assert services["dashboard"]["profiles"] == ["dashboard"]
     for name in ("xiaozhi", "asr", "ollama", "litellm", "redis", "tts-router", "vieneu"):
         assert "profiles" not in services[name], name
 
 
-# ---- ports (D21) --------------------------------------------------------------------------------
-def test_only_xiaozhi_publishes_ports(services):
+# ---- ports (D21, D32) ---------------------------------------------------------------------------
+PUBLISHING = {"xiaozhi", "dashboard"}  # D32: the opt-in dashboard is the only exception to D21
+
+
+def test_only_xiaozhi_and_the_dashboard_publish_ports(services):
     for name, svc in services.items():
-        if name != "xiaozhi":
+        if name not in PUBLISHING:
             assert not svc.get("ports"), f"{name} must not publish host ports"
     assert services["xiaozhi"]["ports"] == [
         "${XIAOZHI_BIND_IP:-0.0.0.0}:${XIAOZHI_WS_PORT:-8100}:8000",
         "${XIAOZHI_BIND_IP:-0.0.0.0}:${XIAOZHI_OTA_PORT:-8003}:8003",
     ]
+    assert services["dashboard"]["ports"] == ["${DASHBOARD_BIND_IP:-0.0.0.0}:${DASHBOARD_PORT:-8090}:8080"]
 
 
 def test_debug_override_binds_loopback_only():
@@ -195,6 +200,7 @@ NETWORKS = {
     "vieneu": {"tts"},
     "kokoro": {"tts"},
     "asr-qwen": {"asrnet"},
+    "dashboard": {"app"},  # health URLs of xiaozhi, asr, tts-router, litellm; never redis/ollama/vieneu
 }
 
 
@@ -232,7 +238,7 @@ def test_every_internal_url_is_reachable(services):
 
 
 def test_no_new_privileges_where_it_is_cheap(services):
-    for name in ("xiaozhi", "litellm", "tts-router"):
+    for name in ("xiaozhi", "litellm", "tts-router", "dashboard"):
         assert "no-new-privileges:true" in (services[name].get("security_opt") or []), name
 
 
@@ -248,6 +254,20 @@ def test_tts_router_env_matches_code(services):
     read -= {"HOST", "PORT", "LOG_LEVEL", "VIENEU_API_KEY"}  # image defaults / unused
     missing = read - set(env_of(services["tts-router"]))
     assert not missing, f"tts-router reads {sorted(missing)} but compose does not pass them"
+
+
+def test_dashboard_env_matches_code(services):
+    code = (SERVER / "dashboard" / "jarvis_dashboard" / "config.py").read_text(encoding="utf-8")
+    read = set(re.findall(r'_(?:get|float|int)\(env, "([A-Z0-9_]+)"', code))
+    # image defaults and tuning knobs left at their code defaults
+    read -= {"HOST", "PORT", "XIAOZHI_LOG_FILE", "JARVIS_MCP_PORT", "DASHBOARD_DEVICE_POLL_S",
+             "DASHBOARD_HEALTH_POLL_S"}
+    missing = read - set(env_of(services["dashboard"]))
+    assert not missing, f"dashboard reads {sorted(missing)} but compose does not pass them"
+    svc = services["dashboard"]
+    assert svc["volumes"] == ["xiaozhi_tmp:/xiaozhi-tmp:ro"], "read-only view of xiaozhi's log"
+    assert "/xiaozhi-tmp/server.log" in code
+    assert svc["read_only"] is True
 
 
 def test_xiaozhi_env_matches_template(services):
@@ -284,6 +304,7 @@ def test_secrets_only_where_needed(services):
         "JARVIS_GEMINI_API_KEY": {"litellm"},
         "LITELLM_MASTER_KEY": {"litellm", "xiaozhi"}, "XIAOZHI_AUTH_KEY": {"xiaozhi"},
         "TUNNEL_TOKEN": {"cloudflared"}, "HF_TOKEN": {"asr", "asr-qwen"},
+        "DASHBOARD_PASSWORD": {"dashboard"}, "JARVIS_MCP_TOKEN": {"dashboard"},
     }
     for secret, owners in allowed.items():
         have = {name for name, svc in services.items() if secret in env_of(svc)}
@@ -363,7 +384,7 @@ def _docker_compose_ok() -> bool:
 
 VARIANTS = {
     "default": ([BASE], []),
-    "all-profiles": ([BASE], ["tunnel", "english-tts", "asr-qwen"]),
+    "all-profiles": ([BASE], ["tunnel", "english-tts", "asr-qwen", "dashboard"]),
     "local": ([BASE, LOCAL], []),
     "debug": ([BASE, DEBUG], []),
     "local+debug": ([BASE, LOCAL, DEBUG], []),
@@ -417,10 +438,10 @@ def test_compose_config_validates(variant, dummy_env):
             want = [] if SHARED_HOST in files else [want_driver]
             assert [d["driver"] for d in devices] == want, (name, devices)
         ports = svc.get("ports") or []
-        if name != "xiaozhi" and DEBUG not in files:
+        if name not in PUBLISHING and DEBUG not in files:
             assert not ports, name
         for port in ports:
-            if name != "xiaozhi":
+            if name not in PUBLISHING:
                 assert port.get("host_ip") == "127.0.0.1", (name, port)
     if profiles == ["tunnel"] and LOCALLY_MANAGED in files:
         assert "/etc/cloudflared/config.yml" in cfg["services"]["cloudflared"]["command"]

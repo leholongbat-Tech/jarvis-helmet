@@ -115,7 +115,7 @@ HW1..HW3 + FW1 ─► HW4
 - Mỗi module có mục **Tiêu chí nghiệm thu**. Module chỉ coi là xong khi đạt hết các tiêu chí đó.
 - Phiên bản phần mềm bên ngoài ghi trong module tương ứng. Tên model AI (LLM, ASR) cần kiểm tra lại bản mới nhất lúc triển khai.
 
-## 7. Quyết định khi triển khai (D1–D31)
+## 7. Quyết định khi triển khai (D1–D32)
 
 Các quyết định chốt khi viết code, bổ sung hoặc điều chỉnh kế hoạch ban đầu. Mục nào ảnh hưởng tới giao tiếp firmware ↔ server
 cũng có trong `docs/interfaces.md`.
@@ -153,6 +153,7 @@ cũng có trong `docs/interfaces.md`.
 | D29 | Regex server | Id tác vụ và tên âm thanh kiểm tra bằng `fullmatch` như firmware |
 | D30 | Thẻ HUD | Tiêu đề được rỗng |
 | D31 | Header Cloudflare | Chỉ gửi qua https/wss tới đúng host đã đăng ký |
+| D32 | Dashboard | Trang trạng thái tùy chọn (profile `dashboard`): ngoại lệ duy nhất của D21, cổng 8090 trong LAN, mật khẩu bắt buộc (HTTP Basic); chỉ đọc log xiaozhi, `/health` của các service và tool trạng thái của mũ (`server/README.md` mục 3.7) |
 
 Bổ sung sau các vòng review: mạng Docker tách theo nhóm service (Redis, Ollama chỉ LiteLLM gọi được), khóa nhà cung cấp cloud
 chỉ đưa vào container LiteLLM dưới tên riêng (chặn đường pass-through vượt ngân sách), entrypoint từ chối khóa yếu,

@@ -8,11 +8,12 @@
 #   docker compose --profile tunnel up -d                 # + Cloudflare tunnel (TUNNEL_TOKEN)
 #   docker compose --profile english-tts up -d            # + Kokoro English TTS
 #   docker compose --profile asr-qwen up -d               # + Qwen3-ASR (vLLM) for ASR_ENGINE=qwen3_vllm
+#   docker compose --profile dashboard up -d              # + status page on :8090 (DASHBOARD_PASSWORD)
 #   docker compose -f docker-compose.yml -f docker-compose.local.yml ...   # Docker Desktop testing
 #   docker compose -f docker-compose.yml -f docker-compose.debug.yml ...   # internal APIs on 127.0.0.1
 #
 # Only xiaozhi publishes host ports (8000 on the host belongs to another project, and the
-# host already runs an Ollama on 11434). Everything else talks over internal networks, split so
+# host already runs an Ollama on 11434), plus the opt-in dashboard (D32). Everything else talks over internal networks, split so
 # that each container reaches only the services it calls (see `networks:` at the end).
 #
 # Environment: values come from server/.env (Compose interpolation). No service loads the
@@ -451,6 +452,48 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+      start_interval: 5s
+    logging: *default-logging
+
+  # --- Status page (opt-in profile dashboard, D32; README.md section 3.7) -------------------
+  # Read-only: the helmet's local MCP status tools, the services' /health and the conversation in
+  # xiaozhi's log. The page shows what the helmet heard: HTTP Basic auth, LAN only.
+  dashboard:
+    build:
+      context: ./dashboard
+    image: jarvis/dashboard:${JARVIS_IMAGE_TAG:-dev}
+    profiles: ["dashboard"]
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Asia/Ho_Chi_Minh}
+      # Required: the app refuses to start without a password.
+      DASHBOARD_PASSWORD:
+      DASHBOARD_USER:
+      # Helmet IPs polled besides the ones seen in the log (comma separated), and the local MCP
+      # token if one is provisioned on the helmet.
+      JARVIS_DEVICE_HOSTS:
+      JARVIS_MCP_TOKEN:
+      # Only shown on the page.
+      OLLAMA_MODEL:
+      CLOUD_MODEL:
+    ports:
+      - "${DASHBOARD_BIND_IP:-0.0.0.0}:${DASHBOARD_PORT:-8090}:8080"
+    volumes:
+      - xiaozhi_tmp:/xiaozhi-tmp:ro
+    networks: [app]
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - "import urllib.request as u, sys; sys.exit(0 if u.urlopen('http://127.0.0.1:8080/healthz', timeout=5).status == 200 else 1)"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
       start_interval: 5s
     logging: *default-logging
 

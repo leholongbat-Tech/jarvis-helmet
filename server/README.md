@@ -229,6 +229,36 @@ Quay lại thiết kế GPU khi có đủ VRAM (~25 GB): cài toolkit + CDI (m�
 biến `OLLAMA_*`/`ASR_*` trong `.env` về giá trị của `.env.example`, `scripts/pull_models.sh --apply --asr`, rồi
 `docker compose up -d`.
 
+### 3.7 Dashboard: trang trạng thái trên trình duyệt (tùy chọn)
+
+Service `dashboard` (profile `dashboard`, D32) mở một trang web trong LAN, tự làm mới mỗi 2 giây:
+
+- **Mũ**: trực tuyến hay không, đang nghe / đang nói, mức mic và loa (dBFS), kết quả dò mic, âm lượng, Wi-Fi, thời gian
+  chạy, bộ nhớ, mặt nạ, đèn mắt, chuỗi lệnh. Lấy từ MCP cục bộ của mũ (`ws://<IP-mũ>:8080/ws`, chỉ gọi
+  `self.system.get_status` và `self.get_device_status`, mỗi 5 giây một kết nối ngắn).
+- **Server**: `/health` của xiaozhi, ASR, tts-router, LiteLLM (model ASR, giọng TTS); model LLM local/cloud đang cấu hình.
+- **Hội thoại gần đây**: server nghe ra câu gì, Jarvis trả lời gì, lệnh nhanh và tool đã gọi, độ trễ từng bước (nhận dạng,
+  LLM, TTS, tổng từ lúc ngừng nói tới khi có tiếng). Đọc từ `tmp/server.log` của xiaozhi (volume `xiaozhi_tmp`, chỉ đọc).
+- **Lỗi gần đây**: các dòng ERROR trong log, kèm traceback.
+
+Bật trên batai: thêm vào `server/.env` rồi triển khai lại (`deploy.sh --apply`, hoặc `docker compose up -d`):
+
+```bash
+COMPOSE_PROFILES=dashboard
+DASHBOARD_PASSWORD=<mật khẩu dài>      # bắt buộc: thiếu thì container không chạy
+JARVIS_DEVICE_HOSTS=192.168.1.28       # tùy chọn: IP mũ; mũ đã kết nối server thì tự biết IP
+```
+
+Mở `http://<IP-batai>:8090` (`DASHBOARD_PORT`), đăng nhập user `jarvis` (`DASHBOARD_USER`) và mật khẩu trên.
+
+- Trang hiện **lời nói thu được qua mic** (cả câu của người xung quanh khi đang trong phiên): chỉ mở trong LAN, đặt
+  mật khẩu riêng, `DASHBOARD_BIND_IP=<IP LAN>` nếu không muốn mở trên mọi card mạng (kể cả Tailscale); chặn ngoài LAN
+  cùng các cổng xiaozhi: `scripts/firewall_lan.sh --ports "8100 8003 8090"` (mục 8).
+- Log không ghi phiên của từng thiết bị: hai thiết bị nói cùng lúc (ví dụ thêm bộ giả lập) thì hội thoại có thể bị gán
+  nhầm, và phiên không thấy dòng ngắt kết nối quá 10 phút được báo "không còn hoạt động". Thiết bị có MAC kiểu
+  "locally administered" (bộ giả lập) được hiện là thiết bị giả lập và không bị dò MCP.
+- Mũ có token MCP cục bộ (`tools/provision_secrets.py --mcp-token`) thì đặt cùng giá trị vào `JARVIS_MCP_TOKEN`.
+
 ## 4. Triển khai và cập nhật
 
 Từ PC (Git Bash trên Windows hoặc Linux/macOS), luôn chạy thử trước:
@@ -336,6 +366,7 @@ docker run --rm -v jarvis_redis_data:/v -v "$PWD/backup:/b" alpine:3 sh -c 'cd /
 |---|---|---|---|
 | **8100**/tcp (`XIAOZHI_WS_PORT`) | `xiaozhi:8000` | WebSocket `ws://<IP>:8100/xiaozhi/v1/` | chỉ LAN |
 | **8003**/tcp (`XIAOZHI_OTA_PORT`) | `xiaozhi:8003` | OTA `http://<IP>:8003/xiaozhi/ota/` | chỉ LAN |
+| **8090**/tcp (`DASHBOARD_PORT`) | `dashboard:8080` | trang trạng thái (chỉ khi bật profile `dashboard`, mục 3.7) | chỉ LAN, có mật khẩu |
 | – | asr 9000, litellm 4000, redis 6379, tts-router 8880, vieneu 8000, kokoro 8880, ollama 11434, asr-qwen 8000 | nội bộ mạng Docker | không mở |
 
 - Cổng **8000 của host thuộc dự án khác**: WebSocket của Jarvis mở ở 8100 (bên trong container vẫn là 8000).
@@ -346,7 +377,7 @@ docker run --rm -v jarvis_redis_data:/v -v "$PWD/backup:/b" alpine:3 sh -c 'cd /
 - `cloudflared` chỉ cần đi ra cổng 7844 TCP/UDP (và 443), không cần mở cổng vào.
 - Đổi cổng host thì sửa cả `PUBLIC_WS_URL` / `PUBLIC_OTA_URL` và địa chỉ OTA trong firmware.
 - Mạng Docker được tách để mỗi container chỉ thấy service nó gọi: `edge` (cloudflared, xiaozhi),
-  `app` (xiaozhi, litellm, asr, tts-router), `llm` (litellm, redis, ollama), `tts` (tts-router,
+  `app` (xiaozhi, litellm, asr, tts-router, dashboard), `llm` (litellm, redis, ollama), `tts` (tts-router,
   vieneu, kokoro), `asrnet` (asr, asr-qwen). Redis (bộ đếm ngân sách cloud, không mật khẩu) và Ollama
   chỉ LiteLLM gọi được; VieNeu (mã bên thứ ba) chỉ thấy tts-router. Mạng nào cũng ra Internet được.
   Container phụ (test LLM, sinh dữ liệu wake word) nối vào đúng mạng: `--network jarvis_app` để gọi
