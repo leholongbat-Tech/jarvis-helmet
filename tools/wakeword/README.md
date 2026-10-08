@@ -11,6 +11,7 @@ gen_positives.py   tạo 2.000–5.000 câu "quản gia" bằng VieNeu-TTS (+ Pi
 gen_negatives.py   tạo câu âm gần âm (quản lý, gia đình, quán gà, hoàng gia…) từ negatives_vi.txt
 record_personal.py ghi 50–100 mẫu giọng của chính bạn bằng mic laptop (giọng Bắc và Nam)
 augment.py         trộn nhiễu, tiếng vọng kiểu trong mũ giáp, đổi âm lượng
+ctx_positives.py   mẫu dương có câu lệnh nói liền sau từ đánh thức ("Hàu ơi, mở mặt nạ")
 train.sh           train trên server RTX 5090 bằng image microWakeWord trainer (Docker)
 export/tflite_to_c.py  model .tflite + manifest .json -> firmware/.../mww_model_data.c
 eval_wakeword.py   đếm số lần nhận/kích nhầm trên file ghi âm, đúng thuật toán của firmware
@@ -148,6 +149,9 @@ tools/wakeword/train.sh --dry-run ...     # chỉ in kế hoạch
   `25hours_single-low` (piper 0.2.0) không có ký hiệu thanh điệu trong bảng phoneme, phonemizer của
   piper-tts 1.8 sinh số thanh (`hˈa2w`) rồi bị bỏ âm thầm: "hàu", "hầu", "hậu" đọc như nhau. Script
   chỉ tải vais1000 (một giọng).
+- Mọi clip đưa vào (`--positives`, `--negatives`, `--own-tts`) phải là WAV PCM 16 bit: lớp `Clips` của
+  microWakeWord đọc header clip đầu tiên bằng module `wave` của Python (không đọc được WAV float, ví
+  dụ FLEURS gốc) và trainer chỉ hỏng sau bước tăng cường dài. Script kiểm tra trước khi chép.
 - `--own-tts out/x/tts`: dùng clip của ta (ví dụ VieNeu, 25 giọng, đúng thanh) làm bộ mẫu TTS chính
   của trainer thay cho bộ nó tự sinh. Script chép clip thành `work/wake_word_samples/0..N-1.wav`
   kèm manifest mang đúng "chữ ký" mà trainer tự tính (`tts_generate_samples.py --dry-run`), nên
@@ -171,7 +175,11 @@ tử hoá int8 theo tham số của model, một lần suy luận mỗi `stride`
 W xác suất so với ngưỡng `pct*255/100`, thời gian chờ 1 s sau mỗi lần nhận. Kết quả là bảng
 recall (số clip dương có nhận) và số lần kích nhầm mỗi giờ cho từng cặp (ngưỡng, cửa sổ); dấu
 `*` đánh dấu cặp đạt tiêu chí FW7 (≥ 90% và ≤ 1 lần/giờ, đổi bằng `--min-recall`,
-`--max-fa-per-hour`). Mỗi clip dương được thêm 1,5 s yên lặng phía trước (như thiết bị đang chạy).
+`--max-fa-per-hour`). Mỗi clip dương được thêm 1,5 s yên lặng phía trước và 1 s phía sau
+(`--lead-ms`, `--trail-ms`), như thiết bị đang nghe liên tục. Phần phía sau là bắt buộc: trainer đặt
+từ đánh thức kết thúc 0,2–0,3 s trước cuối cửa sổ, nên model kích hoạt *sau* âm tiết cuối; cắt clip
+ngay sau từ thì không bao giờ nhận (bản đầu của script thiếu phần này và báo recall ~5% cho chính mẫu
+train).
 
 ## 7. Đưa model vào firmware
 

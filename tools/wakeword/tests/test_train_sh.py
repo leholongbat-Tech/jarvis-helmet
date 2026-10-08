@@ -9,6 +9,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import wave
 from pathlib import Path
 
 import pytest
@@ -101,10 +102,14 @@ def test_setup_only_prepares_without_training(tmp_path):
     assert not [line for line in lines if "would copy" in line], lines
 
 
-def make_clips(folder: Path, count: int) -> str:
+def make_clips(folder: Path, count: int, sampwidth: int = 2) -> str:
     folder.mkdir(parents=True)
     for i in range(count):
-        (folder / f"c{i}.wav").write_bytes(b"RIFF")
+        with wave.open(str(folder / f"c{i}.wav"), "wb") as clip:
+            clip.setnchannels(1)
+            clip.setsampwidth(sampwidth)
+            clip.setframerate(16000)
+            clip.writeframes(b"\0" * sampwidth * 160)
     return str(folder).replace("\\", "/")
 
 
@@ -141,6 +146,20 @@ def test_only_the_tone_keeping_piper_voice_is_fetched(tmp_path):
     assert "vi_VN-vais1000-medium" in run
     assert "vivos" not in run and "25hours" not in run
     assert "OWN_TTS=0" in run
+
+
+def test_clips_that_are_not_16_bit_pcm_are_refused_before_copying(tmp_path):
+    # microWakeWord reads the first clip header with Python's wave module (integer PCM only);
+    # a 32-bit clip would abort the trainer only after the long augmentation.
+    neg = make_clips(tmp_path / "neg", 2, sampwidth=4)
+    data_dir = str(tmp_path / "mww").replace("\\", "/")
+    result = subprocess.run([BASH, str(TRAIN).replace("\\", "/"), "--dry-run", "--no-pull",
+                             "--data-dir", data_dir, "--negatives", neg],
+                            capture_output=True, text=True, encoding="utf-8", timeout=60)
+    if result.returncode == 0:
+        pytest.skip("no usable python3 in this bash: the check is skipped")
+    assert "16-bit PCM" in result.stderr and "c0.wav: 32-bit" in result.stderr
+    assert "[dry-run] cp" not in result.stdout
 
 
 def test_keep_features_skips_the_cleanup(tmp_path):

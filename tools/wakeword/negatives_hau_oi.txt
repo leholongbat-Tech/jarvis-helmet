@@ -74,6 +74,27 @@ mẹ ơi con đói rồi
 hào hứng quá đi mất
 cái này hay ơi là hay
 tàu ơi chạy chậm thôi
+# Woke the first model on FLEURS read news (10/2026): "hòa với", "xa hoa", "Hoa Kỳ", "hoặc"
+hòa với
+làm hòa với nhau
+hoà với
+sự xa hoa
+xa hoa lộng lẫy
+Hoa Kỳ
+người Hoa
+hoa ơi
+hào hoa
+hoặc là
+hoặc trong trường hợp
+hoạ sĩ
+hoài niệm
+hội đồng
+hồi ấy
+hơi mệt
+cả hai người
+tháng sáu
+cao ơi
+gầu ơi
 # Everyday speech the helmet will hear (commands, replies, chatter)
 mở mặt nạ đi
 đóng mặt nạ lại

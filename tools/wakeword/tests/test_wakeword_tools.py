@@ -14,6 +14,7 @@ import numpy as np
 import pytest
 
 import augment
+import ctx_positives
 import eval_wakeword
 import gen_negatives
 import gen_positives
@@ -395,3 +396,51 @@ def test_quantization_matches_firmware_formula():
     # Reference integer formula from the TFLM micro_speech example.
     reference = [max(-128, min(127, (v * 256 + 333) // 666 - 128)) for v in (0, 333, 666, 1000, 65535)]
     assert q == reference
+
+
+def test_positive_clips_get_quiet_audio_after_them(tmp_path, monkeypatch):
+    # The trainer places wake words 0.2-0.3 s before the end of its window, so models fire just
+    # after the last syllable: a clip cut right there would never be detected.
+    clip = tmp_path / "a.wav"
+    ww.write_wav(clip, sine(440, 0.5))
+    lengths = []
+
+    def features(audio):
+        lengths.append(len(audio))
+        return np.zeros((0, 40), np.uint16)
+
+    class Dummy:
+        def probabilities(self, feats):
+            return np.zeros(0, np.int16)
+
+    monkeypatch.setattr(eval_wakeword, "compute_features", features)
+    streams = eval_wakeword.load_streams(Dummy(), [clip], lead_ms=1500, trail_ms=1000)
+    assert lengths == [int(0.5 * RATE) + int(1.5 * RATE) + RATE]
+    assert streams[0].seconds == pytest.approx(0.5)  # only the clip itself counts
+
+
+def test_ctx_positive_ends_inside_the_next_word():
+    silence = np.zeros(int(0.3 * RATE), np.float32)
+    wake = np.concatenate([silence, sine(300, 0.5), silence])
+    following = np.concatenate([silence, sine(2000, 0.6), silence])
+    out = ctx_positives.join(wake, following, gap_s=0.05, after_s=0.30, rng=random.Random(1))
+    trimmed = ww.trim_silence(wake, pad_ms=20)
+    assert len(out) == len(trimmed) + int(0.30 * RATE)
+    assert abs(dominant_hz(out[: len(trimmed)]) - 300) < 50
+    assert abs(dominant_hz(out[-int(0.15 * RATE):]) - 2000) < 100  # the command has started
+
+
+def test_ctx_positives_cli(tmp_path):
+    for sub, freq in (("w", 300), ("n", 2000)):
+        (tmp_path / sub).mkdir()
+        for i in range(2):
+            ww.write_wav(tmp_path / sub / f"{sub}{i}.wav", sine(freq, 0.5))
+    out = tmp_path / "o"
+    assert ctx_positives.main(["--wake", str(tmp_path / "w"), "--next", str(tmp_path / "n"),
+                               "--out", str(out), "--count", "5"]) == 0
+    rows = [json.loads(line) for line in (out / "manifest.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert len(rows) == 5 and len(list(out.glob("*.wav"))) == 5
+    assert all(row["after_s"] >= row["gap_s"] + 0.02 for row in rows)
+    assert ctx_positives.main(["--wake", str(tmp_path / "w"), "--next", str(tmp_path / "missing"),
+                               "--out", str(out)]) == 1
+

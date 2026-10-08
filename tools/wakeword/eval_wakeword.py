@@ -202,17 +202,26 @@ class Result:
         return self.false_accepts / self.negative_hours if self.negative_hours > 0 else None
 
 
-def load_streams(model: StreamingModel, files: list[Path], lead_ms: int) -> list[Stream]:
+def quiet(rng: np.random.Generator, ms: int) -> np.ndarray:
+    """-70 dBFS noise: what the device hears between utterances in a quiet room."""
+    return (rng.standard_normal(int(ms * ww.TARGET_RATE / 1000)) * 10 ** (-70 / 20)).astype(np.float32)
+
+
+def load_streams(model: StreamingModel, files: list[Path], lead_ms: int,
+                 trail_ms: int = 0) -> list[Stream]:
     streams = []
     rng = np.random.default_rng(0)
     for path in files:
         audio = ww.read_audio(path)
         seconds = len(audio) / ww.TARGET_RATE
+        # The device runs continuously: quiet audio before the clip warms up the frontend and
+        # the refractory, and audio keeps coming after it - the trainer places every wake word
+        # 0.2-0.3 s before the end of its window, so models fire a little after the last
+        # syllable and a clip cut right after it would never be detected.
         if lead_ms > 0:
-            # The device runs continuously: give the frontend/refractory warm-up some
-            # quiet audio (-70 dBFS noise) before the clip.
-            lead = (rng.standard_normal(int(lead_ms * ww.TARGET_RATE / 1000)) * 10 ** (-70 / 20))
-            audio = np.concatenate([lead.astype(np.float32), audio])
+            audio = np.concatenate([quiet(rng, lead_ms), audio])
+        if trail_ms > 0:
+            audio = np.concatenate([audio, quiet(rng, trail_ms)])
         probs = model.probabilities(compute_features(audio))
         valid = probs[probs >= 0]
         streams.append(Stream(path, seconds, probs, int(valid.max()) if len(valid) else 0))
@@ -261,6 +270,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--windows", default=None, help="e.g. '3:8:1' or '5,6'")
     parser.add_argument("--lead-ms", type=int, default=1500,
                         help="quiet lead-in before each positive clip (0 to disable)")
+    parser.add_argument("--trail-ms", type=int, default=1000,
+                        help="quiet audio after each positive clip (0 to disable)")
     parser.add_argument("--no-warmup", action="store_true",
                         help="disable the 1 s refractory at the start of each file")
     parser.add_argument("--min-recall", type=float, default=0.9, help="FW7: 18/20 quiet")
@@ -283,7 +294,7 @@ def main(argv: list[str] | None = None) -> int:
 
     model = StreamingModel(args.model)
     print(f"model {args.model.name}: stride {model.stride}, input zero point {model.zero_point}")
-    positives = load_streams(model, audio_files(args.positives), args.lead_ms)
+    positives = load_streams(model, audio_files(args.positives), args.lead_ms, args.trail_ms)
     negatives = load_streams(model, audio_files(args.negatives), 0)
     neg_hours = sum(s.seconds for s in negatives) / 3600.0
     print(f"{len(positives)} positive clips, {len(negatives)} negative files ({neg_hours:.2f} h)")

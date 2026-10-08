@@ -135,6 +135,33 @@ esac
 command -v docker >/dev/null 2>&1 || [[ ${DRY_RUN} -eq 1 ]] || die "docker not found"
 
 # --------------------------------------------------------------------------- 1. stage clips
+check_pcm16() {  # check_pcm16 <dir>
+  # microWakeWord's Clips reads the first clip's header with Python's wave module, which only
+  # knows integer PCM: a float WAV (e.g. FLEURS) aborts the trainer after the long augmentation.
+  python3 -c "import wave" >/dev/null 2>&1 || return 0  # no usable python3: skip the check
+  python3 - "$1" <<'PY' || die "convert the clips in $1 to 16-bit PCM WAV first"
+import pathlib
+import sys
+import wave
+
+bad = []
+for path in sorted(pathlib.Path(sys.argv[1]).iterdir()):
+    if path.suffix.lower() != ".wav":
+        continue
+    try:
+        with wave.open(str(path), "rb") as clip:
+            if clip.getsampwidth() != 2:
+                bad.append(f"{path.name}: {8 * clip.getsampwidth()}-bit")
+    except (wave.Error, EOFError) as exc:
+        bad.append(f"{path.name}: {exc}")
+    if len(bad) == 3:
+        break
+if bad:
+    print("not 16-bit PCM WAV:", *bad, sep="\n  ", file=sys.stderr)
+    sys.exit(1)
+PY
+}
+
 stage_dir() {  # stage_dir <list> <target dir> <prefix>; the target ends up with exactly these clips
   local list="$1" target="$2" prefix="$3" count=0 dir file base
   run rm -rf "${target}"
@@ -143,6 +170,7 @@ stage_dir() {  # stage_dir <list> <target dir> <prefix>; the target ends up with
   for dir in "${dirs[@]}"; do
     [[ -z "${dir}" ]] && continue
     [[ -d "${dir}" ]] || die "not a folder: ${dir}"
+    check_pcm16 "${dir}"
     base="$(basename "${dir}")"
     while IFS= read -r -d '' file; do
       run cp -f "${file}" "${target}/${prefix}_${base}_$(basename "${file}")"
