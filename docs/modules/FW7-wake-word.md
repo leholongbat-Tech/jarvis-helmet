@@ -49,7 +49,7 @@ Bộ thử: 20 lần gọi mỗi từ × 3 khoảng cách/điều kiện (yên t
 ## 4. Công việc
 - [x] Build phương án A (biến thể `jarvis-helmet`); [ ] đo trên mũ thật, lấy làm mốc
 - [x] Build B1 (biến thể `jarvis-helmet-multinet`); [ ] thử bằng giọng người dùng, ghi kết quả
-- [x] Dựng pipeline train (B2) và bộ nhận trên thiết bị (biến thể `jarvis-helmet-mww`); [ ] train model "Quản gia" trên 5090, đưa vào firmware
+- [x] Dựng pipeline train (B2) và bộ nhận trên thiết bị (biến thể `jarvis-helmet-mww`); [x] train model "Hàu ơi" (D33, người dùng chọn thay "Quản gia") trên CPU batai, đưa vào firmware và nạp board thử; [ ] thử bằng giọng người dùng
 - [x] Ngắt lời bằng wake word: khử vọng phía server không dùng được với WebSocket → mặc định tắt khi đang nói (`CONFIG_JARVIS_WAKE_WORD_BARGE_IN=n`), đã ghi giới hạn
 - [x] Mẫu báo cáo so sánh (`docs/wakeword-report.md`); [ ] điền số đo, chọn phương án cuối cùng
 
@@ -62,7 +62,10 @@ Bộ thử: 20 lần gọi mỗi từ × 3 khoảng cách/điều kiện (yên t
 ## Ghi chú triển khai (10/2026)
 
 **Trạng thái:** 3 phương án đều build được (D11); cách đo, bảng kết quả và tiêu chí chọn ở
-[`docs/wakeword-report.md`](../wakeword-report.md). **Chưa đo trên mũ thật, chưa train model "Quản gia".**
+[`docs/wakeword-report.md`](../wakeword-report.md). Ngày 8/10/2026 đã train model microWakeWord **"Hàu ơi"** (tên
+tiếng Việt người dùng chọn, D33) chỉ bằng giọng TTS, nạp vào board thử: offline 97,7% clip "Hàu ơi" được nhận,
+0,63 lần kích nhầm/giờ trên 3,2 giờ giọng người thật (chi tiết: `tools/wakeword/README.md` mục 9, báo cáo mục 4.3).
+**Chưa thử bằng giọng thật, chưa đo trên mũ thật.**
 
 | Kế hoạch | Thực tế | Lý do |
 |---|---|---|

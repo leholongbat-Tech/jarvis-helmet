@@ -2,7 +2,7 @@
 
 Mũ giáp kiểu Iron Man có trợ lý ảo **Jarvis**:
 - nghe hiểu **tiếng Việt và tiếng Anh, kể cả trộn trong cùng một câu**;
-- đánh thức bằng giọng nói ("Jarvis"; "Quản gia" ở biến thể firmware B1/B2) hoặc nút bấm (PTT);
+- đánh thức bằng giọng nói ("Jarvis"; "Hàu ơi" ở biến thể firmware B2, "Quản gia" ở B1) hoặc nút bấm (PTT);
 - trả lời bằng giọng nói, giọng nam tiếng Việt (VieNeu-TTS), tiếng Anh tùy chọn bằng Kokoro;
 - điều khiển 2 servo nâng mặt nạ, đèn mắt và một kênh output dự phòng;
 - chạy các tác vụ tùy biến khai báo trong file YAML, kể cả khi mất mạng (nút bấm);
@@ -22,8 +22,8 @@ server qua LAN. Ngày 8/10 cả chuỗi nói chuyện đã chạy trên board th
 chất lượng loa (ngõ ra 48 kHz, lọc cắt trầm). Cách kiểm tra mic và loa: [board README mục 8.1](firmware/main/boards/jarvis-helmet/README.md).
 
 **Chưa làm:** lắp mũ hoàn chỉnh và đo đạc (HW1–HW4, servo/đèn, hiệu chỉnh, độ trễ thật), GPU riêng cho Jarvis (cần VRAM
-trống và NVIDIA Container Toolkit), Cloudflare Tunnel + Access và khóa Anthropic, huấn luyện wake word "Quản gia", thu
-dữ liệu giọng thật cho ASR/wake word. Kết quả nghiệm thu ghi vào [docs/test-report.md](docs/test-report.md).
+trống và NVIDIA Container Toolkit), Cloudflare Tunnel + Access và khóa Anthropic, thử wake word "Hàu ơi" bằng giọng thật (model
+đã train và nạp ngày 8/10), thu dữ liệu giọng thật cho ASR/wake word. Kết quả nghiệm thu ghi vào [docs/test-report.md](docs/test-report.md).
 
 ## Kiến trúc
 
@@ -87,7 +87,7 @@ python tools/tasks_cli.py validate
 | [FW4](docs/modules/FW4-sequence-mcp.md) | Sequence runner & MCP tools | Firmware | FW2, FW3 | Code xong, test máy tính OK |
 | [FW5](docs/modules/FW5-nut-bam-offline.md) | Nút bấm & chế độ offline | Firmware | FW4 | Code xong; chờ mũ thật |
 | [FW6](docs/modules/FW6-hud-display.md) | HUD Iron Man & font tiếng Việt | Firmware | FW1 | Code xong, font đủ glyph; chờ màn hình thật |
-| [FW7](docs/modules/FW7-wake-word.md) | Wake word "Jarvis" + "Quản gia" | Firmware | FW1, SV4 | 3 phương án đã build; "Quản gia" (B2) chờ huấn luyện |
+| [FW7](docs/modules/FW7-wake-word.md) | Wake word "Jarvis" + tên tiếng Việt | Firmware | FW1, SV4 | 3 phương án đã build; "Hàu ơi" (B2) đã train và nạp, offline 97,7% / 0,63 kích nhầm mỗi giờ; chờ thử bằng giọng thật |
 | [SV1](docs/modules/SV1-ha-tang.md) | Hạ tầng server (GPU, Docker) | Server | – | Script xong; chờ quyền sudo trên batai |
 | [SV2](docs/modules/SV2-asr.md) | Nhận dạng giọng nói Việt–Anh | Server | SV1 | Code xong; chờ dữ liệu giọng thật để đo WER |
 | [SV3](docs/modules/SV3-llm.md) | LLM local + chuyển sang cloud | Server | SV1 | Code xong; chờ khóa Anthropic |

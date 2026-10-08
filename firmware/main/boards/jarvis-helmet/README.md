@@ -25,7 +25,7 @@ Bảng chân đầy đủ ở `config.h` (theo `docs/modules/HW2-dau-noi-tin-hie
 | `jarvis-helmet` | LCD 8 chân (có CS) – **mặc định** | `CONFIG_LCD_ST7789_240X240=y` |
 | `jarvis-helmet-7pin` | LCD 7 chân (không có CS) | `CONFIG_LCD_ST7789_240X240_7PIN=y` (SPI mode 3) |
 | `jarvis-helmet-multinet` | Wake word MultiNet "jia wei si" + "guan jia" (phương án B1, FW7) | Build **không** có `--wake-word` |
-| `jarvis-helmet-mww` | Thử nghiệm microWakeWord "Quản gia" trên thiết bị (phương án B2, FW7) | `CONFIG_JARVIS_MICRO_WAKE_WORD=y` |
+| `jarvis-helmet-mww` | WakeNet "Jarvis" + microWakeWord "Hàu ơi" (phương án B2, FW7, D33); model train bằng `tools/wakeword` (mục 9), không commit | `CONFIG_JARVIS_MICRO_WAKE_WORD=y`, ngưỡng 95 / cửa sổ 5 |
 
 Mọi biến thể dùng chung: bảng phân vùng riêng `partitions_jarvis_16m.csv` và `CONFIG_HTTPD_WS_SUPPORT=y`
 (server MCP cục bộ để hiệu chỉnh servo; `CONFIG_JARVIS_LOCAL_MCP_WS` tự bật thêm
@@ -287,7 +287,7 @@ xanh lá = đang nói, tắt = chờ.
 | `CONFIG_JARVIS_LOCAL_MCP_WS_PORT` | 8080 | Cổng của server trên |
 | `CONFIG_JARVIS_CF_ACCESS_ID` / `_SECRET` | "" | Token Cloudflare Access dự phòng (ưu tiên NVS) |
 | `CONFIG_JARVIS_MICRO_WAKE_WORD` | n | Bộ nhận microWakeWord trên thiết bị (thử nghiệm) |
-| `CONFIG_JARVIS_MWW_CUTOFF_PCT` / `_SLIDING_WINDOW` | 97 / 5 | Ngưỡng và cửa sổ trượt của microWakeWord (chỉ hiện khi bật option trên) |
+| `CONFIG_JARVIS_MWW_CUTOFF_PCT` / `_SLIDING_WINDOW` | 97 / 5 | Ngưỡng và cửa sổ trượt của microWakeWord (chỉ hiện khi bật option trên); biến thể `jarvis-helmet-mww` đặt 95 / 5, giá trị trainer hiệu chỉnh cho model "Hàu ơi" |
 
 ## 12. Đèn mắt và mặt nạ (chi tiết hành vi)
 

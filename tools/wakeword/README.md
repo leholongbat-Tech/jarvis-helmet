@@ -240,19 +240,44 @@ python $W/gen_negatives.py --wake-word "hàu ơi" --phrases $W/negatives_hau_oi.
 python $W/gen_negatives.py --wake-word "hàu ơi" --phrases $W/negatives_vi.txt --api-url $API \
     --sampling-params --per-phrase 4 --workers 2 --seed 7 --out out/hau_oi/negatives_vi
 python $W/augment.py --in out/hau_oi/positives --out out/hau_oi/positives_aug --variants 1
+# "Hàu ơi" + câu lệnh nói liền: câu lệnh bằng VieNeu, rồi ghép
+python $W/gen_negatives.py --wake-word "hàu ơi" --phrases $W/commands_vi.txt --api-url $API \
+    --sampling-params --per-phrase 10 --workers 2 --seed 21 --out out/hau_oi/commands
+python $W/ctx_positives.py --wake out/hau_oi/positives --next out/hau_oi/commands \
+    --out out/hau_oi/positives_ctx --count 3000
+# Giọng người thật làm mẫu âm: FLEURS vi_vn train + dev (CC BY 4.0; bộ test để đánh giá), tải
+# huggingface.co/datasets/google/fleurs data/vi_vn/audio/{train,dev}.tar.gz rồi đổi WAV float
+# sang PCM 16 bit (trainer không đọc được WAV float):
+python -c "import sys, pathlib; sys.path.insert(0, '$W'); import wwcommon as ww
+for f in sorted(pathlib.Path('fleurs').glob('*/*.wav')):
+    ww.write_wav(pathlib.Path('out/hau_oi/fleurs_neg') / f'{f.parent.name}_{f.name}', ww.read_audio(f))"
 
 # 2. Train bằng CPU (lần đầu --setup-only tải ~30 GB dataset, chạy song song với bước 1)
 IMG=ghcr.io/tatertotterson/microwakeword:v32@sha256:be8a8d6516cdbeee32300f3219402b9b865bd4be66b8cb75acf0b1d9624ded72
 tools/wakeword/train.sh --setup-only --data-dir ~/mww --gpu none --cpus 12 --tts-mode piper --image $IMG
 tools/wakeword/train.sh --data-dir ~/mww --gpu none --cpus 12 --tts-mode piper --image $IMG \
     --wake-word "hàu ơi" --title "Hàu ơi" --slug hau_oi --own-tts out/hau_oi/tts \
-    --positives out/hau_oi/positives,out/hau_oi/positives_aug \
-    --negatives out/hau_oi/negatives,out/hau_oi/negatives_vi --steps 40000
+    --positives out/hau_oi/positives,out/hau_oi/positives_aug,out/hau_oi/positives_ctx \
+    --negatives out/hau_oi/negatives,out/hau_oi/negatives_vi,out/hau_oi/fleurs_neg --steps 40000
 
-# 3. Firmware: chữ "Hàu ơi" gửi lên server nằm cùng model
+# 3. Firmware: chữ "Hàu ơi" gửi lên server nằm cùng model; biến thể jarvis-helmet-mww đã đặt
+#    ngưỡng 95 / cửa sổ 5 (giá trị trainer hiệu chỉnh cho model này)
 python tools/wakeword/export/tflite_to_c.py --model out/model/hau_oi.tflite \
     --manifest out/model/hau_oi.json --wake-word "Hàu ơi"
 ```
+
+Kết quả (train 35 phút trên 12 nhân CPU, model 135 KB; đánh giá bằng `eval_wakeword.py` trên clip
+VieNeu mới `--seed 99` và 3,18 giờ FLEURS vi_vn test – giọng người thật đọc tin tức):
+
+| Model | Ngưỡng / cửa sổ | "Hàu ơi" (300) | "Hàu ơi, <lệnh>" (200) | Kích nhầm/giờ |
+|---|---|---|---|---|
+| v1: chưa có mẫu nối lệnh, chưa có âm FLEURS | 97 / 5 | 98,0% | ~63% | 3,46 |
+| **v2**: thêm `positives_ctx`, `fleurs_neg` và các cụm cuối trong `negatives_hau_oi.txt` | **95 / 5** | **97,7%** | **76,0%** | **0,63** |
+
+Kích nhầm của v1 rơi vào "làm **hòa với**", "**xa hoa**", "**Hoa** Kỳ", "**hoặc** trong"…: model
+chưa từng nghe tiếng Việt nói thường làm mẫu âm. Trên board thử (8/10): `Ready for "Hàu ơi"`, mỗi lần
+suy luận 7,1 ms (49 lần/s), `minimal sram` 33.468 B, không tự thức trong 76 phút để chờ giữa văn phòng
+có người nói chuyện. Model không commit (giấy phép dataset), nằm ở `out/model/` trên máy build.
 
 - **Gần đồng âm:** ASR của server (Whisper medium) nghe phần lớn clip VieNeu "hàu ơi" thành "Hậu ơi",
   một số thành "hầu ơi", "Hào ơi" (Whisper chuộng tên riêng "Hậu"; trên clip 0,5–0,8 s nó còn đoán

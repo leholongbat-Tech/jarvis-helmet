@@ -207,6 +207,7 @@ trong phân vùng `jsecrets`). Log serial khi cần: `idf.py -p COM5 monitor | t
 - **Mũ thật**: cần biến thể firmware nhận được "Quản gia": phương án A (`wn9_jarvis_tts`) chỉ có "Jarvis"; B1
   (`jarvis-helmet-multinet`, "jia wei si" + "guan jia") hoặc B2 (`jarvis-helmet-mww`, model microWakeWord đã train) – theo quyết định
   trong `docs/wakeword-report.md`. Mặt nạ mở sẵn; nói "Quản gia", rồi "close the mask" (hoặc liền một hơi).
+  Với B2 từ tiếng Việt là **"Hàu ơi"** (D33): nói "Hàu ơi, close the mask"; server nhận "Hàuơi" trong `wakeup_words`.
 - **Đạt khi**: mũ thức dậy với "Quản gia" và mặt nạ đóng. Độ nhạy (≥ 18/20) và kích nhầm đo theo `docs/wakeword-report.md`.
 - **Bằng chứng**: `summary.json`, video, biến thể firmware đã dùng.
 

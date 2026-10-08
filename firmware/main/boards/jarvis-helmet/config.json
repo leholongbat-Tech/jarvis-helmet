@@ -45,6 +45,8 @@
                 "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME=\"main/boards/jarvis-helmet/partitions_jarvis_16m.csv\"",
                 "CONFIG_HTTPD_WS_SUPPORT=y",
                 "CONFIG_JARVIS_MICRO_WAKE_WORD=y",
+                "CONFIG_JARVIS_MWW_CUTOFF_PCT=95",
+                "CONFIG_JARVIS_MWW_SLIDING_WINDOW=5",
                 "CONFIG_OTA_URL=\"http://192.168.1.27:8003/xiaozhi/ota/\""
             ]
         }

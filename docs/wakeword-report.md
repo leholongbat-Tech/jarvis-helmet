@@ -226,21 +226,30 @@ Chạy `eval_wakeword.py` (mục 2, bước 6) trên clip dương thật (yên t
 
 Nếu chỉnh ngưỡng: lặp bảng cho từng giá trị ngưỡng đã thử (ghi cả số nhận và số kích nhầm).
 
-### 4.3 Phương án B2 – WakeNet "Jarvis" + microWakeWord "Quản gia"
+### 4.3 Phương án B2 – WakeNet "Jarvis" + microWakeWord "Hàu ơi" (D33)
+
+Người dùng chọn "Hàu ơi" làm tên tiếng Việt (thay "Quản gia"); các bảng dưới dành cho từ này.
 
 | Cấu hình | Giá trị |
 |---|---|
-| Biến thể / commit | `jarvis-helmet-mww` / … |
-| Model (`quan_gia.tflite`), ngày train, số bước | … |
-| Dữ liệu train | TTS dương …, Piper …, giọng thật … (mic laptop … / mic mũ …), âm gần âm …, số giờ âm tính của trainer … |
-| `CONFIG_JARVIS_MWW_CUTOFF_PCT` / `_SLIDING_WINDOW` | … / … (manifest gợi ý: … / …) |
-| Log `Ready for "Quản gia"` | model … B, stride …, arena … B |
+| Biến thể / commit | `jarvis-helmet-mww` / model không commit (giấy phép dataset), build từ bản sao firmware |
+| Model (`hau_oi.tflite`), ngày train, số bước | 137.960 B, SHA-256 `a4b71ecb…`, 8/10/2026, 40.000 bước trên 12 nhân CPU batai (35 phút) |
+| Dữ liệu train | Chỉ TTS: VieNeu 25 giọng (7.500 clip làm bộ TTS của trainer + 3.000 + 3.000 tăng cường vọng mũ + 3.000 "Hàu ơi" nối lệnh); âm: 1.184 câu VieNeu gần âm/thường ngày + 3.355 câu FLEURS vi train/dev (giọng thật) + dataset âm của trainer; không có giọng thật của người dùng |
+| `CONFIG_JARVIS_MWW_CUTOFF_PCT` / `_SLIDING_WINDOW` | 95 / 5 (trainer hiệu chỉnh: 95 / 5) |
+| Log `Ready for "Hàu ơi"` | model 137.960 B, stride 2, arena 67.520 B trong PSRAM (49.212 B dùng), ngưỡng 242/255 |
 
-Đánh giá offline (`eval_wakeword.py`, dán các dòng chính từ CSV):
+Đánh giá offline (`eval_wakeword.py`, thuật toán của firmware; dương: clip VieNeu mới `--seed 99` không dùng để train;
+kích nhầm: 3,18 giờ FLEURS vi_vn test, giọng người thật đọc tin tức):
 
-| Ngưỡng (%) | Cửa sổ | Recall yên tĩnh | Recall nhạc nền | Kích nhầm/giờ | Đạt (`*`) |
-|---|---|---|---|---|---|
-| | | | | | |
+| Model | Ngưỡng (%) | Cửa sổ | Recall "Hàu ơi" (300) | Recall "Hàu ơi, <lệnh>" (200) | Kích nhầm/giờ | Đạt (`*`) |
+|---|---|---|---|---|---|---|
+| v1 (chưa có âm FLEURS, chưa có mẫu nối lệnh) | 97 | 5 | 98,0% | ~63% | 3,46 | không |
+| v2 | 95 | 5 | 97,7% | 76,0% | 0,63 | kích nhầm đạt; recall gộp 89,2% |
+| v2 | 97 | 5 | 97,0% | 72,0% | 0,31 | |
+| v2 | 99 | 5 | – | – | 0 | recall gộp 79,4% |
+
+"hầu ơi" / "hậu ơi" / "hào ơi" (120 clip) đánh thức v2 ở 94% (không có trong mẫu âm, xem `tools/wakeword/README.md` mục 9).
+Kích nhầm còn lại của v2 trên FLEURS: "…về đích ở vị trí thứ mười sáu…", "…Hội Đồng Bầu Cử…".
 
 Trên thiết bị:
 
@@ -260,9 +269,10 @@ Trên thiết bị:
 
 | Chỉ số khác | Kết quả | Tiêu chí | KQ |
 |---|---|---|---|
-| Độ trễ phản hồi Jarvis / Quản gia | … / … ms | < 500 ms | |
-| Suy luận microWakeWord trung bình | … µs / lần | không có `Dropped ... B of audio` | |
-| `minimal_sram` thấp nhất | … B | ≥ 30 KB | |
+| Độ trễ phản hồi Jarvis / Hàu ơi | … / … ms | < 500 ms | |
+| Suy luận microWakeWord trung bình | 7.090–7.122 µs / lần, 49 lần/s (board thử, 8/10) | không có `Dropped ... B of audio` | đạt (không có) |
+| `minimal_sram` thấp nhất | 33.468 B (board thử, 76 phút chạy) | ≥ 30 KB | đạt |
+| Kích nhầm khi để chờ trong văn phòng có người nói chuyện | 0 lần / 76 phút (v1, 97/5) | ≤ 1 / giờ | tham khảo |
 | Vấp tiếng | có / không | không | |
 
 ### 4.4 Ngắt lời bằng wake word (mục 6)
