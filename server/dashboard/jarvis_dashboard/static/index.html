@@ -59,7 +59,9 @@
   .kv dt { color: var(--muted); } .kv dd { margin: 0; overflow-wrap: anywhere; }
   .meter { display: grid; grid-template-columns: 44px 1fr 112px; align-items: center; gap: 8px; margin: 6px 0; }
   .meter .bar { height: 8px; border-radius: 4px; background: var(--panel-2); border: 1px solid var(--line); overflow: hidden; }
-  .meter .fill { height: 100%; width: 0; background: var(--accent); transition: width .4s; }
+  .meter .fill { height: 100%; width: 0; background: var(--accent); transition: width .25s ease-out; }
+  @keyframes beat { from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--good) 70%, transparent); } to { box-shadow: 0 0 0 7px transparent; } }
+  #live.beat .dot { animation: beat .8s ease-out; }
   .meter .val { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12px; }
   .note { margin-top: 8px; font-size: 12px; color: var(--warn); overflow-wrap: anywhere; }
   table { width: 100%; border-collapse: collapse; }
@@ -80,7 +82,6 @@
   .events li { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--bad); border-radius: 8px; padding: 8px 10px; overflow-wrap: anywhere; }
   .events pre { white-space: pre-wrap; margin: 6px 0 0; font-size: 11px; color: var(--muted); }
   .empty-state { color: var(--muted); padding: 10px 0; }
-  #conn.bad { color: var(--bad); }
   @media (max-width: 520px) {
     .meter { grid-template-columns: 38px 1fr 92px; }
     .kv { grid-template-columns: 1fr; } .kv dt { margin-top: 4px; }
@@ -90,7 +91,7 @@
 <body>
 <header>
   <h1><span>JARVIS</span> · Trạng thái hệ thống</h1>
-  <div class="sub"><span id="conn">Đang tải…</span></div>
+  <span class="pill" id="live"><span class="dot"></span><span id="conn">Đang tải…</span></span>
 </header>
 <main>
   <section>
@@ -112,7 +113,7 @@
 </main>
 <script>
 "use strict";
-const REFRESH_MS = 2000;
+const REFRESH_MS = 1000;
 // location.origin never carries user:password (a page opened as http://user:pass@host/ would
 // otherwise make every relative fetch fail).
 const API_URL = location.origin + "/api/status";
@@ -132,6 +133,10 @@ function kv(list, key, value) {
   list.append(el("dt", "", key), el("dd", "", value === undefined || value === null || value === "" ? "—" : value));
 }
 function clockOf(stamp) { return stamp ? String(stamp).slice(11, 19) : "—"; }
+function ageSeconds(stamp, now) {
+  const a = Date.parse(String(stamp).replace(" ", "T")), b = Date.parse(String(now).replace(" ", "T"));
+  return isNaN(a) || isNaN(b) ? null : Math.max(0, Math.round((b - a) / 1000));
+}
 function seconds(ms) { return (ms / 1000).toFixed(ms < 10000 ? 1 : 0) + " s"; }
 function uptime(s) {
   if (typeof s !== "number") return "—";
@@ -165,7 +170,7 @@ function meter(label, db) {
   return row;
 }
 
-function deviceCard(d) {
+function deviceCard(d, now) {
   const card = el("article", "card");
   const title = el("div", "card-title");
   title.append(el("strong", "", d.virtual ? "Thiết bị giả lập" : "Mũ Jarvis"),
@@ -174,7 +179,14 @@ function deviceCard(d) {
 
   const pills = el("div", "pills");
   const mcp = d.mcp;
-  if (mcp) pills.append(mcp.online ? pill(`Trực tuyến · ${mcp.rtt_ms} ms`, "good") : pill("Không trả lời", "bad"));
+  if (mcp && mcp.online) {
+    const age = ageSeconds(mcp.updated, now);
+    pills.append(age !== null && age > 3
+      ? pill(`Số liệu ${age} giây trước`, "warn")
+      : pill(`Trực tiếp · ${mcp.rtt_ms} ms`, "good"));
+  } else if (mcp) {
+    pills.append(pill("Không trả lời", "bad"));
+  }
   else if (!d.virtual) pills.append(pill("Chưa dò trạng thái", ""));
   const s = d.session;
   const open = s && !s.ended && s.state !== "stale";
@@ -217,12 +229,12 @@ function deviceCard(d) {
   return card;
 }
 
-function renderDevices(devices) {
+function renderDevices(devices, now) {
   const box = document.getElementById("devices");
   box.replaceChildren();
   const shown = devices.filter(d => d.mcp || d.session || d.last_ota);
   if (!shown.length) { box.append(el("div", "empty-state", "Chưa thấy mũ nào. Bật mũ hoặc khai báo JARVIS_DEVICE_HOSTS.")); return; }
-  shown.forEach(d => box.append(deviceCard(d)));
+  shown.forEach(d => box.append(deviceCard(d, now)));
 }
 
 function renderServer(data) {
@@ -309,9 +321,10 @@ function renderEvents(events) {
 }
 
 function setConn(ok, text) {
-  const node = document.getElementById("conn");
-  node.className = ok ? "" : "bad";
-  node.textContent = text;
+  const live = document.getElementById("live");
+  live.className = "pill " + (ok ? "good" : "bad");
+  if (ok) { void live.offsetWidth; live.classList.add("beat"); }  // restart the pulse
+  document.getElementById("conn").textContent = text;
 }
 
 async function refresh() {
@@ -320,11 +333,11 @@ async function refresh() {
     if (res.status === 401) { location.reload(); return; }
     if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
-    renderDevices(data.devices || []);
+    renderDevices(data.devices || [], data.now);
     renderServer(data);
     renderTurns(data.turns || []);
     renderEvents(data.events || []);
-    setConn(true, "Cập nhật lúc " + clockOf(data.now));
+    setConn(true, "Trực tiếp · " + clockOf(data.now));
   } catch (err) {
     setConn(false, "Mất kết nối tới dashboard (" + err.message + ")");
   } finally {

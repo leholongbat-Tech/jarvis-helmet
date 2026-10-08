@@ -231,11 +231,12 @@ biến `OLLAMA_*`/`ASR_*` trong `.env` về giá trị của `.env.example`, `sc
 
 ### 3.7 Dashboard: trang trạng thái trên trình duyệt (tùy chọn)
 
-Service `dashboard` (profile `dashboard`, D32) mở một trang web trong LAN, tự làm mới mỗi 2 giây:
+Service `dashboard` (profile `dashboard`, D32) mở một trang web trong LAN, tự làm mới mỗi giây:
 
 - **Mũ**: trực tuyến hay không, đang nghe / đang nói, mức mic và loa (dBFS), kết quả dò mic, âm lượng, Wi-Fi, thời gian
   chạy, bộ nhớ, mặt nạ, đèn mắt, chuỗi lệnh. Lấy từ MCP cục bộ của mũ (`ws://<IP-mũ>:8080/ws`, chỉ gọi
-  `self.system.get_status` và `self.get_device_status`, mỗi 5 giây một kết nối ngắn).
+  `self.system.get_status` khoảng mỗi giây và `self.get_device_status` mỗi 15 lần, qua một kết nối giữ suốt; firmware
+  nhận 2 client nên công cụ hiệu chỉnh servo vẫn vào được). Mất kết nối thì thử lại sau 1, 2, 4… tới 30 giây.
 - **Server**: `/health` của xiaozhi, ASR, tts-router, LiteLLM (model ASR, giọng TTS); model LLM local/cloud đang cấu hình.
 - **Hội thoại gần đây**: server nghe ra câu gì, Jarvis trả lời gì, lệnh nhanh và tool đã gọi, độ trễ từng bước (nhận dạng,
   LLM, TTS, tổng từ lúc ngừng nói tới khi có tiếng). Đọc từ `tmp/server.log` của xiaozhi (volume `xiaozhi_tmp`, chỉ đọc).

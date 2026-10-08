@@ -12,6 +12,7 @@ from .main import create_app
 
 def main() -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    logging.getLogger("httpx").setLevel(logging.WARNING)  # one line per health check otherwise
     settings = Settings.from_env()
     if not settings.password:
         print("DASHBOARD_PASSWORD is empty: the page shows what the helmet heard, refusing to serve it "

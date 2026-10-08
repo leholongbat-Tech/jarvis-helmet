@@ -43,7 +43,8 @@ class Settings:
     mcp_token: str = ""
     llm_model: str = ""
     cloud_model: str = ""
-    device_poll_s: float = 5.0
+    device_poll_s: float = 1.0  # get_status over the persistent link (meters move with it)
+    device_status_every: int = 15  # get_device_status (volume, Wi-Fi) every N polls
     health_poll_s: float = 10.0
     services: Dict[str, str] = field(default_factory=lambda: dict(DEFAULT_SERVICES))
     host: str = "0.0.0.0"
@@ -62,7 +63,7 @@ class Settings:
             mcp_token=_get(env, "JARVIS_MCP_TOKEN", ""),
             llm_model=_get(env, "OLLAMA_MODEL", ""),
             cloud_model=_get(env, "CLOUD_MODEL", ""),
-            device_poll_s=max(2.0, _float(env, "DASHBOARD_DEVICE_POLL_S", 5.0)),
+            device_poll_s=max(0.5, _float(env, "DASHBOARD_DEVICE_POLL_S", 1.0)),
             health_poll_s=max(2.0, _float(env, "DASHBOARD_HEALTH_POLL_S", 10.0)),
             host=_get(env, "HOST", "0.0.0.0"),
             port=_int(env, "PORT", 8080),

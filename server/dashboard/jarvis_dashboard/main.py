@@ -22,7 +22,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from .config import Settings
-from .device import DeviceProbe, probe
+from .device import DeviceLink, DeviceProbe, refresh
 from .health import check_services
 from .logstate import LogFollower, LogState
 
@@ -58,6 +58,7 @@ class Monitor:
         self.logs = LogState()
         self.follower = LogFollower(settings.log_file, self.logs)
         self.probes: Dict[str, DeviceProbe] = {}
+        self.links: Dict[str, DeviceLink] = {}
         self.services: List[dict] = []
         self.services_checked = ""
         self.started = _now()
@@ -77,20 +78,28 @@ class Monitor:
                 self.follower.poll()
             except Exception as exc:  # noqa: BLE001 - keep the loop alive whatever happens
                 self.follower.error = f"{type(exc).__name__}: {exc}"[:200]
-            await asyncio.sleep(1.0)
+            await asyncio.sleep(0.5)
 
     async def poll_devices(self) -> None:
+        tick = 0
         while True:
             try:
                 hosts = self.device_hosts()
                 for host in hosts:
                     self.probes.setdefault(host, DeviceProbe(host=host))
+                    if host not in self.links:
+                        self.links[host] = DeviceLink(host, self.settings.mcp_port, self.settings.mcp_token)
                 now = _now()
-                await asyncio.gather(*(probe(self.probes[h], self.settings.mcp_port, self.settings.mcp_token, now)
-                                       for h in hosts))
+                full = tick % max(1, self.settings.device_status_every) == 0
+                await asyncio.gather(*(refresh(self.links[h], self.probes[h], now, full) for h in hosts))
             except Exception:  # noqa: BLE001
                 log.exception("device poll failed")
+            tick += 1
             await asyncio.sleep(self.settings.device_poll_s)
+
+    async def close(self) -> None:
+        for link in self.links.values():
+            await link.close()
 
     async def poll_services(self) -> None:
         async with httpx.AsyncClient(timeout=5.0, trust_env=False) as client:
@@ -149,6 +158,7 @@ def create_app(settings: Settings, monitor: Optional[Monitor] = None, background
         for task in tasks:
             task.cancel()
         await asyncio.gather(*tasks, return_exceptions=True)
+        await monitor.close()
 
     app = FastAPI(title="Jarvis dashboard", docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
     app.state.monitor = monitor

@@ -19,7 +19,7 @@ from fastapi.testclient import TestClient
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "dashboard"))
 
 from jarvis_dashboard.config import Settings  # noqa: E402
-from jarvis_dashboard.device import DeviceProbe, McpError, probe, query_device  # noqa: E402
+from jarvis_dashboard.device import DeviceLink, DeviceProbe, McpError, probe, query_device, refresh  # noqa: E402
 from jarvis_dashboard.health import _detail, check_one  # noqa: E402
 from jarvis_dashboard.logstate import LogFollower, LogState  # noqa: E402
 from jarvis_dashboard.main import Monitor, create_app, is_virtual  # noqa: E402
@@ -259,6 +259,37 @@ def test_probe_reports_tool_errors_and_dead_hosts():
     assert not dead.online and dead.error and dead.checked == "2026-10-08 11:00:05"
 
 
+def test_device_link_keeps_one_connection_and_reconnects():
+    async def scenario():
+        connections = []
+
+        async def handler(ws):
+            connections.append(ws)
+            await _fake_helmet(ws)
+
+        async with websockets.serve(handler, "127.0.0.1", 0) as server:
+            port = server.sockets[0].getsockname()[1]
+            link = DeviceLink("127.0.0.1", port, timeout=5, max_backoff=0.2)
+            target = DeviceProbe(host="127.0.0.1")
+            for i in range(3):  # once a second in the dashboard
+                await refresh(link, target, f"12:00:0{i}", full=(i == 0))
+            assert len(connections) == 1, "one persistent connection, not one per poll"
+            assert target.online and target.status == STATUS
+            assert target.device_status == {"audio_speaker": {"volume": 70}}
+            await connections[0].close()  # the helmet rebooted
+            await refresh(link, target, "12:00:03", full=False)
+            assert not target.online and target.error
+            error = target.error
+            await refresh(link, target, "12:00:04", full=False)  # still backing off: error kept
+            assert not target.online and target.error == error and len(connections) == 1
+            await asyncio.sleep(1.1)  # first retry after 1 s
+            await refresh(link, target, "12:00:05", full=False)
+            assert target.online and target.updated == "12:00:05" and len(connections) == 2
+            await link.close()
+
+    asyncio.run(scenario())
+
+
 # ---- services ----------------------------------------------------------------------------------
 def test_service_details_and_failures():
     asr = httpx.Response(200, json={"status": "ok", "engine": "faster_whisper", "model": "medium", "device": "cpu",
@@ -295,7 +326,8 @@ def test_settings_from_env():
                            "OLLAMA_MODEL": "qwen3.6:35b", "DASHBOARD_DEVICE_POLL_S": "0.1"})
     assert s.password == "s3cret" and s.user == "jarvis"
     assert s.device_hosts == ["192.168.1.28", "10.0.0.9"]
-    assert s.llm_model == "qwen3.6:35b" and s.device_poll_s == 2.0  # floor: never hammer the helmet
+    assert s.llm_model == "qwen3.6:35b" and s.device_poll_s == 0.5  # floor: never hammer the helmet
+    assert Settings.from_env({}).device_poll_s == 1.0
     assert Settings.from_env({}).password == ""
 
 
