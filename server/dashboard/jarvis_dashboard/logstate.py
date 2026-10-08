@@ -32,7 +32,7 @@ SENTENCE_RE = re.compile(r"^发送音频消息: SentenceType\.(?P<kind>\w+), (?P
 # user had said it, when the user stays silent.
 END_PROMPT_PREFIX = "Ngài chủ nhân đã im lặng"
 # The firmware reports wake word detections as listen/detect with the word as text.
-WAKE_WORDS = {"jarvis", "quản gia"}
+WAKE_WORDS = {"jarvis", "quản gia", "hàu ơi"}
 # Log lines at these levels become events on the page.
 EVENT_LEVELS = {"ERROR", "CRITICAL"}
 # "客户端断开连接" names no device: with two clients a session can miss its end. One silent for this

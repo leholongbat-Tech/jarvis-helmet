@@ -107,6 +107,12 @@ def test_strip_accents(raw, expected):
     ("Quảng gia ơi đóng mặt nạ", "đóng mặt nạ"),
     ("quảngia mở mặt nạ", "mở mặt nạ"),
     ("quan gia mo mat na", "mo mat na"),            # ASR without diacritics
+    ("Hàu ơi, mở mặt nạ", "mở mặt nạ"),
+    ("Này hàu ơi bật đèn mắt", "bật đèn mắt"),
+    ("Hậu ơi, đóng mặt nạ", "đóng mặt nạ"),          # ASR spellings of "hàu ơi"
+    ("hào ơi mở mặt nạ", "mở mặt nạ"),
+    ("hầu như mọi người", "hầu như mọi người"),      # "hầu" without "ơi" is a word
+    ("hàu nướng ngon không", "hàu nướng ngon không"),
     ("jarvis jarvis mở mặt nạ", "mở mặt nạ"),
     ("mở mặt nạ đi jarvis", "mở mặt nạ đi"),          # trailing wake word
     ("mở mặt nạ đi Jarvis ơi", "mở mặt nạ đi"),
@@ -160,6 +166,7 @@ def test_similarity_fallback_matches_rapidfuzz():
     ("mở mặt nạ", "open_mask"),
     ("Mở mặt nạ ra!", "open_mask"),
     ("Quản gia ơi, mở mặt nạ đi.", "open_mask"),
+    ("Hàu ơi, mở mặt nạ đi.", "open_mask"),
     ("Hey Jarvis, open the mask.", "open_mask"),
     ("OPEN MASK", "open_mask"),
     ("mở mặt na", "open_mask"),        # ASR tone error: accent-free form matches

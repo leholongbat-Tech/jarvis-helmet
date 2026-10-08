@@ -25,7 +25,8 @@ STRINGS = os.path.join(XIAOZHI, "patches", "strings_vi.json")
 DEFAULT_XIAOZHI_SRC = os.path.join(REPO, "out", "upstream", "xiaozhi-esp32-server", "main", "xiaozhi-server")
 
 CJK_RE = re.compile(r"[\u3000-\u303f\u3400-\u4dbf\u4e00-\u9fff\uff00-\uffef]")
-D15_WAKE = ["Jarvis", "jarvis", "JARVIS", "giắcvít", "Giắcvít", "quảngia", "Quảngia", "Quảnggia"]
+D15_WAKE = ["Jarvis", "jarvis", "JARVIS", "giắcvít", "Giắcvít", "quảngia", "Quảngia", "Quảnggia",
+            "hàuơi", "Hàuơi", "hậuơi", "Hậuơi", "Hàoơi"]
 D15_EXIT = ["tạmbiệt", "Tạmbiệt", "kếtthúc", "Kếtthúc", "goodbye", "Goodbye", "thatsall", "Thatsall"]
 EXPECTED_VARS = {
     "PUBLIC_WS_URL",
@@ -441,7 +442,7 @@ def test_prompt_has_no_emoji_and_no_chinese():
 def test_prompt_covers_jarvis_rules():
     text = _prompt()
     for needle in ("thưa ngài", "Sir", "task_", "self_system_get_status", "ask_expert", "handle_exit_intent",
-                   "direct_answer", "ASR", "Jarvis", "quản gia", "không markdown"):
+                   "direct_answer", "ASR", "Jarvis", "quản gia", "hàu ơi", "không markdown"):
         assert needle in text, needle
 
 

@@ -70,7 +70,7 @@ Ghi chú khi build và nạp:
   mỗi lần `Start()` có 1 giây khởi động trước khi được phép nhận. `export/tflite_to_c.py` in sẵn hai dòng Kconfig gợi ý theo manifest
   của trainer.
 - Chữ wake word gửi lên server: A "Jarvis"; B1 theo chữ hiển thị ("Jarvis", "Quản gia"); B2 "Jarvis" (WakeNet) hoặc "Quản gia"
-  (microWakeWord). Server so khớp sau khi bỏ dấu cách (`wakeup_words`: "Jarvis", "quảngia"…) và trả câu đáp tiếng Việt có sẵn (D15).
+  (microWakeWord). Server so khớp sau khi bỏ dấu cách (`wakeup_words`: "Jarvis", "quảngia", "Hàuơi"…) và trả câu đáp tiếng Việt có sẵn (D15).
 
 Xác nhận trên thiết bị (log serial):
 - AFE khởi tạo: `Initialized FD AFE, detector: WakeNet, ...` (A, B2) hoặc `detector: MultiNet` (B1); `none` = không có model wake word.
@@ -296,8 +296,8 @@ Trên thiết bị:
 - Firmware: `CONFIG_JARVIS_WAKE_WORD_BARGE_IN` (menu "Jarvis Helmet", **mặc định n**). Với `n`, bản vá có điều kiện trong
   `main/application.cc` (`firmware/PATCHES.md`) **tắt nhận wake word trong trạng thái Speaking**. Đặt `y` để trở lại hành vi upstream:
   bộ nhận wake word của AFE (WakeNet, MultiNet, và microWakeWord – bộ này theo `EnableWakeWordDetection`) vẫn chạy khi đang nói.
-- Prompt của Jarvis (`server/xiaozhi/prompts/jarvis-prompt.txt`, quy tắc 5) yêu cầu LLM không bao giờ nói "Jarvis" hay "quản gia" trong
-  câu trả lời, để giảm tự kích khi bật barge-in.
+- Prompt của Jarvis (`server/xiaozhi/prompts/jarvis-prompt.txt`, quy tắc 5) yêu cầu LLM không bao giờ nói "Jarvis", "quản gia" hay
+  "hàu ơi" trong câu trả lời, để giảm tự kích khi bật barge-in.
 - Thử barge-in (kịch bản E8, `tools/tests/e2e/scenarios.md`): thêm `"CONFIG_JARVIS_WAKE_WORD_BARGE_IN=y"` vào `sdkconfig_append` của biến
   thể, build và nạp lại; gọi wake word 10 lần khi mũ đang đọc câu trả lời dài (số lần ngắt được), rồi để mũ đọc câu trả lời dài 10 phút
   không ai nói (số lần tự kích). Điền bảng 4.4. Chỉ giữ `y` khi tự kích ≈ 0 và ngắt lời ổn định; nếu không, giữ `n`.

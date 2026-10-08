@@ -29,7 +29,7 @@
 | `Intent.function_call.functions` | `helmet_tasks` (mở rộng thành mọi `task_*`), `ask_expert`; `handle_exit_intent` và `get_lunar` upstream luôn thêm (mô tả đã Việt hóa) |
 | `VAD.SileroVAD` | `min_silence_duration_ms` = `VAD_MIN_SILENCE_MS` (mặc định 700, D28): thấp hơn thì trả lời nhanh hơn nhưng dễ cắt ngang người nói chậm |
 | `prompt` | `prompts/jarvis-prompt.txt` (mục 3) |
-| `wakeup_words` | So khớp **sau khi bỏ khoảng trắng và dấu câu**, phân biệt hoa thường, nên liệt kê đủ biến thể: `Jarvis`, `jarvis`, `JARVIS`, `giắcvít`, `Giắcvít`, `quảngia`, `Quảngia`, `Quảnggia` (D15) |
+| `wakeup_words` | So khớp **sau khi bỏ khoảng trắng và dấu câu**, phân biệt hoa thường, nên liệt kê đủ biến thể: `Jarvis`, `jarvis`, `JARVIS`, `giắcvít`, `Giắcvít`, `quảngia`, `Quảngia`, `Quảnggia`, `hàuơi`, `Hàuơi` và cách ASR hay viết nhầm `hậuơi`, `Hậuơi`, `Hàoơi` (D15, D33) |
 | `exit_commands` | `tạmbiệt`, `Tạmbiệt`, `kếtthúc`, `Kếtthúc`, `goodbye`, `Goodbye`, `thatsall`, `Thatsall` |
 | `system_error_response` | "Xin lỗi thưa ngài, hệ thống đang gặp sự cố, xin thử lại sau." |
 | `end_prompt.prompt` | Câu dặn LLM chào tạm biệt kiểu quản gia, bằng tiếng Việt |

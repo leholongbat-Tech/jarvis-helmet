@@ -117,6 +117,17 @@ def test_quick_phrase_end_prompt_wake_word_and_disconnect():
     assert session["state"] == "closed" and session["ended"] == "2026-10-08 10:52:45"
 
 
+def test_hau_oi_detection_is_a_wake_word_not_a_typed_turn():
+    lines = [
+        CONNECT,
+        line("10:50:13.000", "core.handle.textMessageProcessor",
+             '收到listen消息：{"session_id":"x","type":"listen","state":"detect","text":"Hàu ơi"}'),
+    ]
+    snap = feed(LogState(), lines).snapshot()
+    assert snap["turns"] == []
+    assert snap["devices"][0]["session"]["wake_word"] == "Hàu ơi"
+
+
 def test_typed_command_and_unanswered_turns():
     lines = [
         CONNECT,

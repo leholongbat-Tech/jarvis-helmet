@@ -917,6 +917,9 @@ def load_tasks(path: str, schema: Any = "auto") -> TaskTable:
 DEFAULT_WAKE_WORDS = (
     "jarvis", "giắc vít", "giắc vis", "giác vít", "gia vít", "giắt vít", "jar vít", "jar vis",
     "quản gia", "quảng gia",
+    # Always with "ơi": "hàu"/"hầu"/"hậu" alone start ordinary words ("hầu như"). Matching is
+    # accent-free, so "hàu ơi" also covers the ASR spellings "hậu ơi" and "hầu ơi".
+    "hàu ơi", "hào ơi",
 )
 WAKE_INTERJECTIONS = ("hey", "hi", "hế lô", "ok", "okay", "ô kê", "này", "ê", "alo", "a lô", "nè")
 WAKE_VOCATIVES = ("ơi", "à")
