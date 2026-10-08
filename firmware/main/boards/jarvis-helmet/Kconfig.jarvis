@@ -38,6 +38,17 @@ menu "Jarvis Helmet"
             esp-wifi-connect default of 10 s to 300 s, so the helmet moves to the phone
             hotspot quickly when the home network disappears.
 
+    config JARVIS_SPEAKER_HPF_HZ
+        int "Speaker bass cut: high-pass cutoff in Hz (0 = off)"
+        range 0 1000
+        default 250
+        help
+            4th-order Butterworth high-pass on everything sent to the speaker. The Jarvis
+            voice carries most of its energy at 100-300 Hz (fundamental ~120 Hz), which a
+            small speaker cannot reproduce: it only drives the cone into distortion and
+            draws supply current. At 250 Hz the band from 300 Hz up stays within 1 dB and
+            120 Hz is ~25 dB down.
+
     config JARVIS_WAKE_WORD_BARGE_IN
         bool "Allow interrupting speech with the wake word"
         default n

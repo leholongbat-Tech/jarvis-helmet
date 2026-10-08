@@ -4,6 +4,7 @@
 #include <driver/i2s_std.h>
 #include <esp_log.h>
 #include <esp_timer.h>
+#include <sdkconfig.h>
 
 #include <algorithm>
 #include <cmath>
@@ -274,6 +275,55 @@ int MeteredAudioCodec::Write(const int16_t* data, int samples) {
         const int rate = output_sample_rate_ * output_channels_;
         Smooth(output_level_, LevelFromDbfs(db, kOutputFloorDb, kOutputCeilDb), samples, rate);
         SmoothDbfs(output_dbfs_, output_time_us_, db, samples, rate);
+#if CONFIG_JARVIS_SPEAKER_HPF_HZ > 0
+        if (output_channels_ == 1) {  // the filter state is per channel: mono only
+            return NoAudioCodecSimplex::Write(HighPass(data, samples), samples);
+        }
+#endif
     }
     return NoAudioCodecSimplex::Write(data, samples);
+}
+
+const int16_t* MeteredAudioCodec::HighPass(const int16_t* data, int samples) {
+    if (!hpf_ready_) {
+        // RBJ audio EQ cookbook high-pass; the two Q values make a 4th-order Butterworth.
+        constexpr float kPi = 3.14159265f;
+        constexpr float kSectionQ[2] = {0.54119610f, 1.30656296f};
+        const float w0 = 2.0f * kPi * static_cast<float>(CONFIG_JARVIS_SPEAKER_HPF_HZ) /
+                         static_cast<float>(output_sample_rate_);
+        const float cos_w0 = std::cos(w0);
+        for (int i = 0; i < 2; ++i) {
+            const float alpha = std::sin(w0) / (2.0f * kSectionQ[i]);
+            const float a0 = 1.0f + alpha;
+            Biquad& s = hpf_[i];
+            s.b0 = (1.0f + cos_w0) / 2.0f / a0;
+            s.b1 = -(1.0f + cos_w0) / a0;
+            s.b2 = s.b0;
+            s.a1 = -2.0f * cos_w0 / a0;
+            s.a2 = (1.0f - alpha) / a0;
+        }
+        hpf_ready_ = true;
+    }
+    hpf_out_.resize(samples);
+    for (int i = 0; i < samples; ++i) {
+        float y = static_cast<float>(data[i]);
+        for (Biquad& s : hpf_) {
+            const float x = y;
+            y = s.b0 * x + s.z1;
+            s.z1 = s.b1 * x - s.a1 * y + s.z2;
+            s.z2 = s.b2 * x - s.a2 * y;
+        }
+        hpf_out_[i] = static_cast<int16_t>(std::clamp(std::lround(y), -32768L, 32767L));
+    }
+    // During silence the state decays towards denormals, which the FPU handles slowly.
+    constexpr float kFlush = 1e-15f;
+    for (Biquad& s : hpf_) {
+        if (std::fabs(s.z1) < kFlush) {
+            s.z1 = 0.0f;
+        }
+        if (std::fabs(s.z2) < kFlush) {
+            s.z2 = 0.0f;
+        }
+    }
+    return hpf_out_.data();
 }

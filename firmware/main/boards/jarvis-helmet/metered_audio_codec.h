@@ -1,12 +1,14 @@
 // NoAudioCodecSimplex that also measures microphone and speaker levels, so the HUD and
 // the eye lights can react to sound without touching the upstream audio code. It also
-// probes once at boot which I2S slot carries the microphone data (wiring check).
+// probes once at boot which I2S slot carries the microphone data (wiring check), and cuts
+// the bass the small speaker cannot play (CONFIG_JARVIS_SPEAKER_HPF_HZ).
 #pragma once
 
 #include "codecs/no_audio_codec.h"
 
 #include <atomic>
 #include <cstdint>
+#include <vector>
 
 // Where ProbeMicrophone() found the microphone data.
 enum class MicProbe {
@@ -49,6 +51,20 @@ protected:
     int Write(const int16_t* data, int samples) override;
 
 private:
+    // One transposed direct form II biquad section, normalized (a0 = 1).
+    struct Biquad {
+        float b0 = 1.0f, b1 = 0.0f, b2 = 0.0f, a1 = 0.0f, a2 = 0.0f;
+        float z1 = 0.0f, z2 = 0.0f;
+    };
+
+    // `data` through the speaker high-pass (4th-order Butterworth, two sections) into
+    // hpf_out_. Output task only: Write() has a single caller, so no locking.
+    const int16_t* HighPass(const int16_t* data, int samples);
+
+    Biquad hpf_[2];
+    bool hpf_ready_ = false;
+    std::vector<int16_t> hpf_out_;
+
     std::atomic<float> input_level_{0.0f};
     std::atomic<float> output_level_{0.0f};
     std::atomic<float> input_dbfs_{kSilenceDbfs};

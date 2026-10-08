@@ -281,6 +281,7 @@ xanh lá = đang nói, tắt = chờ.
 | `CONFIG_JARVIS_EYES_ON_AT_BOOT` | n | Bật đèn mắt khi khởi động |
 | `CONFIG_JARVIS_EYES_FOLLOW_STATE` | n | Đèn mắt theo trạng thái trợ lý (nghe/nói/chờ) |
 | `CONFIG_JARVIS_WIFI_FAST_RESCAN` | y | Quét lại Wi-Fi 3 → 30 giây thay vì 10 → 300 giây |
+| `CONFIG_JARVIS_SPEAKER_HPF_HZ` | 250 | Lọc cắt trầm (Butterworth bậc 4) trước loa, 0 = tắt. Giọng Jarvis có phần lớn năng lượng ở 100–300 Hz mà loa nhỏ không phát được, chỉ làm loa rè; ở 250 Hz, từ 300 Hz trở lên giảm dưới 1 dB |
 | `CONFIG_JARVIS_WAKE_WORD_BARGE_IN` | n | Cho phép ngắt lời bằng wake word khi đang nói (không có AEC nên dễ tự kích) |
 | `CONFIG_JARVIS_LOCAL_MCP_WS` | y | Server MCP cục bộ cho hiệu chỉnh servo |
 | `CONFIG_JARVIS_LOCAL_MCP_WS_PORT` | 8080 | Cổng của server trên |

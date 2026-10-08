@@ -54,10 +54,11 @@
 trống ~31% phân vùng app; test chạy trên máy tính (`firmware/tests/host/`) đạt. **Chưa nạp vào mũ thật.** Hướng dẫn build,
 nạp, Wi-Fi, OTA: `firmware/main/boards/jarvis-helmet/README.md`; thay đổi trên file upstream: `firmware/PATCHES.md`.
 
-**Board thử (breadboard), 7/10/2026:** khởi động đúng board, vào Wi-Fi, kích hoạt với server batai, MCP cục bộ trả lời. Firmware
-phát được câu `xin_chao` (`audio.speaker_dbfs` -13 đến -16 lúc phát; chưa có người xác nhận nghe thấy). Mic không gửi dữ liệu
-ở kênh nào (`audio.mic_dbfs` = -100, `mic_probe` = `stuck_low`), nên chưa đánh thức được: cần kiểm tra nguồn và dây của mic
-(board README mục 8.1).
+**Board thử (breadboard), 7–8/10/2026:** khởi động đúng board, vào Wi-Fi, kích hoạt với server batai, MCP cục bộ trả lời.
+Ngày 7/10 mic không gửi dữ liệu (`mic_probe` = `stuck_low`); sửa dây xong, ngày 8/10 `mic_probe` = `left` và cả chuỗi chạy
+(BOOT → ASR → LLM → TTS → loa). Loa rè khi Jarvis nói, dù luồng TTS sạch (đỉnh -1,5 dBFS, không cắt sau Opus); đã sửa hai
+chỗ: ngõ ra I2S 48 kHz (MAX98357A không hỗ trợ LRCLK 24 kHz) và lọc cắt trầm 250 Hz (giọng Jarvis có 94% năng lượng dưới
+500 Hz, loa nhỏ không phát được dải đó).
 
 **Sai khác so với kế hoạch:**
 
@@ -69,6 +70,7 @@ phát được câu `xin_chao` (`audio.speaker_dbfs` -13 đến -16 lúc phát; 
 | Cài đặt rải rác | Menu Kconfig "Jarvis Helmet" (`Kconfig.jarvis`): ngưỡng giữ PTT, WebSocket MCP cục bộ + cổng, ngắt bằng wake word, quét Wi-Fi nhanh, microWakeWord, header Cloudflare dự phòng | Gom một chỗ |
 | Kiểm tra nhiều SSID | `esp-wifi-connect` lưu tối đa 10 mạng, không có thứ tự ưu tiên (chọn mạng mạnh nhất khi quét), không tự chuyển khi đang kết nối. Board rút chu kỳ quét lại còn 3 s, tăng dần tới 30 s (`CONFIG_JARVIS_WIFI_FAST_RESCAN`) | Mục tiêu đổi mạng ≤30 s (tiêu chí 5) |
 | Mic INMP441 kênh trái (L/R nối GND) | Lúc khởi động `MeteredAudioCodec::ProbeMicrophone` đọc 64 ms cả hai kênh (kéo lên SD), ghi log `MicProbe:`, dùng kênh phải nếu chỉ kênh đó có dữ liệu; kết quả trong `self.system.get_status` (`audio.mic_probe`, `mic_dbfs`, `speaker_dbfs`) | Kiểm tra dây mic, loa từ xa khi chưa có màn hình; L/R để hở không làm mất mic |
+| Loa MAX98357A, ra 24 kHz như `bread-compact-wifi` | Ra 48 kHz (datasheet: LRCLK 24 kHz "NOT supported"); lọc cắt trầm Butterworth bậc 4 trong `MeteredAudioCodec::Write` (`CONFIG_JARVIS_SPEAKER_HPF_HZ`, mặc định 250 Hz, 0 = tắt) | Loa board thử rè: giọng nam của Jarvis có âm cơ bản ~120 Hz, 37% năng lượng dưới 200 Hz |
 | Header xác thực khi đi qua Internet (SV7) | Sổ đăng ký header theo host trong `main/protocols/extra_headers.cc`, áp cho OTA, tải firmware, WebSocket; chỉ gửi qua TLS (D13, D31). Bí mật đọc từ NVS `jsecrets` | Tải `assets` của upstream dùng client HTTP riêng nên chưa có header (hạn chế đã biết) |
 
 **Tiêu chí nghiệm thu:** 1 đạt (build không cảnh báo); 2–5 chờ mũ thật.
