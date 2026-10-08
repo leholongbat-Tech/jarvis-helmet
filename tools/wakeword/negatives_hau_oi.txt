@@ -1,0 +1,100 @@
+# Hard negatives for the "hàu ơi" model: words and sentences that sound close but must NOT
+# wake the helmet. One phrase per line, '#' starts a comment. Never put "hàu ơi" itself here.
+#   python gen_negatives.py --wake-word "hàu ơi" --phrases negatives_hau_oi.txt ...
+#
+# Deliberately left out: "hầu ơi", "hậu ơi", "hào ơi". They differ from "hàu ơi" only in vowel
+# quality/length or a low tone; the server ASR already hears some VieNeu "hàu ơi" clips as
+# "Hậu ơi"/"Hào ơi", so as negatives they would contradict the positives and cost recall.
+#
+# "hàu" without "ơi": the model must wait for the second syllable
+hàu
+con hàu
+hàu nướng
+hàu sữa
+món hàu
+cháo hàu
+hàu nướng mỡ hành
+# A different tone, final or initial, followed by "ơi"
+hảo ơi
+háo ơi
+hàng ơi
+hành ơi
+hoài ơi
+hai ơi
+hay ơi
+mau ơi
+tàu ơi
+rau ơi
+dâu ơi
+sâu ơi
+cháu ơi
+đâu ơi
+màu ơi
+lâu ơi
+bầu ơi
+# Same second syllable "ơi"
+ơi
+ơi ơi
+anh ơi
+em ơi
+mẹ ơi
+bố ơi
+trời ơi
+ối giời ơi
+bạn ơi
+chị ơi
+con ơi
+ông ơi
+bà ơi
+cô ơi
+cậu ơi
+chú ơi
+# Common words with "hầu", "hậu", "hào", "hảo"
+hầu như
+hầu hết
+hầu cận
+hầu bao
+hậu quả
+hậu trường
+hậu đậu
+hào hứng
+hào quang
+hào phóng
+hảo hạng
+tâm hồn
+hồi hộp
+# Sentences
+hôm nay ăn hàu nướng không
+hầu như ai cũng biết chuyện đó
+hậu quả rất nghiêm trọng
+anh ơi chờ em với
+trời ơi nóng quá
+con ơi về ăn cơm
+mẹ ơi con đói rồi
+hào hứng quá đi mất
+cái này hay ơi là hay
+tàu ơi chạy chậm thôi
+# Everyday speech the helmet will hear (commands, replies, chatter)
+mở mặt nạ đi
+đóng mặt nạ lại
+bật đèn mắt lên
+tắt đèn đi
+bây giờ là mấy giờ rồi
+hôm nay trời có mưa không
+pin còn bao nhiêu phần trăm
+được rồi, cảm ơn nhé
+tạm biệt, hẹn gặp lại
+Có tôi, thưa ngài.
+Vâng, tôi đã mở mặt nạ.
+Hôm nay trời nắng, nhiệt độ khoảng ba mươi độ.
+Tôi chưa hiểu, ngài nói lại được không?
+Để tôi kiểm tra lại một chút.
+Mình đi uống cà phê không?
+Chiều nay họp lúc mấy giờ?
+Đường này hay tắc lắm.
+Cho tôi một cốc trà đá.
+Ừ, để lát nữa tính.
+Thôi, về nhà đi.
+Jarvis
+Jarvis ơi
+quản gia

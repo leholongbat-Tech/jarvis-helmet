@@ -1,4 +1,5 @@
-// microWakeWord detector for "Quản gia" (Jarvis Helmet plan B2, CONFIG_JARVIS_MICRO_WAKE_WORD).
+// microWakeWord detector for a Vietnamese wake word (Jarvis Helmet plan B2,
+// CONFIG_JARVIS_MICRO_WAKE_WORD); the word and its model come from mww_model_data.c.
 //
 // Pipeline: 16 kHz mono int16 audio (the AFE output WakeNet/MultiNet see) -> 40 log-mel
 // features per 30 ms window every 10 ms (esphome/esp-micro-speech-features) -> streaming

@@ -177,6 +177,30 @@ def test_gen_positives_end_to_end(tts_server, tmp_path):
     assert len(FakeVieNeu.requests) == 3
 
 
+def test_gen_positives_for_another_wake_word(tts_server, tmp_path):
+    assert gen_positives.DEFAULT_TEXTS == gen_positives.default_texts("quản gia")
+    assert gen_positives.DEFAULT_TEXTS[:2] == ["quản gia", "Quản gia."]
+    texts = gen_positives.default_texts("Hàu ơi")
+    assert texts[:3] == ["hàu ơi", "Hàu ơi.", "Hàu ơi!"] and "ê hàu ơi" in texts
+    out = tmp_path / "pos"
+    assert gen_positives.main(["--wake-word", "Hàu ơi", "--api-url", tts_server, "--count", "4",
+                               "--variants", "2", "--out", str(out), "--workers", "1"]) == 0
+    records = ww.read_jsonl(out / "manifest.jsonl")
+    assert len(records) == 4 and all("hàu ơi" in r["text"].lower() for r in records)
+
+
+def test_hau_oi_negatives_never_contain_the_wake_word(tmp_path):
+    phrases = ww.load_phrases(Path(gen_negatives.__file__).with_name("negatives_hau_oi.txt"))
+    assert len(phrases) >= 60 and "hàu" in phrases and "tàu ơi" in phrases
+    # Near-homophones would contradict the TTS positives (see the file header).
+    assert not {"hầu ơi", "hậu ơi", "hào ơi"} & set(phrases)
+    assert not [p for p in phrases if "hàu ơi" in p.lower()]
+    bad = tmp_path / "bad.txt"
+    bad.write_text("ê hàu ơi\n", encoding="utf-8")
+    assert gen_negatives.main(["--dry-run", "--wake-word", "hàu ơi", "--phrases", str(bad),
+                               "--out", str(tmp_path / "neg")]) == 1
+
+
 def test_gen_negatives_covers_phrases_and_rejects_wake_word(tts_server, tmp_path):
     phrases = tmp_path / "neg.txt"
     phrases.write_text("quản lý\ngia đình\nquán gà\n", encoding="utf-8")
@@ -280,6 +304,24 @@ def test_export_model_with_manifest(tmp_path):
     assert "CONFIG_JARVIS_MWW_CUTOFF_PCT=96" in text and "CONFIG_JARVIS_MWW_SLIDING_WINDOW=6" in text
     assert "0x1c, 0x00, 0x00, 0x00, 0x54, 0x46, 0x4c, 0x33" in text
     assert text.count("#ifdef CONFIG_JARVIS_MICRO_WAKE_WORD") == 1
+    # The manifest's word, capitalized, is what the firmware reports to the server.
+    assert "// Wake word:  Quản gia" in text
+    assert ("const char g_jarvis_mww_wake_word[] = "
+            "{0x51, 0x75, 0xe1, 0xba, 0xa3, 0x6e, 0x20, 0x67, 0x69, 0x61, 0x00};") in text
+
+
+def test_export_reports_the_chosen_wake_word(tmp_path):
+    model = tmp_path / "hau_oi.tflite"
+    model.write_bytes(fake_model())
+    (tmp_path / "hau_oi.json").write_text(json.dumps({"wake_word": "hàu ơi", "micro": {}}),
+                                          encoding="utf-8")
+    out = tmp_path / "out.c"
+    assert tflite_to_c.main(["--model", str(model), "--output", str(out), "--no-inspect"]) == 0
+    hau_oi = "{0x48, 0xc3, 0xa0, 0x75, 0x20, 0xc6, 0xa1, 0x69, 0x00}"  # "Hàu ơi"
+    assert f"const char g_jarvis_mww_wake_word[] = {hau_oi};" in out.read_text(encoding="utf-8")
+    assert tflite_to_c.main(["--model", str(model), "--output", str(out), "--no-inspect",
+                             "--wake-word", "Hey Hàu"]) == 0
+    assert '// "Hey Hàu"' in out.read_text(encoding="utf-8")
 
 
 def test_export_rejects_bad_inputs(tmp_path):

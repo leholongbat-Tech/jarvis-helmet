@@ -48,6 +48,7 @@ extern "C" {
 extern const unsigned char g_jarvis_mww_model[];
 extern const unsigned int g_jarvis_mww_model_size;
 extern const unsigned int g_jarvis_mww_tensor_arena_size;
+extern const char g_jarvis_mww_wake_word[];  // reported text, UTF-8 (export --wake-word)
 }
 
 namespace {
@@ -85,9 +86,6 @@ constexpr uint32_t kTaskStackBytes = 6 * 1024;
 constexpr UBaseType_t kTaskPriority = 2;  // below audio_afe (3): never delays the AFE fetch
 constexpr int64_t kStatsPeriodUs = 10 * 1000 * 1000;
 
-// Reported wake word (what the server receives): "Quản gia", NFC UTF-8.
-constexpr char kWakeWordText[] = "Qu\xe1\xba\xa3n gia";
-
 // Operators used by the streaming microWakeWord (MixedNet) models.
 constexpr unsigned kOpCount = 20;
 using OpResolver = tflite::MicroMutableOpResolver<kOpCount>;
@@ -101,7 +99,8 @@ enum class ArenaResult { kOk, kTooSmall, kNoMemory };
 struct MicroWakeWord::Impl {
     AudioCodec* codec = nullptr;
     std::function<void(const std::string&)> callback;
-    const std::string wake_word{kWakeWordText};
+    // Reported wake word (what the server receives), stored with the model.
+    const std::string wake_word{g_jarvis_mww_wake_word};
 
     // Shared between the producer (FeedMono), the control calls and the inference task.
     std::atomic<bool> ready{false};

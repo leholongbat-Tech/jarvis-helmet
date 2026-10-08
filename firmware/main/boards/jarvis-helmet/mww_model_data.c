@@ -14,6 +14,8 @@ typedef int jarvis_mww_model_data_unused_t;
 
 const unsigned int g_jarvis_mww_model_size = 0;
 const unsigned int g_jarvis_mww_tensor_arena_size = 0;
+// "Quản gia"
+const char g_jarvis_mww_wake_word[] = {0x51, 0x75, 0xe1, 0xba, 0xa3, 0x6e, 0x20, 0x67, 0x69, 0x61, 0x00};
 const unsigned char g_jarvis_mww_model[16] __attribute__((aligned(16))) = {0};
 
 #endif  // CONFIG_JARVIS_MICRO_WAKE_WORD

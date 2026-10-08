@@ -24,7 +24,7 @@ from pathlib import Path
 import numpy as np
 
 TARGET_RATE = 16000
-WAKE_WORD = "quản gia"
+WAKE_WORD = "quản gia"  # default; gen_positives/gen_negatives/train.sh take --wake-word
 
 
 def utf8_stdio() -> None:

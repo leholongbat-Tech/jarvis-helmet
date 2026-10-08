@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Synthesize hard-negative clips (confusable phrases) for the "quản gia" model.
+"""Synthesize hard-negative clips (confusable phrases) for a wake word model ("quản gia" by
+default; negatives_hau_oi.txt with --wake-word "hàu ơi").
 
 Reads negatives_vi.txt (quản lý, gia đình, quán gà, quản trị, hoàng gia, ...), speaks every
 phrase with several voices and variations through the same VieNeu/Piper pipeline as
@@ -29,15 +30,18 @@ def main(argv: list[str] | None = None) -> int:
     wwsynth.add_common_arguments(parser, default_out="out/negatives", default_count=0)
     parser.add_argument("--phrases", type=Path, default=DEFAULT_PHRASES,
                         help="phrase list (default: negatives_vi.txt)")
+    parser.add_argument("--wake-word", default=ww.WAKE_WORD,
+                        help=f"phrase the negatives must not contain (default: {ww.WAKE_WORD!r})")
     parser.add_argument("--per-phrase", type=int, default=6,
                         help="clips per phrase when --count is not given")
     parser.set_defaults(variants=2)
     args = parser.parse_args(argv)
 
     phrases = ww.load_phrases(args.phrases)
-    bad = [p for p in phrases if ww.WAKE_WORD in p.lower()]
+    wake_word = ww.nfc(args.wake_word).strip().lower()
+    bad = [p for p in phrases if wake_word in p.lower()]
     if bad:
-        print(f"error: negatives must not contain '{ww.WAKE_WORD}': {bad}", file=sys.stderr)
+        print(f"error: negatives must not contain '{wake_word}': {bad}", file=sys.stderr)
         return 1
     if args.count <= 0:
         args.count = len(phrases) * max(1, args.per_phrase)

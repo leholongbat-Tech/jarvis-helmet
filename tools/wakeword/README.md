@@ -1,6 +1,7 @@
-# tools/wakeword – Train và đánh giá wake word "Quản gia" (FW7, phương án B2)
+# tools/wakeword – Train và đánh giá wake word tiếng Việt (FW7, phương án B2)
 
-Thư mục này chứa toàn bộ pipeline để tạo model **microWakeWord** cho từ "Quản gia", chạy trên
+Thư mục này chứa toàn bộ pipeline để tạo model **microWakeWord** cho một từ tiếng Việt ("Quản gia"
+theo kế hoạch, mặc định của các script; "Hàu ơi" là từ người dùng chọn, mục 9), chạy trên
 ESP32-S3 song song với WakeNet "Jarvis" (`CONFIG_JARVIS_MICRO_WAKE_WORD`, mặc định tắt).
 Phương án A (chỉ "Jarvis") và B1 (MultiNet, không cần train) không cần thư mục này; xem
 `docs/wakeword-report.md`.
@@ -130,11 +131,27 @@ tools/wakeword/train.sh --dry-run ...     # chỉ in kế hoạch
   không phải RTX 50: `--image ghcr.io/tatertotterson/microwakeword:v32`.
 - GPU: `--gpu cdi` (mặc định, đúng cho server batai, không cần khởi động lại dockerd) hoặc
   `--gpu all` (Docker Desktop).
-- Script chép clip của ta vào `<data>/personal_samples/` và `<data>/negative_samples/`, xoá cache
-  feature cũ (trainer chỉ tính lại khi bộ TTS của nó đổi), rồi chạy trong container:
-  `setup_python_venv`, `setup_training_datasets` (lần đầu tải nhiều GB), tải giọng Piper vi_VN,
+- Không có GPU dùng được (batai: VRAM bị chiếm, chưa cài NVIDIA Container Toolkit): `--gpu none
+  --cpus 12` chạy bằng CPU, giới hạn container và các luồng TensorFlow/OpenMP ở 12 nhân; dùng image
+  `...:v32` (không phải Blackwell).
+- Script **thay** nội dung `<data>/personal_samples/` và `<data>/negative_samples/` bằng clip của
+  lần chạy này (clip của lần trước, có thể của từ khác, bị xoá), xoá cache feature cũ (trainer chỉ
+  tính lại khi bộ TTS của nó đổi), rồi chạy trong container: `setup_python_venv`,
+  `setup_training_datasets` (lần đầu tải ~30 GB), tải giọng Piper vi_VN,
   `train_wake_word --language=vi --tts-mode=hybrid "quản gia"`. Trainer tự sinh thêm mẫu
   OmniVoice (tiếng Việt: thử nghiệm) + Piper. Không mở cổng nào (không dùng web UI).
+- `--setup-only`: chỉ cài venv, tải dataset và giọng rồi dừng (chạy trước trong lúc tạo dữ liệu).
+- Trainer lọc mẫu TTS của nó bằng Silero VAD lấy từ venv của web UI; chạy không UI thì venv đó không
+  có, nên script cài `silero-vad` vào venv train và trỏ `REC_VENV_DIR` vào đó (thiếu bước này trainer
+  dừng ở bước tạo mẫu).
+- **Piper vi_VN:** chỉ `vi_VN-vais1000-medium` giữ được dấu thanh. `vivos-x_low` (65 người nói) và
+  `25hours_single-low` (piper 0.2.0) không có ký hiệu thanh điệu trong bảng phoneme, phonemizer của
+  piper-tts 1.8 sinh số thanh (`hˈa2w`) rồi bị bỏ âm thầm: "hàu", "hầu", "hậu" đọc như nhau. Script
+  chỉ tải vais1000 (một giọng).
+- `--own-tts out/x/tts`: dùng clip của ta (ví dụ VieNeu, 25 giọng, đúng thanh) làm bộ mẫu TTS chính
+  của trainer thay cho bộ nó tự sinh. Script chép clip thành `work/wake_word_samples/0..N-1.wav`
+  kèm manifest mang đúng "chữ ký" mà trainer tự tính (`tts_generate_samples.py --dry-run`), nên
+  trainer dùng lại thư mục đó; `--samples` khi đó là số clip.
 - Kết quả: `<data>/output/<thời gian>-quan_gia-…/quan_gia.tflite` + `quan_gia.json`, được chép
   về `out/model/`. Manifest có `probability_cutoff` và `sliding_window_size` đã hiệu chỉnh.
 - **Giấy phép:** image Blackwell dùng bản TensorFlow 2.22 không chính thức
@@ -164,7 +181,10 @@ python tools/wakeword/export/tflite_to_c.py --model out/model/quan_gia.tflite --
 
 Lệnh ghi đè `firmware/main/boards/jarvis-helmet/mww_model_data.c` (kiểm tra định danh `TFL3`,
 `feature_step_size` = 10 ms, và nếu có runtime TFLite thì kiểm tra tensor vào int8 [1, n, 40] /
-ra uint8 [1, 1]) và in dòng Kconfig gợi ý, ví dụ:
+ra uint8 [1, 1]). File cũng chứa chữ mà thiết bị gửi lên server khi nhận được từ
+(`g_jarvis_mww_wake_word`, UTF-8): mặc định là `wake_word` trong manifest viết hoa chữ đầu, đổi
+bằng `--wake-word "Hàu ơi"`. Server phải có chữ đó (viết liền) trong `wakeup_words` (D15), nếu
+không nó sẽ bị coi là một câu hỏi. Lệnh in dòng Kconfig gợi ý, ví dụ:
 
 ```
 CONFIG_JARVIS_MWW_CUTOFF_PCT=97
@@ -183,11 +203,57 @@ Model đã train **không** commit vào repo nếu chưa rõ giấy phép dữ l
 
 ## 8. Ghi chú
 
-- Firmware nhận diện "Quản gia" bằng đoạn audio sau AFE (giống WakeNet, NS/AGC/AEC đang tắt nên
-  gần như là audio thô của mic). Khi đang phát TTS, mặc định wake word bị tắt
-  (`CONFIG_JARVIS_WAKE_WORD_BARGE_IN=n`), xem báo cáo.
+- Firmware nhận diện từ của microWakeWord ("Quản gia", "Hàu ơi"…) bằng đoạn audio sau AFE (giống
+  WakeNet, NS/AGC/AEC đang tắt nên gần như là audio thô của mic). Khi đang phát TTS, mặc định wake
+  word bị tắt (`CONFIG_JARVIS_WAKE_WORD_BARGE_IN=n`), xem báo cáo.
 - Log firmware (`MicroWakeWord`): thời gian suy luận trung bình và xác suất cao nhất mỗi 10 s
   (mức DEBUG: `esp_log_level_set("MicroWakeWord", ESP_LOG_DEBUG)`), dùng để chỉnh ngưỡng trên
   thiết bị.
 - Mã C++ trên thiết bị tự viết dựa trên thư viện Apache-2.0 (esp-tflite-micro,
   esp-micro-speech-features); không sao chép mã ESPHome (GPLv3).
+
+## 9. Từ khác: "Hàu ơi" (chỉ giọng TTS, train bằng CPU)
+
+Người dùng chọn "Hàu ơi" làm tên gọi tiếng Việt của mũ (D33). Các script đều nhận `--wake-word`
+(mặc định vẫn là "quản gia"); dưới đây là đúng các lệnh đã chạy trên batai (10/2026). Chỉ dùng
+giọng TTS, chưa có giọng thật của người dùng.
+
+```bash
+# Từ thư mục gốc repo. 1. Dữ liệu bằng VieNeu (chạy CPU trong compose); chạy trong container
+# nối mạng jarvis_tts như mục 1.
+API=http://vieneu:8000/v1/audio/speech
+W=tools/wakeword
+python $W/gen_positives.py --wake-word "hàu ơi" --api-url $API --sampling-params --count 3000 \
+    --workers 2 --out out/hau_oi/positives
+python $W/gen_positives.py --wake-word "hàu ơi" --api-url $API --sampling-params --count 7500 \
+    --workers 2 --seed 2 --out out/hau_oi/tts                  # bộ mẫu chính cho trainer
+python $W/gen_negatives.py --wake-word "hàu ơi" --phrases $W/negatives_hau_oi.txt --api-url $API \
+    --sampling-params --per-phrase 8 --workers 2 --out out/hau_oi/negatives
+python $W/gen_negatives.py --wake-word "hàu ơi" --phrases $W/negatives_vi.txt --api-url $API \
+    --sampling-params --per-phrase 4 --workers 2 --seed 7 --out out/hau_oi/negatives_vi
+python $W/augment.py --in out/hau_oi/positives --out out/hau_oi/positives_aug --variants 1
+
+# 2. Train bằng CPU (lần đầu --setup-only tải ~30 GB dataset, chạy song song với bước 1)
+IMG=ghcr.io/tatertotterson/microwakeword:v32@sha256:be8a8d6516cdbeee32300f3219402b9b865bd4be66b8cb75acf0b1d9624ded72
+tools/wakeword/train.sh --setup-only --data-dir ~/mww --gpu none --cpus 12 --tts-mode piper --image $IMG
+tools/wakeword/train.sh --data-dir ~/mww --gpu none --cpus 12 --tts-mode piper --image $IMG \
+    --wake-word "hàu ơi" --title "Hàu ơi" --slug hau_oi --own-tts out/hau_oi/tts \
+    --positives out/hau_oi/positives,out/hau_oi/positives_aug \
+    --negatives out/hau_oi/negatives,out/hau_oi/negatives_vi --steps 40000
+
+# 3. Firmware: chữ "Hàu ơi" gửi lên server nằm cùng model
+python tools/wakeword/export/tflite_to_c.py --model out/model/hau_oi.tflite \
+    --manifest out/model/hau_oi.json --wake-word "Hàu ơi"
+```
+
+- **Gần đồng âm:** ASR của server (Whisper medium) nghe phần lớn clip VieNeu "hàu ơi" thành "Hậu ơi",
+  một số thành "hầu ơi", "Hào ơi" (Whisper chuộng tên riêng "Hậu"; trên clip 0,5–0,8 s nó còn đoán
+  ra "Hawaii", "How are you?"). Vì vậy `negatives_hau_oi.txt` **không** có "hầu ơi", "hậu ơi",
+  "hào ơi": làm mẫu âm thì chúng mâu thuẫn với mẫu dương. Đổi lại mũ có thể thức khi nghe các từ đó.
+- Không lọc mẫu dương bằng ASR: đoán sai của Whisper trên clip ngắn sẽ loại nhầm nhiều mẫu tốt.
+- Server: `wakeup_words` có "hàuơi", "Hàuơi" và cách ASR hay viết nhầm ("hậuơi", "Hậuơi", "Hàoơi");
+  `taskslib` bỏ "hàu ơi"/"hào ơi" (không phân biệt dấu) ở đầu câu lệnh; quy tắc 5 của prompt cấm
+  LLM nói "hàu ơi".
+- Đánh giá độc lập: 300 clip VieNeu mới (`--seed 99`), 200 câu có lệnh phía sau ("Hàu ơi, mở mặt nạ
+  đi."), 120 clip gần đồng âm và 3,2 giờ giọng người thật (FLEURS vi_vn test, CC BY 4.0) nối thành
+  luồng 30 phút để đếm kích nhầm.
