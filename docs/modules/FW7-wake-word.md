@@ -65,7 +65,8 @@ Bộ thử: 20 lần gọi mỗi từ × 3 khoảng cách/điều kiện (yên t
 [`docs/wakeword-report.md`](../wakeword-report.md). Ngày 8/10/2026 đã train model microWakeWord **"Hàu ơi"** (tên
 tiếng Việt người dùng chọn, D33) chỉ bằng giọng TTS, nạp vào board thử: offline 97,7% clip "Hàu ơi" được nhận,
 0,63 lần kích nhầm/giờ trên 3,2 giờ giọng người thật (chi tiết: `tools/wakeword/README.md` mục 9, báo cáo mục 4.3).
-**Chưa thử bằng giọng thật, chưa đo trên mũ thật.**
+Ngày 9/10 thử qua mic của board thử (loa màn hình phát, thu bằng audio debugger): mic ồn (SNR ~7,5 dB, cắt đỉnh)
+nên chỉ 30–35% clip được nhận; model v4 (97/5) đang nạp. **Chưa thử bằng giọng thật, chưa đo trên mũ thật.**
 
 | Kế hoạch | Thực tế | Lý do |
 |---|---|---|

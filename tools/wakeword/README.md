@@ -260,8 +260,8 @@ tools/wakeword/train.sh --data-dir ~/mww --gpu none --cpus 12 --tts-mode piper -
     --positives out/hau_oi/positives,out/hau_oi/positives_aug,out/hau_oi/positives_ctx \
     --negatives out/hau_oi/negatives,out/hau_oi/negatives_vi,out/hau_oi/fleurs_neg --steps 40000
 
-# 3. Firmware: chữ "Hàu ơi" gửi lên server nằm cùng model; biến thể jarvis-helmet-mww đã đặt
-#    ngưỡng 95 / cửa sổ 5 (giá trị trainer hiệu chỉnh cho model này)
+# 3. Firmware: chữ "Hàu ơi" gửi lên server nằm cùng model; biến thể jarvis-helmet-mww đặt
+#    ngưỡng 97 / cửa sổ 5 cho v4 (bảng dưới)
 python tools/wakeword/export/tflite_to_c.py --model out/model/hau_oi.tflite \
     --manifest out/model/hau_oi.json --wake-word "Hàu ơi"
 ```
@@ -273,6 +273,27 @@ VieNeu mới `--seed 99` và 3,18 giờ FLEURS vi_vn test – giọng người t
 |---|---|---|---|---|
 | v1: chưa có mẫu nối lệnh, chưa có âm FLEURS | 97 / 5 | 98,0% | ~63% | 3,46 |
 | **v2**: thêm `positives_ctx`, `fleurs_neg` và các cụm cuối trong `negatives_hau_oi.txt` | **95 / 5** | **97,7%** | **76,0%** | **0,63** |
+
+**Thử qua mic của board thử (9/10/2026).** Firmware tạm có `CONFIG_USE_AUDIO_DEBUGGER` gửi âm thanh mic thô
+(16 kHz) qua UDP về batai; loa màn hình đặt cạnh mic phát clip ở 70% âm lượng, rồi cắt bản thu theo
+mốc thời gian (căn bằng tương quan chéo). Đo trên 296 clip "Hàu ơi" thu được: SNR trung vị 7,5 dB
+(nền ồn văn phòng −23 dBFS, ban đêm −33 dBFS, mic yên tĩnh lẽ ra ~−60), 60% clip cắt đỉnh 0 dBFS,
+kênh loa → mic giảm trầm 8 dB, tăng cao 6–8 dB. v3 thêm 155 clip thu qua mic (13 giọng, ×3) làm mẫu
+dương và tiếng ồn mic làm mẫu âm; v4 thêm câu nói thường và mẫu gần âm đã đưa qua kênh mic mô phỏng
+(đáp tuyến + tiếng ồn đo được) làm mẫu âm. Đánh giá trên 12 giọng còn lại thu qua mic:
+
+| Model | Ngưỡng / cửa sổ | Qua mic (141 clip, 12 giọng) | Sạch (500 clip) | Kích nhầm/giờ, FLEURS sạch | qua mic mô phỏng |
+|---|---|---|---|---|---|
+| v2 | 95 / 5 | 30,5% | 89,2% | 0,63 | 0 |
+| v3 | 98 / 5 | **73,0%** | 96,0% | 4,71 | 0 |
+| **v4 (đang nạp)** | **97 / 5** | 35,5% | **95,4%** | **0,63** | 0 |
+
+v3 học được "màu" của loa màn hình nên nhận qua mic tốt nhưng kích nhầm nhiều trên giọng nói sạch
+(giọng của chính người đội mũ ở sát mic gần với điều kiện sạch); v4 giữ kích nhầm thấp và tốt hơn v2 ở
+mọi bộ đo. Nút thắt là SNR của mic: ASR của server (Whisper medium) cho WER 11% trên giọng thật sạch
+(FLEURS) và 17% trên câu lệnh sạch, nhưng 41–52% khi mô phỏng kênh mic này, và trả về rỗng cho 57%
+clip "Hàu ơi" thu qua mic. Cần mic gần miệng (trong mũ), mút chắn gió, giảm khuếch đại mic 6–12 dB để
+hết cắt đỉnh, thử khử ồn (NS) của AFE.
 
 Kích nhầm của v1 rơi vào "làm **hòa với**", "**xa hoa**", "**Hoa** Kỳ", "**hoặc** trong"…: model
 chưa từng nghe tiếng Việt nói thường làm mẫu âm. Trên board thử (8/10): `Ready for "Hàu ơi"`, mỗi lần

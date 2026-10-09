@@ -233,10 +233,10 @@ Người dùng chọn "Hàu ơi" làm tên tiếng Việt (thay "Quản gia"); c
 | Cấu hình | Giá trị |
 |---|---|
 | Biến thể / commit | `jarvis-helmet-mww` / model không commit (giấy phép dataset), build từ bản sao firmware |
-| Model (`hau_oi.tflite`), ngày train, số bước | 137.960 B, SHA-256 `a4b71ecb…`, 8/10/2026, 40.000 bước trên 12 nhân CPU batai (35 phút) |
+| Model (`hau_oi.tflite`), ngày train, số bước | v4: 137.960 B, SHA-256 `7ad120d2…`, 9/10/2026, 40.000 bước trên 12 nhân CPU batai (v2: `a4b71ecb…`, 8/10) |
 | Dữ liệu train | Chỉ TTS: VieNeu 25 giọng (7.500 clip làm bộ TTS của trainer + 3.000 + 3.000 tăng cường vọng mũ + 3.000 "Hàu ơi" nối lệnh); âm: 1.184 câu VieNeu gần âm/thường ngày + 3.355 câu FLEURS vi train/dev (giọng thật) + dataset âm của trainer; không có giọng thật của người dùng |
-| `CONFIG_JARVIS_MWW_CUTOFF_PCT` / `_SLIDING_WINDOW` | 95 / 5 (trainer hiệu chỉnh: 95 / 5) |
-| Log `Ready for "Hàu ơi"` | model 137.960 B, stride 2, arena 67.520 B trong PSRAM (49.212 B dùng), ngưỡng 242/255 |
+| `CONFIG_JARVIS_MWW_CUTOFF_PCT` / `_SLIDING_WINDOW` | 97 / 5 (trainer hiệu chỉnh v4: 95 / 5; 97 giữ kích nhầm 0,63/giờ) |
+| Log `Ready for "Hàu ơi"` | model 137.960 B, stride 2, arena 67.520 B trong PSRAM (49.212 B dùng), ngưỡng 247/255 |
 
 Đánh giá offline (`eval_wakeword.py`, thuật toán của firmware; dương: clip VieNeu mới `--seed 99` không dùng để train;
 kích nhầm: 3,18 giờ FLEURS vi_vn test, giọng người thật đọc tin tức):
@@ -247,6 +247,11 @@ kích nhầm: 3,18 giờ FLEURS vi_vn test, giọng người thật đọc tin t
 | v2 | 95 | 5 | 97,7% | 76,0% | 0,63 | kích nhầm đạt; recall gộp 89,2% |
 | v2 | 97 | 5 | 97,0% | 72,0% | 0,31 | |
 | v2 | 99 | 5 | – | – | 0 | recall gộp 79,4% |
+| v4 (đang nạp, 9/10) | 97 | 5 | 95,4% (gộp 500 clip) | – | 0,63 | kích nhầm đạt |
+
+Qua mic của board thử (9/10, loa màn hình cạnh mic, 141 clip của 12 giọng không dùng để train; xem
+`tools/wakeword/README.md` mục 9): v2 30,5%, v3 (có clip thu qua mic) 73,0% nhưng 4,71 kích nhầm/giờ
+trên giọng sạch, v4 35,5%. SNR trung vị của kênh này chỉ 7,5 dB, 60% clip cắt đỉnh.
 
 "hầu ơi" / "hậu ơi" / "hào ơi" (120 clip) đánh thức v2 ở 94% (không có trong mẫu âm, xem `tools/wakeword/README.md` mục 9).
 Kích nhầm còn lại của v2 trên FLEURS: "…về đích ở vị trí thứ mười sáu…", "…Hội Đồng Bầu Cử…".

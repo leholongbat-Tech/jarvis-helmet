@@ -87,7 +87,7 @@ python tools/tasks_cli.py validate
 | [FW4](docs/modules/FW4-sequence-mcp.md) | Sequence runner & MCP tools | Firmware | FW2, FW3 | Code xong, test máy tính OK |
 | [FW5](docs/modules/FW5-nut-bam-offline.md) | Nút bấm & chế độ offline | Firmware | FW4 | Code xong; chờ mũ thật |
 | [FW6](docs/modules/FW6-hud-display.md) | HUD Iron Man & font tiếng Việt | Firmware | FW1 | Code xong, font đủ glyph; chờ màn hình thật |
-| [FW7](docs/modules/FW7-wake-word.md) | Wake word "Jarvis" + tên tiếng Việt | Firmware | FW1, SV4 | 3 phương án đã build; "Hàu ơi" (B2) đã train và nạp, offline 97,7% / 0,63 kích nhầm mỗi giờ; chờ thử bằng giọng thật |
+| [FW7](docs/modules/FW7-wake-word.md) | Wake word "Jarvis" + tên tiếng Việt | Firmware | FW1, SV4 | 3 phương án đã build; "Hàu ơi" (B2) v4 đã nạp: offline 95% clip sạch, 0,63 kích nhầm mỗi giờ; qua mic board thử chỉ 35% (mic ồn, SNR ~7,5 dB); chờ thử bằng giọng thật |
 | [SV1](docs/modules/SV1-ha-tang.md) | Hạ tầng server (GPU, Docker) | Server | – | Script xong; chờ quyền sudo trên batai |
 | [SV2](docs/modules/SV2-asr.md) | Nhận dạng giọng nói Việt–Anh | Server | SV1 | Code xong; chờ dữ liệu giọng thật để đo WER |
 | [SV3](docs/modules/SV3-llm.md) | LLM local + chuyển sang cloud | Server | SV1 | Code xong; chờ khóa Anthropic |
