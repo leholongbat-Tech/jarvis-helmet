@@ -291,7 +291,9 @@ def test_english_sentences_go_to_kokoro_when_enabled(vieneu, kokoro, make_router
     kq = kokoro.requests[0]
     assert kq["input"] == "Good evening, sir. All systems are online."
     assert kq["voice"] == "bm_george" and kq["response_format"] == "pcm" and kq["speed"] == 1.05
-    expected = 2 * len(tone(24000, vieneu.seconds)) + len(tone(24000, kokoro.seconds))
+    # VieNeu groups are time-stretched by the router (1.05), Kokoro applies the speed itself.
+    vieneu_part = round(len(tone(24000, vieneu.seconds)) / 2 / 1.05) * 2
+    expected = 2 * vieneu_part + len(tone(24000, kokoro.seconds))
     assert len(r.content) == expected
 
 
@@ -359,11 +361,70 @@ def test_language_hint_forces_vietnamese(vieneu, kokoro, make_router):
     assert not kokoro.requests and len(vieneu.requests) == 1
 
 
-def test_speed_is_reported_as_ignored_for_vieneu(vieneu, make_router):
+def dominant_hz(pcm: bytes, rate: int) -> float:
+    y = np.frombuffer(pcm, dtype="<i2").astype(float)
+    spectrum = np.abs(np.fft.rfft(y * np.hanning(len(y))))
+    return float(np.fft.rfftfreq(len(y), 1 / rate)[np.argmax(spectrum)])
+
+
+def test_speed_time_stretches_vieneu_at_the_same_pitch(vieneu, make_router):
     url = make_router(vieneu.url)
-    r = speak(url, input="Xin chào.", speed=1.2)
-    assert r.headers.get("x-tts-ignored") == "speed"
-    assert "speed" not in vieneu.requests[-1]
+    r = speak(url, input="Xin chào.", speed=1.5, sample_rate=24000)
+    assert r.status_code == 200
+    assert r.headers.get("x-tts-speed") == "1.5" and "x-tts-ignored" not in r.headers
+    assert "speed" not in vieneu.requests[-1]  # VieNeu has no speed field
+    assert len(r.content) == round(len(tone(24000, vieneu.seconds)) / 2 / 1.5) * 2
+    assert abs(dominant_hz(r.content, 24000) - 220) < 5
+
+
+def test_default_speed_from_settings_applies_to_vieneu(vieneu, make_router):
+    url = make_router(vieneu.url, speed=1.5)
+    r = speak(url, input="Xin chào.", sample_rate=24000)
+    assert r.headers.get("x-tts-speed") == "1.5"
+    assert len(r.content) == round(len(tone(24000, vieneu.seconds)) / 2 / 1.5) * 2
+
+
+def test_speed_with_resampling(vieneu, make_router):
+    vieneu.rate_override = 48000  # backend answers at 48 kHz, router resamples to 24 kHz
+    url = make_router(vieneu.url)
+    r = speak(url, input="Xin chào.", speed=1.5, sample_rate=24000)
+    expected = len(tone(24000, vieneu.seconds)) / 1.5
+    assert abs(len(r.content) - expected) <= 2 * 64
+    assert abs(dominant_hz(r.content, 24000) - 220) < 5
+
+
+def test_speed_one_leaves_audio_untouched(vieneu, make_router):
+    url = make_router(vieneu.url)
+    r = speak(url, input="Xin chào.", speed=1.0, sample_rate=24000)
+    assert r.content == tone(24000, vieneu.seconds)
+    assert "x-tts-speed" not in r.headers
+
+
+def test_kokoro_gets_speed_and_is_not_stretched(vieneu, kokoro, make_router):
+    url = make_router(vieneu.url, kokoro.url, english_engine="kokoro")
+    r = speak(url, input="Good evening, sir. All systems are online.", speed=1.5)
+    assert r.headers["x-tts-route"] == "kokoro"
+    assert kokoro.requests[-1]["speed"] == 1.5
+    assert len(r.content) == len(tone(24000, kokoro.seconds))  # fake Kokoro ignores speed
+
+
+def test_time_stretcher_is_independent_of_chunking():
+    from tts_router.audio import TimeStretcher
+
+    pcm = tone(24000, 1.3)
+    outs = []
+    for chunk in (len(pcm), 4096, 962, 2):
+        ts = TimeStretcher(24000, 1.5)
+        out = b"".join(ts.process(pcm[i:i + chunk]) for i in range(0, len(pcm), chunk))
+        outs.append(out + ts.flush())
+    assert all(o == outs[0] for o in outs)
+    assert len(outs[0]) == round(len(pcm) / 2 / 1.5) * 2
+    for speed in (0.75, 2.0):
+        ts = TimeStretcher(24000, speed)
+        out = ts.process(pcm) + ts.flush()
+        assert len(out) == round(len(pcm) / 2 / speed) * 2
+        assert abs(dominant_hz(out, 24000) - 220) < 5
+    assert TimeStretcher(24000, 1.5).flush() == b""
 
 
 # --- errors -----------------------------------------------------------------------------------

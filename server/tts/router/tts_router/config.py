@@ -34,7 +34,7 @@ class Settings:
     voice: str = "Hải Đăng"  # VieNeu preset (exact NFC name); pick a male voice with tools/tests/tts/bench.py
     english_voice: str = "bm_george"
     english_engine: str = "vieneu"  # "vieneu" | "kokoro"
-    speed: float = 1.0  # honoured by Kokoro only; VieNeu ignores speed
+    speed: float = 1.0  # Kokoro natively; VieNeu audio is time-stretched by the router (WSOLA)
     default_sample_rate: int = 24000
     connect_timeout: float = 3.0
     read_timeout: float = 20.0  # first audio byte and gaps between chunks

@@ -195,8 +195,11 @@ Anh", và số từ tiếng Anh ≥ `TTS_ENGLISH_MIN_RATIO` (0,6) × (từ Anh +
   khác thì xin 48 kHz rồi tự resample bằng soxr HQ theo từng chunk. Kokoro luôn ra 24 kHz.
 - `stream: true` (mặc định): chunk được chuyển tiếp ngay khi tới; với `wav` header ghi kích thước "không xác định"
   (0xFFFFFFFF) để trình phát chạy ngay. `stream: false`: trả trọn file, WAV có kích thước chính xác.
-- `speed`: **VieNeu bỏ qua tốc độ** (v3 Turbo không có điều khiển tốc độ; router trả header `X-TTS-Ignored: speed`). Chỉ Kokoro
-  dùng `speed` (request hoặc `TTS_SPEED`). Tốc độ 1.05 trong kế hoạch SV4 vì vậy không áp dụng được cho giọng tiếng Việt.
+- `speed` (request, hoặc `TTS_SPEED` khi request không ghi): Kokoro tự đọc nhanh/chậm. VieNeu v3 Turbo không có điều khiển tốc
+  độ, nên router **co giãn âm thanh VieNeu theo thời gian** bằng WSOLA (`tts_router/audio.py` `TimeStretcher`): khung 30 ms, chồng
+  50 %, mỗi khung dời tối đa ±8 ms tới chỗ nối tiếp khung trước tốt nhất. Cao độ giữ nguyên, độ dài = gốc / `speed`, trễ thêm
+  ~40 ms, CPU vài ms cho mỗi giây âm thanh. 0.5–2.0 nghe tự nhiên. Mũ dùng 1.5 (`speed` trong `.config.yaml.tmpl`).
+  `speed` = 1.0 thì âm thanh đi thẳng, không xử lý.
 
 ### 2.5 API
 
@@ -209,13 +212,13 @@ Anh", và số từ tiếng Anh ≥ `TTS_ENGLISH_MIN_RATIO` (0,6) × (từ Anh +
 | `response_format` | `pcm` | `pcm` \| `wav`; giá trị khác → 400 |
 | `sample_rate` | `TTS_SAMPLE_RATE` (24000) | 8000–48000 |
 | `stream` | `true` | |
-| `speed` | `TTS_SPEED` (1.0) | 0.25–4.0, chỉ Kokoro |
+| `speed` | `TTS_SPEED` (1.0) | 0.25–4.0. Kokoro tự áp dụng; VieNeu được router co giãn (WSOLA) |
 | `language` | `auto` | `auto` \| `vi` \| `en` (mở rộng của router) |
 | `model` | – | Nhận cho tương thích, không dùng (model VieNeu lấy từ `VIENEU_MODEL`) |
 
 Header trả về: `X-Request-Id`, `X-Sample-Rate`, `X-TTS-Route` (ví dụ `vieneu`, `vieneu+kokoro`, `none` khi không có gì để đọc –
 khi đó body rỗng, hoặc chỉ header WAV), `X-TTS-Normalized` (văn bản đã chuẩn hóa, URL-encode, tối đa 1500 ký tự, các nhóm ngăn
-bằng ` | `), `X-TTS-Ignored: speed`.
+bằng ` | `), `X-TTS-Speed` (tốc độ đã áp dụng, chỉ khi khác 1).
 
 Mã lỗi (body dạng OpenAI `{"error": {"message": ...}}`): 400 tham số sai; 503 backend không kết nối được; 429 backend bận
 (`Retry-After: 1`); lỗi 4xx của backend chuyển nguyên mã; lỗi 5xx của backend → 502.
@@ -264,7 +267,7 @@ Router nạp toàn bộ `server/.env` (`env_file`), nên mọi biến dưới đ
 | `TTS_VOICE` | `Hải Đăng` | Giọng VieNeu mặc định (đúng dấu). `server/.env.example` đặt `Thiền Tâm Đức` |
 | `TTS_ENGLISH_ENGINE` | `vieneu` | `vieneu` \| `kokoro` (giá trị khác coi như `vieneu`) |
 | `TTS_ENGLISH_VOICE` | `bm_george` | Giọng Kokoro router yêu cầu cho câu tiếng Anh |
-| `TTS_SPEED` | 1.0 | Tốc độ mặc định (chỉ Kokoro) |
+| `TTS_SPEED` | 1.0 | Tốc độ mặc định khi request không ghi `speed` (Kokoro và VieNeu) |
 | `TTS_SAMPLE_RATE` | 24000 | Tần số khi request không ghi `sample_rate` |
 | `TTS_CONNECT_TIMEOUT` | 3 | Giây, kết nối tới backend |
 | `TTS_READ_TIMEOUT` | 20 | Giây, chờ byte âm thanh đầu tiên và khoảng cách giữa các chunk |
@@ -311,7 +314,7 @@ TTS:
 | `max_segment_seconds` | 60 | Một đoạn đọc quá lâu bị cắt (log `truncated`) |
 | `first_segment_min_chars` | 8 | Độ dài tối thiểu để đoạn đầu được cắt ở dấu phẩy |
 | `max_segment_chars` | 220 | Đoạn dài không có dấu câu bị cắt ở dấu phẩy/khoảng trắng gần nhất |
-| `model`, `api_key`, `speed`, `correct_words`, `output_dir` | – | `model` gửi kèm (router không dùng); `api_key` → Bearer nếu khác `none`; `speed` chỉ có tác dụng với Kokoro; `correct_words` là danh sách "từ\|thay bằng" của upstream |
+| `model`, `api_key`, `speed`, `correct_words`, `output_dir` | – | `model` gửi kèm (router không dùng); `api_key` → Bearer nếu khác `none`; `speed` áp dụng cho cả hai engine (VieNeu qua co giãn ở router, mục 2.4); `correct_words` là danh sách "từ\|thay bằng" của upstream |
 
 Hoạt động:
 - **Tách đoạn theo luồng chữ của LLM**: cắt ở `. ! ? ; : …` + khoảng trắng, xuống dòng, dấu câu CJK; đoạn **đầu tiên** của lượt

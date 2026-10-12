@@ -17,7 +17,7 @@
 **Giọng:**
 - Chọn một giọng nam trầm có sẵn của VieNeu: mặc định `TTS_VOICE=Thiền Tâm Đức` (bảng cao độ các giọng nam và cách nghe thử: `server/tts/README.md`).
 - Hoặc clone từ mẫu giọng 10–30 giây mà bạn **có quyền sử dụng** (giọng của bạn, hoặc người đồng ý cho dùng) bằng `server/tts/vieneu/clone_voice.py`. Không clone giọng diễn viên hay người thật khi chưa được phép.
-- Tốc độ đọc 1.05: **không áp dụng được** – VieNeu v3 Turbo bỏ qua `speed` (chỉ Kokoro dùng).
+- Tốc độ đọc: VieNeu v3 Turbo không có `speed`, nên router co giãn âm thanh VieNeu (WSOLA, giữ cao độ). Mũ đặt 1.5 (10/2026, theo yêu cầu người dùng) trong `server/xiaozhi/data/.config.yaml.tmpl`.
 
 **Kết nối với xiaozhi-server:**
 - Provider riêng `jarvis_stream` (dựa trên `index_stream.py` của upstream): stream PCM 24 kHz thật từ `http://tts-router:8880/v1/audio/speech`, tự tách câu (cả dấu `.` `!` `?` ASCII và xuống dòng; đoạn đầu tiên còn cắt ở dấu phẩy để có tiếng sớm), rồi xiaozhi đổi sang Opus 24 kHz gửi xuống mũ.

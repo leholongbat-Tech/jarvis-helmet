@@ -3,6 +3,8 @@
 Per request: strip markup -> split sentences -> detect pure-English sentences -> normalize each
 sentence (Vietnamese or English readings) -> group consecutive sentences per engine -> stream
 s16le mono PCM at the requested rate, forwarding every backend chunk as soon as it arrives.
+`speed` goes to Kokoro as is; VieNeu has no speed control, so its audio is time-stretched here
+(WSOLA, same pitch).
 English sentences go to Kokoro only when TTS_ENGLISH_ENGINE=kokoro and Kokoro is healthy;
 everything else (and any Kokoro failure) goes to VieNeu.
 """
@@ -27,7 +29,7 @@ from fastapi.responses import JSONResponse, Response, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from . import __version__
-from .audio import PcmAligner, StreamResampler, silence, wav_header
+from .audio import PcmAligner, StreamResampler, TimeStretcher, silence, wav_header
 from .backends import BackendError, KokoroBackend, OpenStream, VieNeuBackend, check_all
 from .config import Settings
 from .normalize_vi import Normalizer, NormalizerConfig, has_speakable, strip_markup
@@ -206,19 +208,25 @@ class Router:
                 group.engine = "vieneu"
         return await self.open_vieneu(group.text, self.vieneu_voice(voice), rate)
 
-    async def _pcm(self, stream: OpenStream, rate: int) -> AsyncIterator[bytes]:
+    async def _pcm(self, stream: OpenStream, rate: int, speed: float = 1.0) -> AsyncIterator[bytes]:
         aligner = PcmAligner()
+        # Kokoro applies `speed` itself; VieNeu ignores it, so its audio is time-stretched.
+        stretcher = (TimeStretcher(stream.sample_rate, speed)
+                     if stream.backend == "vieneu" and abs(speed - 1.0) > 0.005 else None)
         resampler = StreamResampler(stream.sample_rate, rate) if stream.sample_rate != rate else None
         async for chunk in stream.response.aiter_bytes():
             data = aligner.push(chunk)
+            if stretcher is not None:
+                data = stretcher.process(data)
             if resampler is not None:
                 data = resampler.process(data)
             if data:
                 yield data
+        tail = stretcher.flush() if stretcher is not None else b""
         if resampler is not None:
-            tail = resampler.flush()
-            if tail:
-                yield tail
+            tail = resampler.process(tail) + resampler.flush()
+        if tail:
+            yield tail
 
     async def synthesize(self, groups: List[Group], first: OpenStream, rate: int, speed: float,
                          voice: Optional[str], rid: str, prefix: bytes = b"") -> AsyncIterator[bytes]:
@@ -232,7 +240,7 @@ class Router:
 
         async def relay(s: OpenStream) -> AsyncIterator[bytes]:
             nonlocal ttfb, nbytes, sent
-            async for pcm in self._pcm(s, rate):
+            async for pcm in self._pcm(s, rate, speed):
                 if ttfb is None:
                     ttfb = time.perf_counter() - t0
                 nbytes += len(pcm)
@@ -380,8 +388,8 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
                 return _error(429, f"{exc.backend} busy", headers={"Retry-After": "1"})
             return _error(exc.status if 400 <= exc.status < 500 else 502, f"{exc.backend}: {exc.message}")
         headers["X-TTS-Route"] = "+".join(g.engine for g in groups)
-        if req.speed is not None and any(g.engine == "vieneu" for g in groups):
-            headers["X-TTS-Ignored"] = "speed"
+        if abs(speed - 1.0) > 0.005:
+            headers["X-TTS-Speed"] = f"{speed:g}"
         if not req.stream:
             pcm = b"".join([c async for c in router.synthesize(groups, first, rate, speed, req.voice, rid)])
             body = wav_header(rate, len(pcm)) + pcm if fmt == "wav" else pcm

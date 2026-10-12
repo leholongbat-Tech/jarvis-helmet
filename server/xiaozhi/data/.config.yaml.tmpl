@@ -181,6 +181,9 @@ TTS:
     api_key: "none"
     voice: "${TTS_VOICE}"
     sample_rate: 24000
+    # Tốc độ nói (1.0 = gốc). Router co giãn giọng VieNeu theo thời gian (WSOLA, giữ cao độ);
+    # Kokoro tự áp dụng. 0.5–2.0 nghe tự nhiên.
+    speed: 1.5
     output_dir: tmp/tts
 
 Intent:
