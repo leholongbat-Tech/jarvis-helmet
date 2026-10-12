@@ -126,8 +126,8 @@ def button_v(x, ytop, ybot, c, label=None):
 add(f'<rect x="0" y="0" width="{W}" height="{H}" fill="#ffffff"/>')
 t(30, 42, "Jarvis Helmet – Sơ đồ đấu dây hệ thống", 26, weight="bold")
 t(30, 66, "ESP32-S3-DevKitC-1 N16R8 · bảng chân theo HW2 · nguồn sạc dự phòng 5V ≥2.4A nối hình sao (HW1) · công suất theo HW3", 14, fill=MUTED)
-t(1570, 38, "Rev B · 2026-10-09", 14, "end", "bold")
-t(1570, 56, "Chưa đo trên phần cứng thật · thay đổi Rev B: wiring.md đầu file", 12, "end", fill=MUTED)
+t(1570, 38, "Rev C · 2026-10-12", 14, "end", "bold")
+t(1570, 56, "Chưa đo trên phần cứng thật · thay đổi Rev C: wiring.md đầu file", 12, "end", fill=MUTED)
 t(1570, 72, "Chi tiết, tọa độ PCB: docs/hardware/wiring.md", 12, "end", fill=MUTED)
 
 # legend
@@ -298,28 +298,36 @@ line(1090, YG, 1090, YG+8, CPWM, 2)
 pl([(1090, YG+32), (1090, YG+40), (1157, YG+40)], CGND, 2)
 line(1157, YG+30, 1157, YG+40, CGND, 2)
 gnd(1157, YG+40, "GND_PWR")
-# drain -> EYES_DRV line
-pl([(1157, YG-30), (1157, 670), (1460, 670)], TXT, 2.2)
+# drain -> EYES_DRV line. One chain: 5V_EYES -> R_EYE -> eye module E1 (both LEDs in
+# parallel inside, as on the module's CR2032 holder) -> EYES_DRV.
+XE = 1440
+pl([(1157, YG-30), (1157, 670), (XE, 670), (XE, 654)], TXT, 2.2)
 flag(1250, 580, "5V_EYES", C5V, "left")
-line(1250, 580, 1460, 580, C5V)
-for xe, rn, en, nm in ((1340, "R_EYE1", "E1", "mắt trái"), (1440, "R_EYE2", "E2", "mắt phải")):
-    dot(xe, 580, C5V)
-    res_v(xe, 588, 612, C5V, rn, xe-11)
-    line(xe, 612, xe, 622, C5V, 2)
-    rect(xe-24, 622, 48, 34, fill="#fff8e6", stroke="#b8860b", sw=1.6, rx=4)
-    t(xe, 637, en, 12, "middle", "bold")
-    t(xe, 652, "(+ −)", 12, "middle", fill=MUTED)
-    line(xe, 656, xe, 670, TXT, 2)
-    dot(xe, 670, TXT)
-    if xe == 1440:
-        t(xe+28, 645, nm, 12, fill=MUTED)
-    else:
-        t(xe-30, 645, nm, 12, "end", fill=MUTED)   # left eye label on the left of E1
+pl([(1250, 580), (XE, 580), (XE, 600)], C5V)
+res_h(1335, 1385, 580, C5V, "R_EYE")
+rect(XE-45, 600, 90, 54, fill="#fff8e6", stroke="#b8860b", sw=1.6, rx=4)
+line(XE, 600, XE, 607, C5V, 2)
+line(XE-22, 607, XE+22, 607, C5V, 2)          # + rail (battery holder +)
+line(XE-22, 647, XE+22, 647, TXT, 2)          # − rail (battery holder −)
+line(XE, 647, XE, 654, TXT, 2)
+for xl in (XE-22, XE+22):                     # the two LEDs, in parallel
+    line(xl, 607, xl, 621, C5V, 2)
+    add(f'<polygon points="{xl-7},{621} {xl+7},{621} {xl},{633}" fill="#ffffff" stroke="#b8860b" stroke-width="1.8"/>')
+    line(xl-7, 633, xl+7, 633, "#b8860b", 2.2)
+    line(xl, 633, xl, 647, TXT, 2)
+    for dy in (0, 6):                         # light arrows
+        line(xl+9, 624+dy, xl+15, 618+dy, "#b8860b", 1.4)
+t(XE+8, 597, "+", 12, fill=MUTED)
+t(XE+8, 667, "−", 12, fill=MUTED)
+t(XE+52, 616, "E1", 12, weight="bold")
+t(XE+52, 631, "2 LED", 12, fill=MUTED)
+t(XE+52, 646, "song song", 12, fill=MUTED)
 for x, lab, yy in ((1285, "J6.1", 580), (1285, "J6.2", 670)):
     add(f'<rect x="{x-5}" y="{yy-5}" width="10" height="10" fill="#ffffff" stroke="{BOXS}" stroke-width="1.6"/>')
     t(x, yy-9, lab, 12, "middle", fill=MUTED)
 t(1300, 690, "EYES_DRV (drain Q1)", 12, "start", fill=MUTED)
-t(1240, 772, "Mỗi mắt một R_EYE riêng, chọn theo đo (mục 4.2)", 12, fill=MUTED)
+t(1240, 756, "Module mắt: tháo pin CR2032 trước khi nối 5V", 12, fill=MUTED)
+t(1240, 772, "Một R_EYE cho cả module, chọn theo đo (mục 4.2)", 12, fill=MUTED)
 t(1240, 788, "R5 kéo xuống: đèn tắt khi khởi động / reset", 12, fill=MUTED)
 
 # ---------------------------------------------------------------- power band
@@ -432,7 +440,7 @@ t(760, 950, "C1 1000µF", 12); t(760, 966, "C2 100nF", 12)
 fan5v("EYE")
 t(853, 869, "5V_EYES", 12, "start", "bold", C5V)
 t(853, 884, "→ J6.1", 12, fill=MUTED)
-t(853, 899, "→ R_EYE1/2", 12, fill=MUTED)
+t(853, 899, "→ R_EYE → E1", 12, fill=MUTED)
 line(845, 930, 845, 940, C5V, 2)
 add(f'<polygon points="839,940 851,940 845,950" fill="{C5V}"/>')
 
@@ -482,7 +490,7 @@ t(1350, 1016, "Chưa có trong ngân sách dòng HW1", 12, fill=MUTED)
 svg = (f'<?xml version="1.0" encoding="UTF-8"?>\n'
        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" '
        f'font-family="sans-serif" role="img" aria-labelledby="ttl desc">\n'
-       f'<title id="ttl">Jarvis Helmet – sơ đồ đấu dây hệ thống (Rev B)</title>\n'
+       f'<title id="ttl">Jarvis Helmet – sơ đồ đấu dây hệ thống (Rev C)</title>\n'
        f'<desc id="desc">ESP32-S3-DevKitC-1 ở giữa; INMP441, MAX98357A + loa, nút bấm, LCD 2.4" ST7789, 2 servo, '
        f'mạch đèn mắt Q1, output dự phòng Q2 và khối nguồn nối hình sao. Bảng chân theo HW2.</desc>\n'
        + "\n".join(e for e in el if e) + "\n</svg>\n")

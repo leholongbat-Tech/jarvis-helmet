@@ -15,7 +15,7 @@
 | INMP441 | 1.4 mA | – | |
 | MAX98357 + loa 8Ω | 100 mA | 450 mA | Khoảng 1.8W ở 5V |
 | 2× MG90S | 0 (đứng yên) / 300 mA (đang chạy) | 1.5–2 A (kẹt) | Đỉnh khi khởi động và khi kẹt cơ khí |
-| Đèn mắt | 20–60 mA | – | Đo ở HW3 |
+| Đèn mắt (1 module, 2 LED song song) | 20–40 mA | – | Đo ở HW3 |
 | **Tổng** | **~0.45 A** (lúc nói chuyện) | **~3 A** (trường hợp xấu nhất) | Sạc ≥2.4A dùng được (nên cổng 3A), nhưng firmware phải tránh mọi đỉnh dòng xảy ra cùng lúc (FW2) |
 
 ## 2. Sơ đồ nguồn

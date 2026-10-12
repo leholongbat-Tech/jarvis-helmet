@@ -2,13 +2,14 @@
 
 | | |
 |---|---|
-| **Phiên bản** | Rev B – 2026-10-09 (chưa đo trên phần cứng thật). Thay đổi so với Rev A: bảng "Lịch sử thay đổi" ngay dưới |
+| **Phiên bản** | Rev C – 2026-10-12 (chưa đo trên phần cứng thật). Thay đổi so với các bản trước: bảng "Lịch sử thay đổi" ngay dưới |
 | **Nguồn gốc** | [HW1](../modules/HW1-nguon-dien.md), [HW2](../modules/HW2-dau-noi-tin-hieu.md), [HW3](../modules/HW3-mach-cong-suat.md), [HW4](../modules/HW4-lap-rap-pcb.md). Bảng chân lấy nguyên từ HW2; nếu hai nơi lệch nhau thì **HW2 đúng** và sửa file này |
 | **Hình kèm** | [wiring.svg](wiring.svg) (sơ đồ hệ thống), [perfboard-7x9.svg](perfboard-7x9.svg) (bố trí PCB), [breadboard.svg](breadboard.svg) (bản thử breadboard, chi tiết ở [breadboard.md](breadboard.md)), [index.html](index.html) (xem offline) |
 | **BOM** | [BOM.md](BOM.md) |
 
 | Rev | Ngày | Thay đổi |
 |---|---|---|
+| C | 2026-10-12 | Đèn mắt: module mua về là một hộp pin CR2032 nuôi 2 LED song song, nên còn **một** module E1 và **một** R_EYE (bỏ E2, R_EYE1/R_EYE2 và chỗ chia nhánh chữ Y, mục 4.2). PCB, J6 và firmware không đổi |
 | B | 2026-10-09 | (1) U4 đổi sang LCD 2.4" MSP2401; J7 xếp đúng chân 1–8 của module (cáp 1:1), cụm GND sang cột U, R11 sang `Z:2`–`Z:3`. (2) Thêm Q3 AO3401A chống cắm ngược sau F1 (mục 2.9). (3) Chân SD của MAX98357A ← GPIO12 qua R13 2.2kΩ, firmware tắt amply khi không phát; GAIN nối VIN (6 dB) thay vì để trống (mục 3.4). (4) PWM đèn mắt / output dự phòng 5 kHz → 25 kHz. (5) D1 giữ hay nối tắt tùy devkit, C5 220 → 470µF, số liệu LDO theo sơ đồ thật (mục 2.3). Đối chiếu với dự án xiaozhi và datasheet ở mục 7 |
 | A | 2026-10-06 | Bản đầu |
 
@@ -22,8 +23,8 @@ Các ô ghi **"Đo thực tế: ___"** phải điền sau khi đo trên linh ki�
 | `I:23` | Lỗ trên PCB đục lỗ: **cột I, hàng 23** (xem mục 5.1). Dấu `:` để khỏi nhầm với tên linh kiện (`J6` là jack đèn mắt, `J:6` là lỗ cột J hàng 6) |
 | `J7.3` | Chân số 3 của đầu nối J7 |
 | `5V_SERVO`… | Tên mạng điện (net), xem bảng mục 1.3 |
-| U1…U4, LS1, M1/M2, E1/E2, SW1–SW3 | Module/thiết bị ngoài: U1 devkit, U2 MAX98357A, U3 INMP441, U4 LCD 2.4" ST7789 (module MSP2401), LS1 loa, M1/M2 servo S0/S1, E1/E2 module đèn mắt trái/phải, SW1 công tắc nguồn, SW2 nút PTT, SW3 nút mặt nạ |
-| C8, C9, R9–R11, R13, Q3, R_EYE1/2 | Ký hiệu đặt thêm trong tài liệu này: tụ chống dội nút, điện trở kéo xuống servo (tùy chọn), điện trở 33Ω cho SCK của LCD (tùy chọn), điện trở 2.2kΩ ở chân SD amply, MOSFET chống cắm ngược, điện trở hạn dòng 2 mắt |
+| U1…U4, LS1, M1/M2, E1, SW1–SW3 | Module/thiết bị ngoài: U1 devkit, U2 MAX98357A, U3 INMP441, U4 LCD 2.4" ST7789 (module MSP2401), LS1 loa, M1/M2 servo S0/S1, E1 module đèn mắt (2 LED song song cho 2 mắt), SW1 công tắc nguồn, SW2 nút PTT, SW3 nút mặt nạ |
+| C8, C9, R9–R11, R13, Q3, R_EYE | Ký hiệu đặt thêm trong tài liệu này: tụ chống dội nút, điện trở kéo xuống servo (tùy chọn), điện trở 33Ω cho SCK của LCD (tùy chọn), điện trở 2.2kΩ ở chân SD amply, MOSFET chống cắm ngược, điện trở hạn dòng đèn mắt |
 
 ## 1. Tổng quan
 
@@ -34,7 +35,7 @@ Các ô ghi **"Đo thực tế: ___"** phải điền sau khi đo trên linh ki�
 | Điều khiển | U1 ESP32-S3-DevKitC-1 N16R8 | Giữa PCB, cắm qua hàng rào cái |
 | Âm thanh | U3 INMP441 (mic I2S), U2 MAX98357A (amply I2S) + LS1 loa 3W 8Ω | U2 trên PCB (vùng trái); mic và loa trong mũ, nối qua J8/J10 |
 | Hiển thị | U4 LCD 2.4" ST7789 320×240 (SPI, module MSP2401, 77×43mm) | Trong mũ, nối qua J7 |
-| Chấp hành | M1/M2 servo MG90S, E1/E2 module LED mắt (CR2032 → 5V), output dự phòng J5 | Mạch công suất ở vùng phải PCB |
+| Chấp hành | M1/M2 servo MG90S, E1 module LED mắt (CR2032 → 5V, 2 LED song song), output dự phòng J5 | Mạch công suất ở vùng phải PCB |
 | Nhập liệu | SW2 nút PTT, SW3 nút mặt nạ, nút BOOT có sẵn trên devkit | Nút trong mũ, nối qua J9 |
 | Nguồn | Sạc dự phòng 5V ≥2.4A → J1 → F1 → SW1 → điểm sao 5V_MAIN | Khối nguồn ở cạnh dưới PCB |
 
@@ -48,7 +49,7 @@ Sạc dự phòng 5V ≥2.4A ─(USB-A cắt / USB-C sink 5.1k)─► J1 ─► 
    ├─ 5V_ESP ───── D1* ─ C5 + C6 ── U1 chân 5V ── LDO devkit ── 3V3 ─┬─► U3 INMP441 ── I2S GPIO4 (WS), GPIO5 (SCK), GPIO6 (SD)
    │                                                                └─► U4 LCD ST7789 ◄── SPI GPIO47, 21, 40, 41, 39, 42
    ├─ VSENSE_TOP ─ R1/R2 (chia 2) + C7 ──► GPIO1 (ADC1_CH0)
-   ├─ 5V_EYES ──── R_EYE1 / R_EYE2 ── E1, E2 ── Q1 AO3400A ◄── PWM GPIO8 (R3 100Ω, R5 100k kéo xuống)
+   ├─ 5V_EYES ──── R_EYE ── E1 (2 LED song song) ── Q1 AO3400A ◄── PWM GPIO8 (R3 100Ω, R5 100k kéo xuống)
    ├─ 5V_MAIN ──── J5 (+ D2) ── tải ≤1A ── Q2 AO3400A ◄── PWM GPIO9 (R4 100Ω, R6 100k kéo xuống)
    └─ GND: mỗi nhánh một dây riêng về GND_STAR (GND_SERVO, GND_AUDIO, GND_ESP, GND_PWR)
 
@@ -68,7 +69,7 @@ Tọa độ lỗ theo bố trí mục 5 (cột R của devkit là **dự kiến*
 | `5V_SERVO` | Nhánh từ điểm sao | `Q:31` ↔ C1+ (`X:30`) ↔ C2 (`Y:24`) ↔ J3.2 (`Y:23`) ↔ J4.2 (`Y:26`) ↔ dây đỏ servo M1, M2 |
 | `5V_AUDIO` | Nhánh từ điểm sao | `L:31` ↔ C3+ (`C:4`) ↔ C4 (`F:7`) ↔ U2 VIN (`G:7`) ↔ U2 GAIN (`G:10`, cầu `G:10`–`E:10`–`E:7`) |
 | `5V_ESP` | Sau D1 (≈4.65V) | D1 catot (`D:23`) ↔ C5+ (`F:23`) ↔ C6 (`H:23`) ↔ U1 chân 5V `DK-L21` (`I:23`) |
-| `5V_EYES` | Nhánh từ điểm sao | `O:31` ↔ J6.1 (`AA:9`) ↔ R_EYE1, R_EYE2 (trên dây, gần mắt) |
+| `5V_EYES` | Nhánh từ điểm sao | `O:31` ↔ J6.1 (`AA:9`) ↔ R_EYE (trên dây, sát hộp pin module) ↔ lá + của E1 |
 | `VSENSE_TOP` | Dây mảnh từ điểm sao | `N:31` ↔ R1 đầu trên (`V:8`) |
 | `3V3` | Ra từ LDO devkit | U1 `DK-L1`/`DK-L2` (`I:3`/`I:4`) ↔ J8.1 (`A:1`) → U3 VDD ↔ J7.1 (`T:1`) → U4 VCC |
 | `GND_STAR` | Điểm sao (thanh GND) | J1.2 (−, `D:34`) ↔ Q3 G (`D:32`) ↔ thanh GND `K:33`–`Q:33`. Mọi nhánh GND bên dưới chỉ gặp nhau ở đây |
@@ -95,7 +96,7 @@ Tọa độ lỗ theo bố trí mục 5 (cột R của devkit là **dự kiến*
 | `SERVO1_PWM` | PWM | GPIO18 `DK-L11` (`I:13`) ↔ R8 (`V:26`→`W:26`) ↔ J4.3 (`X:26`) ↔ dây cam M2 |
 | `EYES_PWM` | PWM | GPIO8 `DK-L12` (`I:14`) ↔ R3 (`V:10`) |
 | `EYES_GATE` | Gate Q1 | R3 (`W:10`) ↔ Q1 G (`X:10`) ↔ R5 (`X:11`) |
-| `EYES_DRV` | Drain Q1 | Q1 D (`Z:10`) ↔ J6.2 (`AA:10`) ↔ cực (−) của E1, E2 |
+| `EYES_DRV` | Drain Q1 | Q1 D (`Z:10`) ↔ J6.2 (`AA:10`) ↔ lá (−) hộp pin E1 |
 | `OUT_PWM` | PWM | GPIO9 `DK-L15` (`I:17`) ↔ R4 (`V:19`) |
 | `OUT_GATE` | Gate Q2 | R4 (`V:20`) ↔ Q2 G (`W:20`) ↔ R6 (`W:21`) |
 | `OUT_DRV` | Drain Q2 | Q2 D (`Y:20`) ↔ J5.2 (−, `AA:17`) ↔ D2 anot (`X:16`) |
@@ -115,8 +116,8 @@ Sạc dự phòng ─ cáp USB ─► J1 (domino 2P) ─► F1 2.5A ─► Q3 P-
    ┌───────────────────┬───────────────────┬──────────────────────┬─────────────────┬───────────────┼──────────────┐
    ▼ Q:31 / Q:33       ▼ L:31 / L:33       ▼ M:31 / N:33          ▼ O:31            ▼ P:31          ▼ N:31
  5V_SERVO/GND_SERVO  5V_AUDIO/GND_AUDIO  5V_ESP/GND_ESP         5V_EYES           5V_MAIN → J5    VSENSE_TOP
- C1 1000µF + C2      C3 470µF + C4       D1 SS34/1N5819         R_EYE1, R_EYE2    D2 1N5819       R1 100k
- sát J3/J4           sát VIN MAX98357    → C5 470µF + C6        → E1, E2 → Q1     tải ≤1A → Q2    R2 100k // C7
+ C1 1000µF + C2      C3 470µF + C4       D1 SS34/1N5819         R_EYE (1 con)     D2 1N5819       R1 100k
+ sát J3/J4           sát VIN MAX98357    → C5 470µF + C6        → E1 → Q1         tải ≤1A → Q2    R2 100k // C7
  → M1, M2            → U2 → loa LS1      sát chân 5V devkit     (GND_PWR: O:33)   (GND_PWR)       → GPIO1
                                          → LDO devkit → 3V3: ESP32-S3, LCD, mic
 ```
@@ -194,7 +195,7 @@ Tụ hóa 10V là mức tối thiểu theo HW1; dùng 16V nếu mua được cù
 | INMP441 | 5V_ESP → 3V3 | 1.4mA | – | |
 | MAX98357 + loa 8Ω | 5V_AUDIO | 100mA | 450mA | ~1.8W ở 5V |
 | 2× MG90S | 5V_SERVO | 0 (đứng yên) / 300mA (đang chạy) | 1.5–2A (khởi động, kẹt) | Firmware tránh đỉnh trùng nhau (FW2: S1 khởi động trễ ~30ms) |
-| Đèn mắt (2 module) | 5V_EYES | 20–60mA (ước tính HW1) | – | Ví dụ ở HW3 là 40mA **mỗi** module → 80mA. Đo thực tế: ___ mA |
+| Đèn mắt (1 module, 2 LED) | 5V_EYES | 20–40mA (ước tính HW1) | – | Ví dụ ở mục 4.2: 28mA cho cả module. Đo thực tế: ___ mA |
 | Output dự phòng J5 | 5V_MAIN | 0 | ≤1A | **Chưa có trong ngân sách HW1**: chỉ bật khi servo đứng yên, hoặc tính lại ngân sách |
 | **Tổng** | | **~0.45A** khi hội thoại | **~3A** xấu nhất (chưa kể J5) | Sạc ≥2.4A dùng được nhờ firmware tách đỉnh dòng (FW2) |
 
@@ -443,39 +444,39 @@ GPIO18 (I:13) ──[R8 220Ω  V:26→W:26]─────── J4.3 ───�
 - Servo giật lúc ESP32 khởi động (GPIO đang thả nổi): lắp R9 (`W:24`–`W:25`) và R10 (`W:27`–`W:28`) 10kΩ, đầu còn lại nối GND_SERVO bằng dây có vỏ.
 - Dây servo đi xa bản lề và cơ cấu chuyển động; chừa dây dư ở chỗ mặt nạ chuyển động.
 
-### 4.2 Đèn mắt – module LED cosplay chạy CR2032 (E1, E2)
+### 4.2 Đèn mắt – module LED cosplay chạy CR2032 (E1)
 
-Module mua về chạy bằng pin CR2032 3V; pin cúc áo có điện trở trong lớn nên tự hạn dòng cho LED. Chuyển sang nguồn 5V thì **bắt buộc thêm điện trở hạn dòng R_EYE cho từng module**.
+Module mua về là **một** hộp pin CR2032 3V nuôi cả 2 LED (mắt trái, mắt phải) nối song song. Pin cúc áo có điện trở trong lớn nên tự hạn dòng cho LED; chuyển sang nguồn 5V thì **bắt buộc thêm một điện trở hạn dòng R_EYE**, nối tiếp với cả module, thay cho điện trở trong của pin.
 
 ```
-5V_EYES (O:31) ── J6.1 (AA:9) ──┬──[R_EYE1]──► (+) E1 mắt trái (−) ──┐
-                                └──[R_EYE2]──► (+) E2 mắt phải (−) ──┴── J6.2 (AA:10) ── Drain Q1 (Z:10)
-                                                                                        Source Q1 (Y:10) ── GND_PWR (O:33)
+5V_EYES (O:31) ── J6.1 (AA:9) ──[R_EYE]──► lá (+) hộp pin E1 ─┬─ LED mắt trái ──┬─ lá (−) hộp pin E1 ── J6.2 (AA:10) ── Drain Q1 (Z:10)
+                                                              └─ LED mắt phải ──┘
+                                                                                                                        Source Q1 (Y:10) ── GND_PWR (O:33)
 GPIO8 (I:14) ──[R3 100Ω  V:10→W:10]──► Gate Q1 (X:10) ──[R5 100kΩ  X:11→Y:11]──► Source Q1
                                        (kéo xuống: đèn tắt trong lúc khởi động/reset/nạp code)
 ```
 
-- Hai mắt chung một kênh PWM: nối **song song** 2 module, mỗi module **một R_EYE riêng** (không dùng chung một điện trở cho 2 mắt: LED lệch V_f sẽ sáng không đều).
-- R_EYE1/R_EYE2 hàn **trên dây**, ở chỗ chia nhánh chữ Y gần mắt, bọc co nhiệt; J6 chỉ cần 2 chân (+5V_EYES, EYES_DRV) như BOM HW3. Muốn đặt R_EYE trên PCB để dễ thay thì đổi J6 thành 3 chân (EYE1+, EYE2+, chung −).
-- Module có công tắc riêng: để công tắc luôn ở ON hoặc nối tắt. Tháo hẳn pin CR2032 khỏi module.
+- Hai mắt chung một kênh PWM, một R_EYE, một cặp dây: J6 vẫn 2 chân (+5V_EYES, EYES_DRV), PCB không đổi so với Rev B. Hai LED vẫn song song như lúc chạy pin nên độ sáng hai mắt giống hệt khi dùng pin.
+- **Tháo hẳn pin CR2032**, hàn 2 dây vào hai lá tiếp điện của hộp pin: dây qua R_EYE vào lá **+**, dây về J6.2 vào lá **−** (đo bằng đồng hồ khi còn pin nếu không rõ lá nào). **Không lắp lại pin** khi đã nối 5V: pin lithium bị nạp, có thể phồng hoặc cháy.
+- R_EYE hàn **trên dây**, sát hộp pin của module, bọc co nhiệt.
+- Module có công tắc: để luôn ON hoặc nối tắt. Module có nút đổi chế độ (nháy, thở…) là có IC bên trong: chọn chế độ sáng đứng. PWM của Q1 bật/tắt nguồn IC 25.000 lần/giây nên IC có thể chạy sai; khi đó hàn dây thẳng vào hai đầu cụm LED (bỏ qua IC), hoặc chỉ dùng độ sáng 0/100%.
 - Q1 = AO3400A trên đế chuyển SOT-23 → 3 chân 2.54mm. AO3400A: chân 1 = G, 2 = S, 3 = D; **kiểm tra đế chuyển đưa chân nào ra lỗ nào** trước khi hàn. Logic-level, Rds(on) <50mΩ ở Vgs 2.5V. Dòng mỗi kênh <150mA có thể thay bằng 2N7000 (TO-92, thứ tự chân khác: xem datasheet).
 
 #### Quy trình đo để chọn R_EYE
 
-1. Tháo pin CR2032, xác định cực + và − của hộp pin. Kiểm tra trên module đã có sẵn điện trở hay chưa (ghi vào bảng).
-2. Cấp **3.0V từ nguồn có giới hạn dòng 100mA**, đồng hồ đo dòng mắc nối tiếp. Bắt đầu từ ~2.5V rồi tăng dần tới 3.0V. Không có nguồn chỉnh được thì dùng pin CR2032 mới và đo dòng.
-3. Ghi dòng I khi độ sáng vừa ý (**I_target**) và điện áp **V_f** đo ngay hai đầu module tại dòng đó.
+1. Tháo pin CR2032, xác định lá + và − của hộp pin. Kiểm tra trên module đã có sẵn điện trở hay chưa (ghi vào bảng).
+2. Cấp **3.0V từ nguồn có giới hạn dòng 100mA** vào hai lá của hộp pin (cả 2 LED cùng sáng), đồng hồ đo dòng mắc nối tiếp. Bắt đầu từ ~2.5V rồi tăng dần tới 3.0V. Không có nguồn chỉnh được thì dùng pin CR2032 mới và đo dòng.
+3. Ghi dòng **tổng của cả 2 LED** khi độ sáng vừa ý (**I_target**) và điện áp **V_f** đo ngay hai lá hộp pin tại dòng đó. LED 3–5mm thường không quá ~20mA mỗi con, tức I_target ≤ 40mA.
 4. Tính:
    - R_EYE = (5.0 − V_f) / I_target, chọn giá trị chuẩn E24 gần nhất (lớn hơn một chút thì an toàn hơn cho LED);
    - công suất P = I_target² × R_EYE; chọn điện trở có công suất **≥ 2P**;
    - kiểm tra lại dòng thật: I = (5V_EYES đo được − V_f) / R chọn.
-5. Ghi kết quả vào bảng dưới và vào mục 6.4. Làm riêng cho **từng** module.
+5. Ghi kết quả vào bảng dưới và vào mục 6.4.
 
-| Module | Điện trở có sẵn trên module? | V_f (V) | I_target (mA) | R tính (Ω) | R chọn (E24) | P = I²R (mW) | Công suất R chọn | I thật ở 5V (mA) |
+| Module | Điện trở có sẵn trên module? | V_f (V) | I_target cả 2 LED (mA) | R tính (Ω) | R chọn (E24) | P = I²R (mW) | Công suất R chọn | I thật ở 5V (mA) |
 |---|---|---|---|---|---|---|---|---|
-| Ví dụ (HW3) | không | 2.9 | 40 | 52.5 | **51Ω** | 82 | 1/4W (≥164mW) | 41 |
-| E1 mắt trái | Đo thực tế: ___ | ___ | ___ | ___ | ___ | ___ | ___ | ___ |
-| E2 mắt phải | Đo thực tế: ___ | ___ | ___ | ___ | ___ | ___ | ___ | ___ |
+| Ví dụ (HW3) | không | 2.9 | 30 | 70 | **75Ω** | 68 | 1/4W (≥136mW) | 28 |
+| E1 (2 LED song song) | Đo thực tế: ___ | ___ | ___ | ___ | ___ | ___ | ___ | ___ |
 
 PWM 25 kHz chỉ thay đổi dòng **trung bình**; dòng đỉnh luôn bằng I thật ở bảng trên, nên R_EYE phải tính cho 100% độ sáng.
 
@@ -714,7 +715,7 @@ Sau mỗi bước phải đạt phép thử rồi mới làm bước sau. Ghi k�
 ### 5.6 Đi dây trong mũ
 
 - Cáp tới mic, LCD và nút: bện xoắn, **≤20cm**, đầu cắm có khóa (JST-PH/XH). Bọc co nhiệt ở mọi mối hàn.
-- Dây servo và dây đèn mắt đi xa bản lề và cơ cấu chuyển động. Chừa đoạn dây dư ở chỗ mặt nạ chuyển động để không bị kéo căng. R_EYE1/R_EYE2 nằm trên dây, gần mắt, bọc co nhiệt.
+- Dây servo và dây đèn mắt đi xa bản lề và cơ cấu chuyển động. Chừa đoạn dây dư ở chỗ mặt nạ chuyển động để không bị kéo căng. R_EYE nằm trên dây, sát hộp pin module mắt, bọc co nhiệt.
 - Mic gần miệng, bọc mút, xa loa. Loa đặt phía tai, quay ra xa mic.
 - Cố định PCB bằng ốc M3 hoặc đế nhựa, có đệm chống rung. Không dán keo nóng lên linh kiện bị nóng (F1, Q2 khi tải lớn, trở tải giả).
 - Công tắc SW1 và chỗ cắm nguồn đặt ở nơi dễ với tay khi đang đội mũ. Dây SW1 dùng 22AWG.
@@ -768,16 +769,15 @@ Ghi ngày, người đo, dụng cụ. Khi thay linh kiện hoặc sửa mạch t
 
 | Module | Có sẵn điện trở? | V_f (V) | I_target (mA) | R tính (Ω) | R chọn | Công suất R | I thật ở 5V (mA) | Ngày |
 |---|---|---|---|---|---|---|---|---|
-| E1 mắt trái | | | | | | | | |
-| E2 mắt phải | | | | | | | | |
+| E1 (2 LED song song) | | | | | | | | |
 
 ### 6.5 Nhiệt độ MOSFET (mục 4.5)
 
 | Thử | Tải | Phút 0 (°C) | Phút 5 (°C) | Phút 10 (°C) | Nhiệt độ phòng (°C) | Đạt (<50°C) |
 |---|---|---|---|---|---|---|
 | Q2, bật liên tục | 10Ω/5W hoặc quạt 5V (~500mA) | | | | | |
-| Q1, đèn mắt 100% | E1 + E2 | | | | | |
-| Q1, PWM 50% | E1 + E2 | | | | | |
+| Q1, đèn mắt 100% | E1 | | | | | |
+| Q1, PWM 50% | E1 | | | | | |
 
 ### 6.6 Đếm số lần reset
 

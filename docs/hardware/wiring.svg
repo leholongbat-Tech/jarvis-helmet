@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1060" width="1600" height="1060" font-family="sans-serif" role="img" aria-labelledby="ttl desc">
-<title id="ttl">Jarvis Helmet – sơ đồ đấu dây hệ thống (Rev B)</title>
+<title id="ttl">Jarvis Helmet – sơ đồ đấu dây hệ thống (Rev C)</title>
 <desc id="desc">ESP32-S3-DevKitC-1 ở giữa; INMP441, MAX98357A + loa, nút bấm, LCD 2.4" ST7789, 2 servo, mạch đèn mắt Q1, output dự phòng Q2 và khối nguồn nối hình sao. Bảng chân theo HW2.</desc>
 <rect x="0" y="0" width="1600" height="1060" fill="#ffffff"/>
 <text x="30" y="42" font-size="26" text-anchor="start" font-weight="bold" fill="#1d1d1f">Jarvis Helmet – Sơ đồ đấu dây hệ thống</text>
 <text x="30" y="66" font-size="14" text-anchor="start" font-weight="normal" fill="#5f6368">ESP32-S3-DevKitC-1 N16R8 · bảng chân theo HW2 · nguồn sạc dự phòng 5V ≥2.4A nối hình sao (HW1) · công suất theo HW3</text>
-<text x="1570" y="38" font-size="14" text-anchor="end" font-weight="bold" fill="#1d1d1f">Rev B · 2026-10-09</text>
-<text x="1570" y="56" font-size="12" text-anchor="end" font-weight="normal" fill="#5f6368">Chưa đo trên phần cứng thật · thay đổi Rev B: wiring.md đầu file</text>
+<text x="1570" y="38" font-size="14" text-anchor="end" font-weight="bold" fill="#1d1d1f">Rev C · 2026-10-12</text>
+<text x="1570" y="56" font-size="12" text-anchor="end" font-weight="normal" fill="#5f6368">Chưa đo trên phần cứng thật · thay đổi Rev C: wiring.md đầu file</text>
 <text x="1570" y="72" font-size="12" text-anchor="end" font-weight="normal" fill="#5f6368">Chi tiết, tọa độ PCB: docs/hardware/wiring.md</text>
 <line x1="30" y1="100" x2="58" y2="100" stroke="#d62728" stroke-width="4" stroke-linecap="round"/>
 <text x="64" y="104.5" font-size="13" text-anchor="start" font-weight="normal" fill="#1d1d1f">5V</text>
@@ -387,36 +387,41 @@
 <line x1="1151" y1="750" x2="1163" y2="750" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
 <line x1="1154" y1="754" x2="1160" y2="754" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
 <text x="1169" y="755" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">GND_PWR</text>
-<polyline points="1157,670 1157,670 1460,670" fill="none" stroke="#1d1d1f" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1157,670 1157,670 1440,670 1440,654" fill="none" stroke="#1d1d1f" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
 <polygon points="1250,580 1242,571.0 1182.2,571.0 1182.2,589.0 1242,589.0" fill="#ffffff" stroke="#d62728" stroke-width="1.8"/>
 <text x="1212.1" y="584.5" font-size="12" text-anchor="middle" font-weight="bold" fill="#d62728">5V_EYES</text>
-<line x1="1250" y1="580" x2="1460" y2="580" stroke="#d62728" stroke-width="2.2" stroke-linecap="round"/>
-<circle cx="1340" cy="580" r="3.6" fill="#d62728"/>
-<rect x="1334" y="588" width="12" height="24" fill="#ffffff" stroke="#d62728" stroke-width="2"/>
-<text x="1329" y="604.0" font-size="12" text-anchor="end" font-weight="normal" fill="#1d1d1f">R_EYE1</text>
-<line x1="1340" y1="612" x2="1340" y2="622" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
-<rect x="1316" y="622" width="48" height="34" rx="4" fill="#fff8e6" stroke="#b8860b" stroke-width="1.6"/>
-<text x="1340" y="637" font-size="12" text-anchor="middle" font-weight="bold" fill="#1d1d1f">E1</text>
-<text x="1340" y="652" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">(+ −)</text>
-<line x1="1340" y1="656" x2="1340" y2="670" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"/>
-<circle cx="1340" cy="670" r="3.6" fill="#1d1d1f"/>
-<text x="1310" y="645" font-size="12" text-anchor="end" font-weight="normal" fill="#5f6368">mắt trái</text>
-<circle cx="1440" cy="580" r="3.6" fill="#d62728"/>
-<rect x="1434" y="588" width="12" height="24" fill="#ffffff" stroke="#d62728" stroke-width="2"/>
-<text x="1429" y="604.0" font-size="12" text-anchor="end" font-weight="normal" fill="#1d1d1f">R_EYE2</text>
-<line x1="1440" y1="612" x2="1440" y2="622" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
-<rect x="1416" y="622" width="48" height="34" rx="4" fill="#fff8e6" stroke="#b8860b" stroke-width="1.6"/>
-<text x="1440" y="637" font-size="12" text-anchor="middle" font-weight="bold" fill="#1d1d1f">E2</text>
-<text x="1440" y="652" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">(+ −)</text>
-<line x1="1440" y1="656" x2="1440" y2="670" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"/>
-<circle cx="1440" cy="670" r="3.6" fill="#1d1d1f"/>
-<text x="1468" y="645" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">mắt phải</text>
+<polyline points="1250,580 1440,580 1440,600" fill="none" stroke="#d62728" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="1335" y="574" width="50" height="12" fill="#ffffff" stroke="#d62728" stroke-width="2"/>
+<text x="1360.0" y="569" font-size="12" text-anchor="middle" font-weight="normal" fill="#1d1d1f">R_EYE</text>
+<rect x="1395" y="600" width="90" height="54" rx="4" fill="#fff8e6" stroke="#b8860b" stroke-width="1.6"/>
+<line x1="1440" y1="600" x2="1440" y2="607" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
+<line x1="1418" y1="607" x2="1462" y2="607" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
+<line x1="1418" y1="647" x2="1462" y2="647" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"/>
+<line x1="1440" y1="647" x2="1440" y2="654" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"/>
+<line x1="1418" y1="607" x2="1418" y2="621" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
+<polygon points="1411,621 1425,621 1418,633" fill="#ffffff" stroke="#b8860b" stroke-width="1.8"/>
+<line x1="1411" y1="633" x2="1425" y2="633" stroke="#b8860b" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="1418" y1="633" x2="1418" y2="647" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"/>
+<line x1="1427" y1="624" x2="1433" y2="618" stroke="#b8860b" stroke-width="1.4" stroke-linecap="round"/>
+<line x1="1427" y1="630" x2="1433" y2="624" stroke="#b8860b" stroke-width="1.4" stroke-linecap="round"/>
+<line x1="1462" y1="607" x2="1462" y2="621" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
+<polygon points="1455,621 1469,621 1462,633" fill="#ffffff" stroke="#b8860b" stroke-width="1.8"/>
+<line x1="1455" y1="633" x2="1469" y2="633" stroke="#b8860b" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="1462" y1="633" x2="1462" y2="647" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"/>
+<line x1="1471" y1="624" x2="1477" y2="618" stroke="#b8860b" stroke-width="1.4" stroke-linecap="round"/>
+<line x1="1471" y1="630" x2="1477" y2="624" stroke="#b8860b" stroke-width="1.4" stroke-linecap="round"/>
+<text x="1448" y="597" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">+</text>
+<text x="1448" y="667" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">−</text>
+<text x="1492" y="616" font-size="12" text-anchor="start" font-weight="bold" fill="#1d1d1f">E1</text>
+<text x="1492" y="631" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">2 LED</text>
+<text x="1492" y="646" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">song song</text>
 <rect x="1280" y="575" width="10" height="10" fill="#ffffff" stroke="#4a4f57" stroke-width="1.6"/>
 <text x="1285" y="571" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">J6.1</text>
 <rect x="1280" y="665" width="10" height="10" fill="#ffffff" stroke="#4a4f57" stroke-width="1.6"/>
 <text x="1285" y="661" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">J6.2</text>
 <text x="1300" y="690" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">EYES_DRV (drain Q1)</text>
-<text x="1240" y="772" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">Mỗi mắt một R_EYE riêng, chọn theo đo (mục 4.2)</text>
+<text x="1240" y="756" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">Module mắt: tháo pin CR2032 trước khi nối 5V</text>
+<text x="1240" y="772" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">Một R_EYE cho cả module, chọn theo đo (mục 4.2)</text>
 <text x="1240" y="788" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">R5 kéo xuống: đèn tắt khi khởi động / reset</text>
 <rect x="20" y="798" width="1035" height="254" rx="10" fill="#fff7f6" stroke="#e3b5b0" stroke-width="1.4"/>
 <text x="32" y="818" font-size="15" text-anchor="start" font-weight="bold" fill="#1d1d1f">NGUỒN &amp; PHÂN PHỐI (HW1) – nối đất hình sao</text>
@@ -541,7 +546,7 @@
 <polyline points="286,854 845,854 845,930" fill="none" stroke="#d62728" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
 <text x="853" y="869" font-size="12" text-anchor="start" font-weight="bold" fill="#d62728">5V_EYES</text>
 <text x="853" y="884" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">→ J6.1</text>
-<text x="853" y="899" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">→ R_EYE1/2</text>
+<text x="853" y="899" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">→ R_EYE → E1</text>
 <line x1="845" y1="930" x2="845" y2="940" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
 <polygon points="839,940 851,940 845,950" fill="#d62728"/>
 <polyline points="286,842 965,842 965,930" fill="none" stroke="#d62728" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>

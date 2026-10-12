@@ -23,26 +23,26 @@ GPIO18 ──[220Ω]─────────── dây cam S1 (phải, lắp
 
 ## 2. Đèn mắt – module LED cosplay chạy CR2032
 
-Module mua về chạy bằng pin CR2032 3V. Pin cúc áo có điện trở trong lớn nên tự hạn dòng cho LED. Khi chuyển sang nguồn 5V thì **bắt buộc thêm điện trở hạn dòng**.
+Module mua về là một hộp pin CR2032 3V nuôi cả 2 LED (2 mắt) nối song song. Pin cúc áo có điện trở trong lớn nên tự hạn dòng cho LED. Khi chuyển sang nguồn 5V thì **bắt buộc thêm một điện trở hạn dòng** nối tiếp với cả module.
 
 ### Mạch
 ```
-5V_EYES ──[R_EYE]──► (+) module đèn mắt (−) ──► Drain Q1 AO3400A
-                                                 Source Q1 ──► GND
+5V_EYES ──[R_EYE]──► (+) module đèn mắt: 2 LED song song (−) ──► Drain Q1 AO3400A
+                                                                 Source Q1 ──► GND
 GPIO8 ──[100Ω]──► Gate Q1 ──[100kΩ]──► GND       (kéo xuống: đèn tắt trong lúc khởi động/reset)
 ```
-- 2 mắt dùng chung một kênh: nối song song 2 module, **mỗi module một điện trở R_EYE riêng**.
-- Nếu module có công tắc riêng thì để công tắc luôn ở vị trí ON, hoặc nối tắt công tắc.
+- 2 mắt dùng chung một kênh và **một** điện trở R_EYE: tháo pin, hàn dây vào lá + (qua R_EYE) và lá − của hộp pin. Không lắp lại pin khi đã nối 5V.
+- Nếu module có công tắc riêng thì để công tắc luôn ở vị trí ON, hoặc nối tắt công tắc. Module có nút đổi chế độ (có IC) thì chọn chế độ sáng đứng; IC chạy sai khi PWM thì nối thẳng vào cụm LED hoặc chỉ bật/tắt 0/100%.
 - Q1 là AO3400A, gắn trên đế chuyển SOT-23 sang DIP: logic-level, Rds(on) <50mΩ ở Vgs 2.5V. Nếu dòng mỗi kênh <150mA có thể thay bằng 2N7000 (TO-92).
 
 ### Quy trình đo để chọn R_EYE
 1. Tháo pin CR2032, xác định cực + và − của hộp pin. Kiểm tra trên module đã có sẵn điện trở hay chưa.
-2. Cấp **3.0V từ nguồn có giới hạn dòng 100mA**, đồng hồ đo dòng mắc nối tiếp. Không có nguồn chỉnh được thì dùng pin CR2032 mới và đo dòng.
-3. Ghi lại dòng I khi độ sáng vừa ý (I_target) và điện áp V_f trên module.
+2. Cấp **3.0V từ nguồn có giới hạn dòng 100mA** vào hai lá hộp pin, đồng hồ đo dòng mắc nối tiếp. Không có nguồn chỉnh được thì dùng pin CR2032 mới và đo dòng.
+3. Ghi lại dòng tổng I của cả 2 LED khi độ sáng vừa ý (I_target, thường ≤ 40mA) và điện áp V_f trên module.
 4. Tính:
    - R_EYE = (5.0 − V_f) / I_target.
    - Công suất P = I_target² × R_EYE; chọn điện trở có công suất ≥ 2P.
-   - Ví dụ: V_f = 2.9V, I = 40mA → R = 52Ω → chọn **51Ω 1/4W**.
+   - Ví dụ: V_f = 2.9V, I = 30mA (cả 2 LED) → R = 70Ω → chọn **75Ω 1/4W** (dòng thật ~28mA).
 5. Ghi kết quả đo vào bảng trong `wiring.md`.
 
 ## 3. Output dự phòng
@@ -63,7 +63,7 @@ GPIO9 ──[100Ω]──► Gate Q2 ──[100kΩ]──► GND
 | R3, R4 | 100Ω (gate) | 2 |
 | R5, R6 | 100kΩ (kéo xuống) | 2 |
 | R7, R8 | 220Ω (tín hiệu servo) | 2 |
-| R_EYE ×2 | Chọn theo kết quả đo | 2 |
+| R_EYE | Chọn theo kết quả đo | 1 |
 | D2 | 1N5819 | 1 |
 | J3, J4 | Header 3P cho servo | 2 |
 | J5 | Domino 2P (output dự phòng) | 1 |

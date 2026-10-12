@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1290 1070" width="1290" height="1070" font-family="sans-serif" role="img" aria-labelledby="ttl desc">
-<title id="ttl">Jarvis Helmet – bố trí PCB đục lỗ 7×9cm (Rev B)</title>
+<title id="ttl">Jarvis Helmet – bố trí PCB đục lỗ 7×9cm (Rev C)</title>
 <desc id="desc">Lưới 27 cột (A–AA) × 35 hàng, nhìn từ mặt linh kiện. Devkit ở giữa, âm thanh bên trái, MOSFET và servo bên phải, khối nguồn và điểm sao ở cạnh dưới. Tọa độ dự kiến theo wiring.md mục 5.</desc>
 <rect x="0" y="0" width="1290" height="1070" fill="#ffffff"/>
 <defs><pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="#d62728" stroke-width="2" stroke-opacity="0.35"/></pattern><pattern id="hatchS" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><line x1="0" y1="0" x2="0" y2="7" stroke="#c45a00" stroke-width="1.6" stroke-opacity="0.35"/></pattern></defs>
 <text x="30.0" y="38.0" font-size="22" text-anchor="start" font-weight="bold" fill="#1d1d1f" >Jarvis Helmet – Bố trí PCB đục lỗ 7×9cm (lưới 27×35, nhìn từ mặt linh kiện)</text>
-<text x="30.0" y="62.0" font-size="13" text-anchor="start" font-weight="normal" fill="#5f6368" >Rev B · 2026-10-09 · tọa độ cột:hàng khớp docs/hardware/wiring.md mục 5 · bản dự kiến, chưa hàn thử</text>
+<text x="30.0" y="62.0" font-size="13" text-anchor="start" font-weight="normal" fill="#5f6368" >Rev C · 2026-10-12 · tọa độ cột:hàng khớp docs/hardware/wiring.md mục 5 · bản dự kiến, chưa hàn thử</text>
 <text x="30.0" y="80.0" font-size="13" text-anchor="start" font-weight="normal" fill="#5f6368" >Cạnh 9cm theo chiều dọc. Hàng 1 = cạnh trên (header cáp), hàng 35 = cạnh dưới (khối nguồn). Bước lỗ 2.54mm.</text>
 <rect x="81.3" y="141.3" width="661.4" height="853.4" rx="6" fill="#f6eedb" stroke="#b59b62" stroke-width="2"/>
 <rect x="88.0" y="172.0" width="192.0" height="624.0" rx="4" fill="#dbe9fb" stroke="none" stroke-width="0"/>
@@ -1525,7 +1525,7 @@
 <text x="800.0" y="937.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f" >• Q3 (P-FET): D ← F1, S → J2/SW1, G → J1−: chống cắm ngược.</text>
 <text x="800.0" y="954.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f" >• D1*: thay bằng dây nếu devkit đã có diode ở chân 5V.</text>
 <text x="800.0" y="971.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f" >• R13 (F:16–F:17): GPIO12 → SD amply; cầu G:10–E:7 = GAIN→VIN.</text>
-<text x="800.0" y="988.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f" >• R_EYE1/R_EYE2 nằm trên dây đèn mắt, không trên PCB.</text>
+<text x="800.0" y="988.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f" >• R_EYE (một con cho module mắt) nằm trên dây, không trên PCB.</text>
 <text x="800.0" y="1005.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f" >• GND_ESP (N:31) và GND_AUDIO (J:31) bắt chéo dây trần 5V:</text>
 <text x="800.0" y="1022.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f" >  dùng dây silicone, lót co nhiệt, không hàn ở chỗ giao.</text>
 </svg>

@@ -25,7 +25,7 @@ Không thuộc phạm vi: thiết kế cơ khí (khung, bản lề, vỏ mũ).
 | Firmware | Dựa trên **xiaozhi-esp32 v2.5.0** (ESP-IDF ≥6.0.1, khuyên dùng 6.1) |
 | Server phần mềm | **xiaozhi-esp32-server v0.9.7**, bản Python chế độ tối giản; thay các module ASR, LLM, TTS |
 | Servo | Cả 2 servo cùng nâng mặt nạ, chạy đồng bộ, servo phải đảo chiều |
-| Đèn mắt | Module LED cosplay chạy pin CR2032. 2 mắt chung 1 kênh, thêm 1 kênh dự phòng |
+| Đèn mắt | Module LED cosplay chạy pin CR2032 (một hộp pin, 2 LED song song). 2 mắt chung 1 kênh và 1 điện trở hạn dòng, thêm 1 kênh dự phòng |
 | Nút bấm | Nút nói (PTT) và nút mở/đóng mặt nạ. Nút mặt nạ vẫn hoạt động khi mất mạng |
 | Nguồn | Sạc dự phòng 5V, dòng ra ≥2.4A |
 | Màn hình | Trạng thái, câu hội thoại, HUD thông tin, giao diện kiểu Iron Man |

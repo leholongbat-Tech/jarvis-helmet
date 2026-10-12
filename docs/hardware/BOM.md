@@ -2,12 +2,12 @@
 
 | | |
 |---|---|
-| **Phiên bản** | Rev B – 2026-10-09 (thay đổi so với Rev A: đầu file `wiring.md`) |
+| **Phiên bản** | Rev C – 2026-10-12 (thay đổi so với các bản trước: đầu file `wiring.md`) |
 | **Nguồn gốc** | README (phần cứng chính), BOM ở [HW1](../modules/HW1-nguon-dien.md) §4 và [HW3](../modules/HW3-mach-cong-suat.md) §4, linh kiện mô tả trong [HW2](../modules/HW2-dau-noi-tin-hieu.md) và [HW4](../modules/HW4-lap-rap-pcb.md) |
 | **Đấu dây** | [wiring.md](wiring.md) – ký hiệu trong bảng này trùng với ký hiệu ở đó |
 | **Phạm vi** | Phần điện điều khiển. Khung, bản lề, vỏ mũ làm riêng (không có ở đây) |
 
-Ký hiệu có dấu * là ký hiệu không có trong BOM của HW1/HW3: J2, J7–J10 lấy từ hình bố trí ở HW4; C8, C9, R9–R11, R13, U1–U4, LS1, M1/M2, E1/E2, SW2/SW3 do `wiring.md` đặt thêm cho linh kiện đã mô tả trong HW2/HW3; R_EYE1/2 là "R_EYE ×2" của HW3, đánh số riêng cho từng mắt.
+Ký hiệu có dấu * là ký hiệu không có trong BOM của HW1/HW3: J2, J7–J10 lấy từ hình bố trí ở HW4; C8, C9, R9–R11, R13, U1–U4, LS1, M1/M2, E1, SW2/SW3 do `wiring.md` đặt thêm cho linh kiện đã mô tả trong HW2/HW3; R_EYE là điện trở hạn dòng duy nhất của module mắt (HW3 mục 2).
 
 ## 1. Module chính
 
@@ -19,7 +19,7 @@ Ký hiệu có dấu * là ký hiệu không có trong BOM của HW1/HW3: J2, J7
 | LS1* | Loa | 3W 8Ω, đường kính 28–40mm | 1 | Kèm dây và giắc JST-PH 2P |
 | U4* | LCD 2.4" SPI module MSP2401 | Driver ST7789, 240×320 (dùng ngang 320×240), SPI 4 dây, không cảm ứng. VCC 3.3–5V (có LDO trên module), logic 3.3V, chân LED bật đèn nền (mức cao = sáng). Header 14 chân 2.54mm: dùng chân 1–8, bỏ trống SDO(MISO) và T_CLK…T_IRQ; khe thẻ SD 4 chân không dùng. PCB 77.2×42.7mm, vùng hiển thị 36.7×49.0mm | 1 | Màn IPS → build `jarvis-helmet` (`LCD_ST7789_240X320`); màn TN (màu bị đảo) → `jarvis-helmet-noips` (`LCD_ST7789_240X320_NO_IPS`). Không dùng bản ILI9341 cùng mã MSP2401 (firmware cấu hình ST7789) |
 | M1, M2* | Servo MG90S | Bánh răng kim loại, 4.8–6V, xung 500–2400µs | 2 | M1 = S0 trái, M2 = S1 phải (lắp đối xứng) |
-| E1, E2* | Module LED mắt cosplay | Loại chạy pin CR2032 3V | 2 (1 cặp) | Tháo pin; mỗi module một điện trở R_EYE khi chạy 5V |
+| E1* | Module LED mắt cosplay | Một hộp pin CR2032 3V nuôi 2 LED (2 mắt) song song | 1 | Tháo pin, hàn 2 dây vào lá + / − của hộp pin; một điện trở R_EYE khi chạy 5V |
 | – | PCB đục lỗ | 7×9cm, bước 2.54mm, nên dùng loại 2 mặt mạ thiếc | 1 | Mua thêm 1 dự phòng. Bố trí trong `wiring.md` dùng lưới 27×35; **đếm lỗ trước khi mua** (nhiều tấm 7×9 chỉ có 24×30 lỗ) |
 | – | Sạc dự phòng | 5V, dòng ra ≥2.4A (nên cổng 3A), cổng USB-A hoặc USB-C | 1 | Không tự tắt khi tải ~250mA (thử IT1 E14) |
 | SW2, SW3* | Nút nhấn nhả | Thường hở (momentary), gắn vỏ (ví dụ Ø12mm) hoặc nút 6×6mm | 2 | SW2 = PTT, SW3 = mặt nạ |
@@ -50,11 +50,11 @@ Ký hiệu có dấu * là ký hiệu không có trong BOM của HW1/HW3: J2, J7
 | R3, R4 | Điện trở gate | 100Ω, 1/4W | 2 | |
 | R5, R6 | Điện trở kéo xuống | 100kΩ, 1/4W | 2 | Đặt giữa gate và source |
 | R7, R8 | Điện trở tín hiệu servo | 220Ω, 1/4W | 2 | |
-| R_EYE1, R_EYE2* | Điện trở hạn dòng đèn mắt | Chọn theo đo (ví dụ 51Ω 1/4W) | 2 | Mua sẵn vài giá trị E24 33–100Ω; công suất ≥ 2 × I²R |
+| R_EYE* | Điện trở hạn dòng đèn mắt | Chọn theo đo (ví dụ 75Ω 1/4W) | 1 | Mua sẵn vài giá trị E24 33–150Ω; công suất ≥ 2 × I²R |
 | D2 | Diode Schottky | 1N5819 | 1 | Chống ngược cho tải cảm ở J5 |
 | J3, J4 | Header đực 3P | 2.54mm, khớp giắc servo | 2 | Hoặc JST-XH 3P |
 | J5 | Domino 2P | Bước 5.08mm | 1 | Output dự phòng, ≤1A |
-| J6 | Header 2P hoặc JST-PH 2P | 2.54mm / 2.0mm | 1 | Đổi sang 3P nếu muốn đặt R_EYE trên PCB |
+| J6 | Header 2P hoặc JST-PH 2P | 2.54mm / 2.0mm | 1 | Hai dây tới module mắt: 5V_EYES (qua R_EYE) và EYES_DRV |
 
 ## 4. Tín hiệu (HW2)
 
@@ -130,7 +130,7 @@ Ký hiệu có dấu * là ký hiệu không có trong BOM của HW1/HW3: J2, J7
 | 10kΩ (tùy chọn) | R9, R10 | 2 | 10 |
 | 33Ω (tùy chọn) | R11 | 1 | 10 |
 | 2.2kΩ | R13 | 1 | 10 |
-| R_EYE | R_EYE1, R_EYE2 | 2 | Bộ E24 33–100Ω, 1/4W và 1/2W |
+| R_EYE | R_EYE | 1 | Bộ E24 33–150Ω, 1/4W |
 | 1N5819 | D1 (nếu không dùng SS34), D2 | 2 | 5 |
 | Tụ hóa 1000µF / 470µF | C1 / C3, C5 | 1 / 2 | 2 mỗi loại |
 | AO3400A + đế SOT-23 | Q1, Q2 | 2 | 4 |

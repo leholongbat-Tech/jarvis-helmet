@@ -161,7 +161,7 @@ add('<defs><pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse
     '<pattern id="hatchS" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">'
     '<line x1="0" y1="0" x2="0" y2="7" stroke="#c45a00" stroke-width="1.6" stroke-opacity="0.35"/></pattern></defs>')
 t(30, 38, "Jarvis Helmet – Bố trí PCB đục lỗ 7×9cm (lưới 27×35, nhìn từ mặt linh kiện)", 22, weight="bold", halo=False)
-t(30, 62, "Rev B · 2026-10-09 · tọa độ cột:hàng khớp docs/hardware/wiring.md mục 5 · bản dự kiến, chưa hàn thử", 13, fill=MUTED, halo=False)
+t(30, 62, "Rev C · 2026-10-12 · tọa độ cột:hàng khớp docs/hardware/wiring.md mục 5 · bản dự kiến, chưa hàn thử", 13, fill=MUTED, halo=False)
 t(30, 80, "Cạnh 9cm theo chiều dọc. Hàng 1 = cạnh trên (header cáp), hàng 35 = cạnh dưới (khối nguồn). Bước lỗ 2.54mm.", 13, fill=MUTED, halo=False)
 
 # board
@@ -421,7 +421,7 @@ for s in ("• Dây tín hiệu GPIO không vẽ: dây có vỏ AWG26–30 mặt
           "• Q3 (P-FET): D ← F1, S → J2/SW1, G → J1−: chống cắm ngược.",
           "• D1*: thay bằng dây nếu devkit đã có diode ở chân 5V.",
           "• R13 (F:16–F:17): GPIO12 → SD amply; cầu G:10–E:7 = GAIN→VIN.",
-          "• R_EYE1/R_EYE2 nằm trên dây đèn mắt, không trên PCB.",
+          "• R_EYE (một con cho module mắt) nằm trên dây, không trên PCB.",
           "• GND_ESP (N:31) và GND_AUDIO (J:31) bắt chéo dây trần 5V:",
           "  dùng dây silicone, lót co nhiệt, không hàn ở chỗ giao."):
     t(LX, ly, s, 12, halo=False, fill=TXT); ly += 17
@@ -429,7 +429,7 @@ for s in ("• Dây tín hiệu GPIO không vẽ: dây có vỏ AWG26–30 mặt
 svg = (f'<?xml version="1.0" encoding="UTF-8"?>\n'
        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" '
        f'font-family="sans-serif" role="img" aria-labelledby="ttl desc">\n'
-       f'<title id="ttl">Jarvis Helmet – bố trí PCB đục lỗ 7×9cm (Rev B)</title>\n'
+       f'<title id="ttl">Jarvis Helmet – bố trí PCB đục lỗ 7×9cm (Rev C)</title>\n'
        f'<desc id="desc">Lưới 27 cột (A–AA) × 35 hàng, nhìn từ mặt linh kiện. Devkit ở giữa, âm thanh bên trái, '
        f'MOSFET và servo bên phải, khối nguồn và điểm sao ở cạnh dưới. Tọa độ dự kiến theo wiring.md mục 5.</desc>\n'
        + "\n".join(el) + "\n</svg>\n")
