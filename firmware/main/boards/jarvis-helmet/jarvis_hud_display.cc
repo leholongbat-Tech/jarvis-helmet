@@ -55,7 +55,9 @@ constexpr uint32_t kColorTextDim = 0x5FA4B2;     // user line, labels, idle capt
 constexpr uint32_t kColorCoreBg = 0x02181F;
 constexpr uint32_t kColorCardBg = 0x031B23;
 
-// Layout of the 240x240 panel (vertical budget: 22 + 2 + 128 + 20 + 1 + 20 + 46 + 1).
+// Layout of the 320x240 landscape panel (vertical budget: 22 + 2 + 128 + 20 + 1 + 20 + 46 + 1).
+// Horizontal positions follow the width: the reactor is centred, EYES and the badge hug the
+// right edge, caption/chat/card span the full width.
 constexpr int kMargin = 4;
 constexpr int kStatusBarH = 22;
 constexpr int kReactorSize = 128;

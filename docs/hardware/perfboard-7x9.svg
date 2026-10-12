@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1290 1070" width="1290" height="1070" font-family="sans-serif" role="img" aria-labelledby="ttl desc">
-<title id="ttl">Jarvis Helmet – bố trí PCB đục lỗ 7×9cm (Rev A)</title>
+<title id="ttl">Jarvis Helmet – bố trí PCB đục lỗ 7×9cm (Rev B)</title>
 <desc id="desc">Lưới 27 cột (A–AA) × 35 hàng, nhìn từ mặt linh kiện. Devkit ở giữa, âm thanh bên trái, MOSFET và servo bên phải, khối nguồn và điểm sao ở cạnh dưới. Tọa độ dự kiến theo wiring.md mục 5.</desc>
 <rect x="0" y="0" width="1290" height="1070" fill="#ffffff"/>
 <defs><pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="#d62728" stroke-width="2" stroke-opacity="0.35"/></pattern><pattern id="hatchS" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><line x1="0" y1="0" x2="0" y2="7" stroke="#c45a00" stroke-width="1.6" stroke-opacity="0.35"/></pattern></defs>
 <text x="30.0" y="38.0" font-size="22" text-anchor="start" font-weight="bold" fill="#1d1d1f" >Jarvis Helmet – Bố trí PCB đục lỗ 7×9cm (lưới 27×35, nhìn từ mặt linh kiện)</text>
-<text x="30.0" y="62.0" font-size="13" text-anchor="start" font-weight="normal" fill="#5f6368" >Rev A · 2026-10-06 · tọa độ cột:hàng khớp docs/hardware/wiring.md mục 5 · bản dự kiến, chưa hàn thử</text>
+<text x="30.0" y="62.0" font-size="13" text-anchor="start" font-weight="normal" fill="#5f6368" >Rev B · 2026-10-09 · tọa độ cột:hàng khớp docs/hardware/wiring.md mục 5 · bản dự kiến, chưa hàn thử</text>
 <text x="30.0" y="80.0" font-size="13" text-anchor="start" font-weight="normal" fill="#5f6368" >Cạnh 9cm theo chiều dọc. Hàng 1 = cạnh trên (header cáp), hàng 35 = cạnh dưới (khối nguồn). Bước lỗ 2.54mm.</text>
 <rect x="81.3" y="141.3" width="661.4" height="853.4" rx="6" fill="#f6eedb" stroke="#b59b62" stroke-width="2"/>
 <rect x="88.0" y="172.0" width="192.0" height="624.0" rx="4" fill="#dbe9fb" stroke="none" stroke-width="0"/>
@@ -1086,8 +1086,10 @@
 <text x="752.7" y="980.0" font-size="12" text-anchor="start" font-weight="bold" fill="#5f6368" >35</text>
 <polyline points="124.0,952.0 124.0,856.0" fill="none" stroke="#ffffff" stroke-width="8.0" stroke-linejoin="round" stroke-linecap="round"/>
 <polyline points="124.0,952.0 124.0,856.0" fill="none" stroke="#d62728" stroke-width="4.0" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="9 5"/>
-<polyline points="172.0,856.0 220.0,856.0 220.0,952.0" fill="none" stroke="#ffffff" stroke-width="8.0" stroke-linejoin="round" stroke-linecap="round"/>
-<polyline points="172.0,856.0 220.0,856.0 220.0,952.0" fill="none" stroke="#d62728" stroke-width="4.0" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="9 5"/>
+<polyline points="172.0,856.0 220.0,856.0 220.0,904.0" fill="none" stroke="#ffffff" stroke-width="8.0" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="172.0,856.0 220.0,856.0 220.0,904.0" fill="none" stroke="#d62728" stroke-width="4.0" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="9 5"/>
+<polyline points="196.0,904.0 196.0,928.0 220.0,928.0 220.0,952.0" fill="none" stroke="#ffffff" stroke-width="8.0" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="196.0,904.0 196.0,928.0 220.0,928.0 220.0,952.0" fill="none" stroke="#d62728" stroke-width="4.0" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="9 5"/>
 <polyline points="268.0,952.0 268.0,880.0 340.0,880.0" fill="none" stroke="#ffffff" stroke-width="8.0" stroke-linejoin="round" stroke-linecap="round"/>
 <polyline points="268.0,952.0 268.0,880.0 340.0,880.0" fill="none" stroke="#d62728" stroke-width="4.0" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="9 5"/>
 <polyline points="172.0,952.0 172.0,976.0 340.0,976.0 340.0,928.0" fill="none" stroke="#ffffff" stroke-width="8.0" stroke-linejoin="round" stroke-linecap="round"/>
@@ -1118,8 +1120,10 @@
 <polyline points="148.0,256.0 172.0,256.0 172.0,328.0 244.0,328.0" fill="none" stroke="#333333" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="9 5"/>
 <polyline points="172.0,688.0 292.0,688.0" fill="none" stroke="#d62728" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4 3"/>
 <polyline points="220.0,712.0 292.0,712.0" fill="none" stroke="#333333" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4 3"/>
+<polyline points="172.0,904.0 172.0,952.0" fill="none" stroke="#333333" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4 3"/>
+<polyline points="244.0,376.0 196.0,376.0 196.0,304.0" fill="none" stroke="#d62728" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4 3"/>
 <polyline points="220.0,208.0 268.0,208.0 268.0,160.0" fill="none" stroke="#333333" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4 3"/>
-<polyline points="556.0,160.0 556.0,232.0 580.0,232.0" fill="none" stroke="#333333" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4 3"/>
+<polyline points="580.0,160.0 580.0,232.0 556.0,232.0 556.0,208.0" fill="none" stroke="#333333" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4 3"/>
 <polyline points="556.0,208.0 508.0,208.0" fill="none" stroke="#333333" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4 3"/>
 <polyline points="508.0,280.0 604.0,280.0" fill="none" stroke="#c79a00" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4 3"/>
 <polyline points="652.0,448.0 724.0,448.0 724.0,496.0" fill="none" stroke="#d62728" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4 3"/>
@@ -1134,7 +1138,7 @@
 <polyline points="244.0,160.0 244.0,184.0" fill="none" stroke="#0f8f9a" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4 3"/>
 <polyline points="628.0,688.0 628.0,712.0" fill="none" stroke="#2a9d3a" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4 3"/>
 <polyline points="628.0,760.0 628.0,784.0" fill="none" stroke="#2a9d3a" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4 3"/>
-<polyline points="604.0,160.0 604.0,184.0" fill="none" stroke="#8e44ad" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4 3"/>
+<polyline points="700.0,160.0 700.0,184.0" fill="none" stroke="#8e44ad" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4 3"/>
 <rect x="89.2" y="149.2" width="117.6" height="21.6" rx="2" fill="#e9e9e9" stroke="#1d1d1f" stroke-width="1.4"/>
 <rect x="95.8" y="155.8" width="8.4" height="8.4" fill="#1d1d1f"/>
 <rect x="119.8" y="155.8" width="8.4" height="8.4" fill="#1d1d1f"/>
@@ -1159,7 +1163,7 @@
 <rect x="695.8" y="155.8" width="8.4" height="8.4" fill="#1d1d1f"/>
 <rect x="719.8" y="155.8" width="8.4" height="8.4" fill="#1d1d1f"/>
 <rect x="550.0" y="154.0" width="12" height="12" fill="none" stroke="#d62728" stroke-width="1.6"/>
-<text x="640.0" y="111.3" font-size="12" text-anchor="middle" font-weight="bold" fill="#1d1d1f" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">J7 LCD 8P</text>
+<text x="640.0" y="111.3" font-size="12" text-anchor="middle" font-weight="bold" fill="#1d1d1f" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">J7 LCD 8P (= chân 1–8 module)</text>
 <line x1="220.0" y1="184.0" x2="220.0" y2="208.0" stroke="#1f6fd1" stroke-width="2.2"/>
 <rect x="214.0" y="191.0" width="12.0" height="10.0" rx="4" fill="#9cc3f0" stroke="#1f5fb0" stroke-width="1.4"/>
 <circle cx="220.0" cy="184.0" r="3" fill="#1f5fb0"/>
@@ -1169,11 +1173,11 @@
 <circle cx="244.0" cy="184.0" r="3" fill="#1f5fb0"/>
 <circle cx="244.0" cy="208.0" r="3" fill="#1f5fb0"/>
 <text x="232.0" y="238.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#1d1d1f" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">C8 C9</text>
-<line x1="604.0" y1="184.0" x2="604.0" y2="208.0" stroke="#7a5c2e" stroke-width="2.4"/>
-<circle cx="604.0" cy="184.0" r="6.2" fill="#f2d7a8" stroke="#7a5c2e" stroke-width="1.6"/>
-<circle cx="604.0" cy="184.0" r="9" fill="none" stroke="#5f6368" stroke-width="1.1" stroke-dasharray="3 2"/>
-<circle cx="604.0" cy="208.0" r="3" fill="#7a5c2e"/>
-<text x="630.0" y="198.4" font-size="12" text-anchor="start" font-weight="bold" fill="#1d1d1f" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">R11*</text>
+<line x1="700.0" y1="184.0" x2="700.0" y2="208.0" stroke="#7a5c2e" stroke-width="2.4"/>
+<circle cx="700.0" cy="184.0" r="6.2" fill="#f2d7a8" stroke="#7a5c2e" stroke-width="1.6"/>
+<circle cx="700.0" cy="184.0" r="9" fill="none" stroke="#5f6368" stroke-width="1.1" stroke-dasharray="3 2"/>
+<circle cx="700.0" cy="208.0" r="3" fill="#7a5c2e"/>
+<text x="680.0" y="198.4" font-size="12" text-anchor="end" font-weight="bold" fill="#1d1d1f" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">R11*</text>
 <rect x="280.0" y="150.4" width="240.0" height="619.2" rx="8" fill="#3b6ec8" fill-opacity="0.1" stroke="#2f4f7f" stroke-width="2" stroke-dasharray="8 5"/>
 <rect x="281.0" y="197.0" width="22.1" height="526.1" rx="2" fill="#3a3a3a" stroke="#111" stroke-width="1.2"/>
 <rect x="289.0" y="205.0" width="6" height="6" fill="#d9d9d9"/>
@@ -1273,6 +1277,10 @@
 <rect x="95.8" y="491.8" width="8.4" height="8.4" fill="#1d1d1f"/>
 <rect x="95.8" y="515.8" width="8.4" height="8.4" fill="#1d1d1f"/>
 <rect x="94.0" y="490.0" width="12" height="12" fill="none" stroke="#d62728" stroke-width="1.6"/>
+<line x1="220.0" y1="520.0" x2="220.0" y2="544.0" stroke="#7a5c2e" stroke-width="2.4"/>
+<circle cx="220.0" cy="520.0" r="6.2" fill="#f2d7a8" stroke="#7a5c2e" stroke-width="1.6"/>
+<circle cx="220.0" cy="544.0" r="3" fill="#7a5c2e"/>
+<text x="230.0" y="534.4" font-size="12" text-anchor="start" font-weight="bold" fill="#1d1d1f" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">R13</text>
 <text x="122.0" y="512.0" font-size="12" text-anchor="start" font-weight="bold" fill="#1d1d1f" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">J10 LOA</text>
 <text x="172.0" y="582.4" font-size="13" text-anchor="middle" font-weight="bold" fill="#174a8c" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">VÙNG ÂM THANH</text>
 <text x="172.0" y="600.4" font-size="12" text-anchor="middle" font-weight="normal" fill="#174a8c" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">(I2S, mic, loa)</text>
@@ -1282,13 +1290,13 @@
 <circle cx="172.0" cy="688.0" r="3" fill="#555"/>
 <circle cx="172.0" cy="784.0" r="3" fill="#555"/>
 <text x="130.0" y="740.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#1d1d1f" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">D1</text>
-<text x="130.0" y="756.8" font-size="12" text-anchor="middle" font-weight="normal" fill="#1d1d1f" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">1N5819</text>
+<text x="130.0" y="756.8" font-size="12" text-anchor="middle" font-weight="normal" fill="#1d1d1f" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">1N5819*</text>
 <circle cx="220.0" cy="700.0" r="29.8" fill="#e7ddf5" fill-opacity="0.85" stroke="#5b3d8a" stroke-width="1.8"/>
 <circle cx="220.0" cy="688.0" r="3.6" fill="#d62728"/>
 <circle cx="220.0" cy="712.0" r="3.6" fill="#333333"/>
 <text x="227.0" y="692.0" font-size="13" text-anchor="start" font-weight="bold" fill="#d62728" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">+</text>
 <text x="220.0" y="658.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#1d1d1f" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">C5</text>
-<text x="220.0" y="672.0" font-size="12" text-anchor="middle" font-weight="normal" fill="#1d1d1f" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">220µF</text>
+<text x="220.0" y="672.0" font-size="12" text-anchor="middle" font-weight="normal" fill="#1d1d1f" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">470µF</text>
 <line x1="268.0" y1="688.0" x2="268.0" y2="712.0" stroke="#1f6fd1" stroke-width="2.2"/>
 <rect x="262.0" y="695.0" width="12.0" height="10.0" rx="4" fill="#9cc3f0" stroke="#1f5fb0" stroke-width="1.4"/>
 <circle cx="268.0" cy="688.0" r="3" fill="#1f5fb0"/>
@@ -1416,16 +1424,25 @@
 <rect x="90.4" y="846.4" width="115.2" height="19.2" rx="4" fill="#f2c94c" fill-opacity="0.9" stroke="#9a7b10" stroke-width="1.6"/>
 <circle cx="124.0" cy="856.0" r="3.4" fill="#5a4a10"/>
 <circle cx="172.0" cy="856.0" r="3.4" fill="#5a4a10"/>
-<text x="132.0" y="888.0" font-size="12" text-anchor="start" font-weight="bold" fill="#1d1d1f" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">F1 PPTC 2.5A</text>
+<text x="96.0" y="842.0" font-size="12" text-anchor="start" font-weight="bold" fill="#1d1d1f" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">F1 PPTC 2.5A</text>
 <rect x="196.7" y="918.9" width="94.6" height="70.8" rx="3" fill="#5aa7d6" fill-opacity="0.9" stroke="#1e5f86" stroke-width="1.6"/>
 <circle cx="220.0" cy="952.0" r="5.5" fill="#c9d6de" stroke="#1e5f86" stroke-width="1.4"/>
 <circle cx="268.0" cy="952.0" r="5.5" fill="#c9d6de" stroke="#1e5f86" stroke-width="1.4"/>
 <text x="244.0" y="936.4" font-size="12" text-anchor="middle" font-weight="bold" fill="#0b3b57" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">J2 → SW1</text>
+<rect x="158.8" y="881.2" width="74.4" height="33.6" rx="3" fill="#1f7a3a" fill-opacity="0.9" stroke="#0e4d22" stroke-width="1.4"/>
+<rect x="189.0" y="886.0" width="14.0" height="9.0" rx="1" fill="#222" stroke="#000" stroke-width="1"/>
+<circle cx="172.0" cy="904.0" r="3.4" fill="#f0f0f0"/>
+<text x="167.0" y="920.0" font-size="12" text-anchor="end" font-weight="bold" fill="#0e4d22" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">G</text>
+<circle cx="196.0" cy="904.0" r="3.4" fill="#f0f0f0"/>
+<text x="191.0" y="920.0" font-size="12" text-anchor="end" font-weight="bold" fill="#0e4d22" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">S</text>
+<circle cx="220.0" cy="904.0" r="3.4" fill="#f0f0f0"/>
+<text x="215.0" y="920.0" font-size="12" text-anchor="end" font-weight="bold" fill="#0e4d22" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">D</text>
+<text x="171.0" y="893.9" font-size="12" text-anchor="middle" font-weight="bold" fill="#ffffff" >Q3</text>
 <polygon points="412.0,895.0 414.4,900.7 420.6,901.2 415.9,905.3 417.3,911.3 412.0,908.0 406.7,911.3 408.1,905.3 403.4,901.2 409.6,900.7" fill="#333333" stroke="#ffffff" stroke-width="1.2"/>
 <text x="426.0" y="908.0" font-size="12" text-anchor="start" font-weight="bold" fill="#1d1d1f" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">điểm sao</text>
 <text x="320.0" y="871.0" font-size="12" text-anchor="end" font-weight="bold" fill="#d62728" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">5V_MAIN</text>
 <text x="388.0" y="945.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#333333" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">GND_STAR</text>
-<text x="126.0" y="907.6" font-size="12" text-anchor="start" font-weight="bold" fill="#9b2c22" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">KHỐI NGUỒN</text>
+<text x="462.0" y="822.4" font-size="12" text-anchor="start" font-weight="bold" fill="#9b2c22" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round">KHỐI NGUỒN</text>
 <text x="118.0" y="676.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#d62728" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round" transform="rotate(-90 118 676.0)">5V_AUDIO</text>
 <text x="155.0" y="676.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#333333" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round" transform="rotate(-90 155 676.0)">GND_AUDIO</text>
 <text x="549.0" y="628.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#d62728" paint-order="stroke" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round" transform="rotate(-90 549 628.0)">5V_EYES</text>
@@ -1470,7 +1487,7 @@
 <rect x="808" y="376" width="5" height="12" fill="#d9d9d9"/>
 <text x="854.0" y="386.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f" >Diode nằm (vạch sáng = catot)</text>
 <rect x="802.0" y="394.0" width="40.0" height="18.0" rx="2" fill="#1f7a3a" fill-opacity="0.9" stroke="#0e4d22" stroke-width="1.4"/>
-<text x="854.0" y="408.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f" >AO3400A trên đế SOT-23 (G S D)</text>
+<text x="854.0" y="408.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f" >AO3400A (Q1, Q2) / AO3401A (Q3) trên đế SOT-23 (G S D)</text>
 <rect x="804.0" y="417.0" width="36.0" height="18.0" rx="2" fill="#5aa7d6" fill-opacity="0.9" stroke="#1e5f86" stroke-width="1.6"/>
 <text x="854.0" y="430.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f" >Domino 5.08mm (J1, J2, J5)</text>
 <polygon points="822.0,439.0 824.4,444.7 830.6,445.2 825.9,449.3 827.3,455.3 822.0,452.1 816.7,455.3 818.1,449.3 813.4,445.2 819.6,444.7" fill="#333333" stroke="#ffffff" stroke-width="1.2"/>
@@ -1505,7 +1522,10 @@
 <text x="800.0" y="886.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f" >• Cổng USB devkit ở hàng ~25–26, cắm cáp từ phía dưới: không</text>
 <text x="800.0" y="903.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f" >  đặt vật cao ở cột J–Q, hàng 26–35.</text>
 <text x="800.0" y="920.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f" >• Q1 S (Y:10) về GND_PWR bằng dây riêng tới O:33.</text>
-<text x="800.0" y="937.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f" >• R_EYE1/R_EYE2 nằm trên dây đèn mắt, không trên PCB.</text>
-<text x="800.0" y="954.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f" >• GND_ESP (N:31) và GND_AUDIO (J:31) bắt chéo dây trần 5V:</text>
-<text x="800.0" y="971.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f" >  dùng dây silicone, lót co nhiệt, không hàn ở chỗ giao.</text>
+<text x="800.0" y="937.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f" >• Q3 (P-FET): D ← F1, S → J2/SW1, G → J1−: chống cắm ngược.</text>
+<text x="800.0" y="954.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f" >• D1*: thay bằng dây nếu devkit đã có diode ở chân 5V.</text>
+<text x="800.0" y="971.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f" >• R13 (F:16–F:17): GPIO12 → SD amply; cầu G:10–E:7 = GAIN→VIN.</text>
+<text x="800.0" y="988.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f" >• R_EYE1/R_EYE2 nằm trên dây đèn mắt, không trên PCB.</text>
+<text x="800.0" y="1005.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f" >• GND_ESP (N:31) và GND_AUDIO (J:31) bắt chéo dây trần 5V:</text>
+<text x="800.0" y="1022.0" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f" >  dùng dây silicone, lót co nhiệt, không hàn ở chỗ giao.</text>
 </svg>

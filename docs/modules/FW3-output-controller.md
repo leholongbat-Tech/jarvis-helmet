@@ -9,7 +9,7 @@
 ## 1. Thiết kế
 
 **PWM:**
-- LEDC timer 2, 5 kHz, độ phân giải 10-bit.
+- LEDC timer 2, 25 kHz (Rev B; trước đó 5 kHz), độ phân giải 10-bit.
 - Channel 3 → GPIO8 (mắt), channel 4 → GPIO9 (output dự phòng).
 - Dùng hàm fade phần cứng của LEDC (`ledc_set_fade_time_and_start`) để chuyển độ sáng mượt mà không tốn CPU.
 - Hiệu chỉnh gamma (≈2.2) khi đổi % độ sáng ra duty, để mắt người thấy độ sáng tăng đều.
@@ -58,7 +58,7 @@ class OutputController {
 
 **Trạng thái:** code xong; phần tính toán (gamma, đường cong hiệu ứng) có test chạy trên máy tính. **Chưa thử với LED thật.**
 
-- PWM đúng như thiết kế: LEDC timer 2, 5 kHz, 10 bit, channel 3 → GPIO8 (mắt), channel 4 → GPIO9 (output), gamma 2.2
+- PWM đúng như thiết kế: LEDC timer 2, 25 kHz, 10 bit, channel 3 → GPIO8 (mắt), channel 4 → GPIO9 (output), gamma 2.2
   (`EYES_GAMMA`). LEDC của S3 chỉ fade tuyến tính theo duty, nên mỗi hiệu ứng là chuỗi các đoạn fade phần cứng 20 ms giữa các
   điểm đã hiệu chỉnh gamma: mượt ở mức PWM mà độ sáng vẫn tăng đều với mắt người.
 - **Thời lượng (D26):** `duration_ms` 0 (hoặc thiếu trong bước sequence) = mặc định của hiệu ứng: `breathe` 2500 (một chu kỳ),

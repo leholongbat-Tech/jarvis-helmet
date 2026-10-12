@@ -330,6 +330,9 @@ private:
 
         // First use of the codec, before the audio service starts: find the microphone slot.
         MeteredAudioCodec* codec = Codec();
+#ifdef AUDIO_SPK_SD_GPIO
+        codec->SetAmpEnableGpio(AUDIO_SPK_SD_GPIO);  // amp off until the first sound
+#endif
         codec->ProbeMicrophone(AUDIO_I2S_MIC_GPIO_DIN);
 
         helmet_tools::Register(*runner_, *mask_, *output_, *vbus_, show_info, [codec]() {

@@ -9,7 +9,7 @@ Mục tiêu là làm một mũ giáp kiểu Iron Man có trợ lý ảo chạy c
 3. Trả lời bằng giọng nói, theo phong cách một quản gia lịch lãm.
 4. Điều khiển 2 servo nâng mặt nạ, bật/tắt đèn mắt và một output dự phòng.
 5. Chạy các tác vụ tùy biến (mở mặt nạ, đóng mặt nạ, chế độ chiến đấu…). Thêm tác vụ mới **không cần nạp lại firmware**.
-6. Hiển thị trạng thái, câu hội thoại và HUD trên màn 240×240.
+6. Hiển thị trạng thái, câu hội thoại và HUD trên màn 2.4" 320×240 (ST7789, nằm ngang).
 
 Không thuộc phạm vi: thiết kế cơ khí (khung, bản lề, vỏ mũ).
 

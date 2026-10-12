@@ -126,7 +126,7 @@ DK_NC = {
     ("R", 19): "USB D+",
     ("R", 20): "USB D−",
 }
-DK_SPARE = {("L", 18): "trống", ("L", 19): "trống", ("L", 20): "trống",
+DK_SPARE = {("L", 19): "trống", ("L", 20): "trống",
             ("R", 5): "trống", ("R", 10): "trống (DevKitC-1 v1.1: LED RGB)"}
 
 
@@ -196,25 +196,28 @@ part("D1", "diode", [("A", "RT+@61"), ("K", "T.a62")], stage=2,
      name="Diode Schottky", value="1N5819",
      note="Vạch (catot) về phía `T.a62`. Chặn 5V của cáp USB máy tính chảy sang ray (wiring.md §2.3)")
 part("C5", "ecap", [("+", "T.c62"), ("-", "T.c63")], stage=2, lie="right",
-     name="Tụ hóa", value="220µF/10V",
+     name="Tụ hóa", value="470µF/10V",
      note="Thân nằm ngang về phía cột 59–61 (đang trống), không che `T.e62`, `T.e63`")
 part("C6", "ccap", [("1", "T.b62"), ("2", "T.b63")], stage=2,
      name="Tụ gốm", value="100nF", note="")
 
 # B3 – LCD
-part("U4", "lcd", [("BLK", "D.j47"), ("CS", "D.j48"), ("DC", "D.j49"), ("RES", "D.j50"),
-                   ("SDA", "D.j51"), ("SCL", "D.j52"), ("VCC", "D.j53"), ("GND", "D.j54")],
-     stage=3, name="LCD ST7789 1.54\" 240×240", value="8 chân",
-     note="Cắm **đứng** ở hàng j, mặt màn quay ra ngoài, chân GND ở cột 54. Màn 7 chân: xem mục 3.3")
+part("U4", "lcd", [("LED", "D.j47"), ("CS", "D.j48"), ("DC", "D.j49"), ("RESET", "D.j50"),
+                   ("SDI", "D.j51"), ("SCK", "D.j52"), ("VCC", "D.j53"), ("GND", "D.j54")],
+     stage=3, name="LCD 2.4\" ST7789 320×240 (MSP2401)", value="header 14 chân, dùng 1–8",
+     note="Module 77×43mm nằm ngoài breadboard: 8 dây Dupont cái–đực ≤15cm từ header module tới hàng j, **theo tên chân** (chân 1 = VCC, pad vuông). Bỏ trống SDO(MISO), T_CLK…T_IRQ và khe thẻ SD")
 
 # B4 – âm thanh
 part("U2", "amp", [("VIN", "T.a36"), ("GND", "T.a37"), ("SD", "T.a38"), ("GAIN", "T.a39"),
                    ("DIN", "T.a40"), ("BCLK", "T.a41"), ("LRC", "T.a42")], stage=4,
      name="Amply I2S MAX98357A", value="",
-     note="Chân ở hàng a, thân nằm đè lên ray RT, cọc loa quay ra mép trên. SD, GAIN để trống (mono, 9 dB)")
+     note="Chân ở hàng a, thân nằm đè lên ray RT, cọc loa quay ra mép trên. SD ← GPIO12 qua R13 (W36), GAIN nối VIN (W37, 6 dB)")
 part("C3", "ecap", [("+", "T.c36"), ("-", "T.c37")], stage=4, lie="left",
      name="Tụ hóa", value="470µF/10V",
      note="Thân nằm ngang về phía cột 38–40 (che hàng b–d, chừa hàng e cho dây I2S)")
+part("R13", "res", [("1", "T.e38"), ("2", "T.f38")], stage=4,
+     name="Điện trở chân SD amply", value="2.2kΩ",
+     note="Đứng, vắt qua rãnh giữa ở cột 38 (dải SD của U2; `T.b38`–`T.d38` nằm dưới C3). GPIO12 thấp = tắt amply, cao = bật")
 part("C4", "ccap", [("1", "T.e36"), ("2", "T.e37")], stage=4,
      name="Tụ gốm", value="100nF", note="")
 part("U3", "mic", [("VDD", "T.g43"), ("GND", "T.g63"), ("WS", "T.g45"), ("SCK", "T.g46"),
@@ -300,12 +303,12 @@ wire("W3", "T.e63", "T.f63", "GND_ESP", stage=2, kind="power", lab=(63.55, 9.0),
 wire("W4", "T.a63", "RT-@60", "GND_ESP", stage=2, kind="power", route=("arc", -12), lab=(62.9, 1.55),
      note="GND của devkit về ray GND")
 
-wire("W5", "T.f42", "D.f53", "3V3", stage=3, route=[(41.5, 10.0), (37.5, 10.0), (37.5, 28.0), (53, 28.0)],
-     lab=(37.5, 15.5), note="3V3 (`DK-L1`) tới VCC của LCD; đi vòng bên phải đầu anten")
+wire("W5", "T.f42", "D.f53", "3V3", stage=3, route=[(41.5, 10.0), (38.5, 10.0), (38.5, 28.0), (53, 28.0)],
+     lab=(38.5, 16.5), note="3V3 (`DK-L1`) tới VCC của LCD; đi vòng bên phải đầu anten")
 wire("W6", "D.e63", "RD-@61", "GND_ESP", stage=5, route=[(62.5, 25.3), (62.5, 33.3)],
      lab=(62.5, 29.5), note="GND (`DK-R22`) xuống ray RD−")
 wire("W7", "D.e47", "D.f47", "LCD_BLK", stage=3, lab=(47, 25.55))
-wire("W8", "D.e48", "D.f48", "LCD_CS", stage=3, lab=(48, 26.45), note="Màn 7 chân: bỏ dây này")
+wire("W8", "D.e48", "D.f48", "LCD_CS", stage=3, lab=(48, 26.45))
 wire("W9", "D.e49", "D.f49", "LCD_DC", stage=3, lab=(49, 25.55))
 wire("W10", "D.e50", "D.f50", "LCD_RES", stage=3, lab=(50, 26.45))
 wire("W11", "D.e58", "D.f51", "LCD_MOSI", stage=3, route=[(58, 25.7), (51, 25.7)], lab=(54.5, 25.7))
@@ -318,6 +321,10 @@ wire("W15", "T.b37", "RT-@34", "GND_AUDIO", stage=4, kind="power", lab=(35.2, 1.
 wire("W16", "T.e40", "T.f48", "I2S_SPK_DIN", stage=4, lab=(42.0, 8.25))
 wire("W17", "T.e41", "T.f49", "I2S_SPK_BCLK", stage=4, lab=(45.0, 9.0))
 wire("W18", "T.e42", "T.f50", "I2S_SPK_LRC", stage=4, lab=(48.0, 9.75))
+wire("W36", "T.g38", "T.g59", "AMP_SD", stage=4, route=[(38, 12.0), (59, 12.0)], lab=(50.0, 12.0),
+     note="GPIO12 (`DK-L18`) → R13; đi sát mép trên devkit")
+wire("W37", "T.e39", "T.d36", "AMP_GAIN", stage=4, lab=(37.5, 8.1),
+     note="GAIN nối VIN = 6 dB. To hơn: cắm `T.d37` (GND) = 12 dB")
 
 wire("W19", "T.g57", "D.c23", "BTN_PTT", stage=5,
      route=[(57, 9.7), (23.5, 9.7), (23.5, 21.9)], lab=(23.5, 16.0),
@@ -357,11 +364,11 @@ DK_FUNC = {
     ("L", 7): "Amply DIN (W16)", ("L", 8): "Amply BCLK (W17)", ("L", 9): "Amply LRC (W18)",
     ("L", 10): "Servo S0 (W34 → R7)", ("L", 11): "Servo S1 (W35 → R8)",
     ("L", 12): "Gate đèn mắt (W26 → R3)", ("L", 15): "Gate output dự phòng (W28 → R4)",
-    ("L", 16): "Nút PTT (W19)", ("L", 17): "Nút mặt nạ (W20)",
+    ("L", 16): "Nút PTT (W19)", ("L", 17): "Nút mặt nạ (W20)", ("L", 18): "SD amply (R13 → W36)",
     ("L", 21): "5Vin ← 5V_ESP (W2)", ("L", 22): "GND (W3); mic GND (M2)",
     ("R", 1): "GND → R2, C7 (W24)", ("R", 4): "VSENSE (W23)",
-    ("R", 6): "LCD BLK (W7)", ("R", 7): "LCD CS (W8)", ("R", 8): "LCD DC (W9)", ("R", 9): "LCD RES (W10)",
-    ("R", 17): "LCD SDA (W11)", ("R", 18): "LCD SCL (W12)",
+    ("R", 6): "LCD LED (W7)", ("R", 7): "LCD CS (W8)", ("R", 8): "LCD DC (W9)", ("R", 9): "LCD RESET (W10)",
+    ("R", 17): "LCD SDI (W11)", ("R", 18): "LCD SCK (W12)",
     ("R", 21): "GND → LCD GND (W13)", ("R", 22): "GND → ray RD− (W6)",
 }
 
@@ -370,7 +377,7 @@ DK_FUNC = {
 EXPECT = {
     "5V_IN": ["BUSB.VBUS", "F1.1"],
     "5V_MAIN": ["RT+", "F1.2", "C1.+", "C2.1", "J3.+5V", "J4.+5V", "R_EYE1.1", "R_EYE2.1",
-                "D2.K", "RL.1", "J5.+", "U2.VIN", "C3.+", "C4.1", "R1.2", "D1.A"],
+                "D2.K", "RL.1", "J5.+", "U2.VIN", "U2.GAIN", "C3.+", "C4.1", "R1.2", "D1.A"],
     "5V_ESP": ["DK.5V", "D1.K", "C5.+", "C6.1"],
     "GND": ["RT-", "RD-", "DK.GND", "BUSB.GND", "C1.-", "C2.2", "J3.GND", "J4.GND", "R9.2", "R10.2",
             "Q1.S", "R5.2", "Q2.S", "R6.2", "U2.GND", "C3.-", "C4.2", "C5.-", "C6.2", "U3.GND",
@@ -387,9 +394,9 @@ EXPECT = {
     "OUT_DRV": ["Q2.D", "D2.A", "BL3.K", "J5.-"], "LOAD+": ["RL.2", "BL3.A"],
     "GPIO10": ["DK.10", "SW2.e23"], "GPIO11": ["DK.11", "SW3.e17"],
     "GPIO1": ["DK.1", "R1.1", "R2.1", "C7.1"],
-    "GPIO42": ["DK.42", "U4.BLK"], "GPIO41": ["DK.41", "U4.CS"], "GPIO40": ["DK.40", "U4.DC"],
-    "GPIO39": ["DK.39", "U4.RES"], "GPIO47": ["DK.47", "U4.SDA"], "GPIO21": ["DK.21", "U4.SCL"],
-    "U2.SD": ["U2.SD"], "U2.GAIN": ["U2.GAIN"],
+    "GPIO42": ["DK.42", "U4.LED"], "GPIO41": ["DK.41", "U4.CS"], "GPIO40": ["DK.40", "U4.DC"],
+    "GPIO39": ["DK.39", "U4.RESET"], "GPIO47": ["DK.47", "U4.SDI"], "GPIO21": ["DK.21", "U4.SCK"],
+    "GPIO12": ["DK.12", "R13.2"], "AMP_SD": ["R13.1", "U2.SD"],
     # Hai chân còn lại của mỗi nút nối với GPIO hoặc GND tùy kiểu nối trong của nút,
     # nên dải của chúng phải trống hoàn toàn.
     "SW2.e21": ["SW2.e21"], "SW2.f23": ["SW2.f23"], "SW3.e15": ["SW3.e15"], "SW3.f17": ["SW3.f17"],
@@ -514,8 +521,10 @@ def net_cat(net: str) -> str:
         return "3V3"
     if net.startswith("GND"):
         return "GND"
-    if net.startswith("I2S"):
+    if net.startswith("I2S") or net == "AMP_SD":
         return "I2S"
+    if net == "AMP_GAIN":
+        return "5V"
     if net.startswith("LCD"):
         return "SPI"
     if net.endswith("PWM"):
@@ -849,8 +858,9 @@ def draw_lcd(s: Svg):
     s.rect(xl, yl - 0.25 * P, X(46.4) - xl, 0.5 * P, fill="#1b1b1b", stroke="#000", sw=1, rx=1.5)
     for name, ref in lcd["pins"]:
         x, _ = xy(ref)
-        s.text(x - 4, Y(31.05), name, size=9.5, anchor="end", fill="#4a2a6b", rotate=-90, halo=True)
-    s.text(X(55.7), yl + 4, "U4 LCD cắm đứng", size=11, anchor="end", weight="bold", halo=True)
+        label = {"RESET": "RST"}.get(name, name)  # 5 chữ đè lên số cột
+        s.text(x - 4, Y(31.05), label, size=9.5, anchor="end", fill="#4a2a6b", rotate=-90, halo=True)
+    s.text(X(55.7), yl + 4, "U4: 8 dây Dupont", size=11, anchor="end", weight="bold", halo=True)
 
 
 def draw_usbc(s: Svg):
@@ -975,8 +985,8 @@ def draw_footer(s: Svg):
             "5V_MAIN: RT+@3 (★) · 5V_ESP: T.d62",
             "3V3: T.g42 · GND tín hiệu: D.c42",
             "VSENSE: D.j45 = 5V_MAIN ÷ 2",
-            "Firmware: jarvis-helmet (LCD 7 chân:",
-            "jarvis-helmet-7pin). Bảng chân giữ",
+            "Firmware: jarvis-helmet (LCD tấm TN:",
+            "jarvis-helmet-noips). Bảng chân giữ",
             "nguyên HW2: không sửa config.h.",
             "Lệnh thử MCP: tools/servo_calibrate.py",
             "(breadboard.md mục 5).",
@@ -994,7 +1004,7 @@ def build_svg() -> str:
     s.add('<?xml version="1.0" encoding="UTF-8"?>')
     s.add(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {WIDTH} {HEIGHT}" width="{WIDTH}" '
           f'height="{HEIGHT}" font-family="sans-serif" role="img" aria-labelledby="ttl desc">')
-    s.add('<title id="ttl">Jarvis Helmet – bản thử breadboard (Rev A)</title>')
+    s.add('<title id="ttl">Jarvis Helmet – bản thử breadboard (Rev B)</title>')
     s.add('<desc id="desc">Hai breadboard 63 cột và ba thanh ray như ảnh; ESP32-S3-DevKitC-1 cắm hàng h tấm '
           'trên và hàng b tấm dưới, cột 42–63. Ray trên là 5V_MAIN/GND công suất cho servo, MOSFET, amply; '
           'ray dưới là GND_ESP cho nút; LCD lấy 3V3/GND thẳng từ chân devkit. '
@@ -1003,7 +1013,7 @@ def build_svg() -> str:
     s.text(30, 42, "Jarvis Helmet – Bản thử trên breadboard", size=26, weight="bold")
     s.text(30, 66, "Bảng chân giữ nguyên HW2: firmware jarvis-helmet chạy không sửa · nguồn, tụ, diode, MOSFET "
            "như HW1/HW3 · nhìn từ trên, cột 1 bên phải như số in trên board", size=14, fill=MUTED)
-    s.text(1570, 38, "Rev A · 2026-10-06", size=14, anchor="end", weight="bold")
+    s.text(1570, 38, "Rev B · 2026-10-09", size=14, anchor="end", weight="bold")
     s.text(1570, 56, "Chưa cắm thử trên phần cứng thật", size=12, anchor="end", fill=MUTED)
     s.text(1570, 72, "Bảng lỗ đầy đủ: docs/hardware/breadboard.md", size=12, anchor="end", fill=MUTED)
     draw_legend(s)

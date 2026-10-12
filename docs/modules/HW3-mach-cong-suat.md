@@ -77,7 +77,7 @@ GPIO9 ──[100Ω]──► Gate Q2 ──[100kΩ]──► GND
 
 ## 6. Tiêu chí nghiệm thu
 1. Đèn mắt tắt hoàn toàn trong lúc ESP32 khởi động, reset và nạp code (nhờ điện trở kéo xuống).
-2. PWM 0–100% thay đổi độ sáng mượt, không nháy thấy được bằng mắt (tần số ~5kHz).
+2. PWM 0–100% thay đổi độ sáng mượt, không nháy thấy được bằng mắt, không nghe tiếng rít (25 kHz, ngoài dải nghe; Rev A dùng 5 kHz).
 3. Q2 đóng tải 500mA liên tục 10 phút, MOSFET nguội hơn 50°C.
 4. Servo không rung khi đứng yên, không giật khi ESP32 khởi động.
 

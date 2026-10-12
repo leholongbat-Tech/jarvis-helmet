@@ -11,30 +11,31 @@
 | Tải | Trung bình | Đỉnh | Ghi chú |
 |---|---|---|---|
 | ESP32-S3 + WiFi | 120 mA | 500 mA | Đỉnh khi phát WiFi |
-| LCD + đèn nền | 50 mA | 60 mA | Lấy từ 3.3V của devkit |
+| LCD 2.4" + đèn nền | 100 mA | 170 mA | Lấy từ 3.3V của devkit. Ước tính từ 0.57W của nhà sản xuất, đo lại ở P1 |
 | INMP441 | 1.4 mA | – | |
 | MAX98357 + loa 8Ω | 100 mA | 450 mA | Khoảng 1.8W ở 5V |
 | 2× MG90S | 0 (đứng yên) / 300 mA (đang chạy) | 1.5–2 A (kẹt) | Đỉnh khi khởi động và khi kẹt cơ khí |
 | Đèn mắt | 20–60 mA | – | Đo ở HW3 |
-| **Tổng** | **~0.4 A** (lúc nói chuyện) | **~3 A** (trường hợp xấu nhất) | Sạc ≥2.4A dùng được, nhưng firmware phải tránh mọi đỉnh dòng xảy ra cùng lúc (FW2) |
+| **Tổng** | **~0.45 A** (lúc nói chuyện) | **~3 A** (trường hợp xấu nhất) | Sạc ≥2.4A dùng được (nên cổng 3A), nhưng firmware phải tránh mọi đỉnh dòng xảy ra cùng lúc (FW2) |
 
 ## 2. Sơ đồ nguồn
 
 ```
-Sạc dự phòng ─ cáp USB → Domino J1 ─► F1 cầu chì tự phục hồi 2.5A ─► SW1 công tắc ─► 5V_MAIN ●(điểm GND hình sao)
+Sạc dự phòng ─ cáp USB → Domino J1 ─► F1 2.5A ─► Q3 (chống ngược) ─► SW1 công tắc ─► 5V_MAIN ●(điểm GND hình sao)
                                                                                  │
    ┌──────────────────────────────┬───────────────────────┬──────────────────────┼────────────────────┐
    ▼                              ▼                       ▼                      ▼                    ▼
 5V_SERVO                      5V_AUDIO                 5V_ESP                 5V_EYES             VSENSE
-C1 1000µF/10V + C2 100nF      C3 470µF/10V + C4 100nF  D1 SS34 (chống ngược)   → HW3                R1 100k ─┬─ GPIO1
-→ jack J3, J4 (servo)         → VIN MAX98357           C5 220µF/10V + C6 100nF                      R2 100k ─┴─ GND
+C1 1000µF/10V + C2 100nF      C3 470µF/10V + C4 100nF  D1* (tùy devkit §2.3)   → HW3                R1 100k ─┬─ GPIO1
+→ jack J3, J4 (servo)         → VIN MAX98357           C5 470µF/10V + C6 100nF                      R2 100k ─┴─ GND
 dây 22AWG, về thẳng GND sao                            → chân 5V của devkit                          C7 100nF // R2
                                                        (LDO trên devkit → 3V3: ESP32, LCD, mic)
 ```
 
 Nguyên tắc:
 - **Tách nhánh:** dây nguồn servo đi riêng từ điểm 5V_MAIN; dây GND của servo về thẳng điểm sao, không đi chung với GND của tín hiệu và âm thanh.
-- **D1 (SS34)** đặt trước chân 5V của devkit. Nó chặn dòng chảy ngược giữa cổng USB máy tính và nhánh servo/sạc khi nạp code lúc đang cắm sạc. Sau D1 còn khoảng 4.65V, đủ cho LDO của devkit (AMS1117 cần tối thiểu ~4.4V).
+- **D1 (1N5819/SS34)** đặt trước chân 5V của devkit, chặn USB máy tính nuôi ngược nhánh servo/amply khi nạp code lúc đang cắm sạc. DevKitC-1 chính hãng (LDO SGM2212 800mA, sụt ~0.3V) giữ D1; clone YD-ESP32-S3 đã có diode riêng ở chân 5V (LDO CJ6107 1A) thì nối tắt D1. Chi tiết và biên áp 3V3: `docs/hardware/wiring.md` §2.3.
+- **Q3 (AO3401A, kênh P)** ngay sau F1 chống cắm ngược cực nguồn, sụt ~30mV ở 0.5A (`wiring.md` §2.9).
 - **Tụ đặt sát tải:** C1 ở chỗ cắm servo, C3 ở MAX98357, C5 ở devkit.
 - **Đo điện áp (VSENSE):** cầu phân áp 1:2 vào GPIO1 (ADC1, dùng được cùng lúc với WiFi). Firmware hiển thị giá trị lên HUD và cảnh báo khi 5V_MAIN < 4.6V.
 
@@ -42,7 +43,7 @@ Nguyên tắc:
 
 - **Cổng USB-A:** cắt một cáp USB-A, lấy dây đỏ (+) và đen (−) bắt vào domino J1. Cáp ≤50cm, dây nguồn tiết diện ≥22AWG.
 - **Cổng USB-C:** bắt buộc dùng mạch USB-C có điện trở **5.1kΩ ở chân CC** (loại "USB-C sink/breakout"). Không có điện trở này, cổng C sẽ không cấp điện.
-- Sạc dự phòng có thể **tự tắt khi tải nhỏ**. Hệ thống luôn kéo khoảng 150mA vì WiFi luôn bật, thường đủ để sạc không tắt. Phải kiểm chứng bằng bài thử 2 giờ ở IT1.
+- Sạc dự phòng có thể **tự tắt khi tải nhỏ**. Hệ thống luôn kéo khoảng 250mA (WiFi luôn bật + LCD 2.4"), thường đủ để sạc không tắt. Phải kiểm chứng bằng bài thử 2 giờ ở IT1.
 - HUD **không đo được % pin** của sạc. Chỉ hiện điện áp 5V_MAIN.
 
 ## 4. BOM phần nguồn
@@ -52,10 +53,11 @@ Nguyên tắc:
 | J1 | Domino 2P 5.08mm | 1 |
 | F1 | Cầu chì tự phục hồi 2.5A (hold) | 1 |
 | SW1 | Công tắc gạt ≥3A | 1 |
-| D1 | SS34 hoặc 1N5819 | 1 |
+| Q3 | AO3401A + đế SOT-23 (chống cắm ngược) | 1 |
+| D1 | 1N5819 hoặc SS34 (nối tắt nếu devkit đã có diode ở chân 5V) | 1 |
 | C1 | Tụ hóa 1000µF/10V | 1 |
 | C3 | Tụ hóa 470µF/10V | 1 |
-| C5 | Tụ hóa 220µF/10V | 1 |
+| C5 | Tụ hóa 470µF/10V, Ø6.3mm | 1 |
 | C2, C4, C6, C7 | Tụ gốm 100nF | 4 |
 | R1, R2 | 100kΩ 1% | 2 |
 | – | Cáp USB-A (hoặc mạch USB-C sink 5.1k) | 1 |

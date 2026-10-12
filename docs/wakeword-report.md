@@ -23,7 +23,7 @@ hạn ngắt lời bằng wake word. Kết luận ngắn đưa vào `docs/test-r
 
 | Phương án | Từ đánh thức | Cơ chế trên ESP32-S3 | Biến thể `config.json` (`--name`) |
 |---|---|---|---|
-| **A** (mốc so sánh, dự phòng) | "Jarvis" | WakeNet9 `wn9_jarvis_tts` chạy trong AFE | `jarvis-helmet` (LCD 7 chân: `jarvis-helmet-7pin`) |
+| **A** (mốc so sánh, dự phòng) | "Jarvis" | WakeNet9 `wn9_jarvis_tts` chạy trong AFE | `jarvis-helmet` (LCD tấm TN: `jarvis-helmet-noips`) |
 | **B1** (không cần train) | "jia wei si" (贾维斯 = Jarvis) + "guan jia" (管家 = quản gia) | MultiNet7 tiếng Trung lượng tử hóa, lệnh khai báo bằng pinyin | `jarvis-helmet-multinet` |
 | **B2** (cần train) | WakeNet "Jarvis" + microWakeWord "Quản gia" | `wn9_jarvis_tts` + model microWakeWord (TFLite Micro) chạy song song trên cùng đầu ra AFE | `jarvis-helmet-mww` |
 

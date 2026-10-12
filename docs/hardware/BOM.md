@@ -2,12 +2,12 @@
 
 | | |
 |---|---|
-| **Phiên bản** | Rev A – 2026-10-06 |
+| **Phiên bản** | Rev B – 2026-10-09 (thay đổi so với Rev A: đầu file `wiring.md`) |
 | **Nguồn gốc** | README (phần cứng chính), BOM ở [HW1](../modules/HW1-nguon-dien.md) §4 và [HW3](../modules/HW3-mach-cong-suat.md) §4, linh kiện mô tả trong [HW2](../modules/HW2-dau-noi-tin-hieu.md) và [HW4](../modules/HW4-lap-rap-pcb.md) |
 | **Đấu dây** | [wiring.md](wiring.md) – ký hiệu trong bảng này trùng với ký hiệu ở đó |
 | **Phạm vi** | Phần điện điều khiển. Khung, bản lề, vỏ mũ làm riêng (không có ở đây) |
 
-Ký hiệu có dấu * là ký hiệu không có trong BOM của HW1/HW3: J2, J7–J10 lấy từ hình bố trí ở HW4; C8, C9, R9–R11, U1–U4, LS1, M1/M2, E1/E2, SW2/SW3 do `wiring.md` đặt thêm cho linh kiện đã mô tả trong HW2/HW3; R_EYE1/2 là "R_EYE ×2" của HW3, đánh số riêng cho từng mắt.
+Ký hiệu có dấu * là ký hiệu không có trong BOM của HW1/HW3: J2, J7–J10 lấy từ hình bố trí ở HW4; C8, C9, R9–R11, R13, U1–U4, LS1, M1/M2, E1/E2, SW2/SW3 do `wiring.md` đặt thêm cho linh kiện đã mô tả trong HW2/HW3; R_EYE1/2 là "R_EYE ×2" của HW3, đánh số riêng cho từng mắt.
 
 ## 1. Module chính
 
@@ -15,13 +15,13 @@ Ký hiệu có dấu * là ký hiệu không có trong BOM của HW1/HW3: J2, J7
 |---|---|---|---|---|
 | U1* | ESP32-S3-DevKitC-1 N16R8 | Module ESP32-S3-WROOM-1-N16R8: flash 16MB, PSRAM 8MB octal (3.3V), 2 hàng × 22 chân | 1 | Bản clone dùng được nếu đưa ra đủ chân 39–42, 47, 48. DevKitC-1 **v1.1** để LED RGB ở GPIO38 (v1.0: GPIO48) – ghi lại phiên bản |
 | U3* | INMP441 | Mic MEMS I2S, 3.3V, module tròn 6 chân (VDD, GND, L/R, WS, SCK, SD) | 1 | |
-| U2* | MAX98357A | Amply class-D I2S, ~1.8W vào 8Ω ở 5V, module 7 chân (LRC, BCLK, DIN, GAIN, SD, GND, Vin) | 1 | Gắn trên hàng rào cái để thay được |
+| U2* | MAX98357A | Amply class-D I2S, ~1.8W vào 8Ω ở 5V, module 7 chân (LRC, BCLK, DIN, GAIN, SD, GND, Vin) | 1 | Gắn trên hàng rào cái để thay được. SD ← GPIO12 qua R13, GAIN nối VIN (wiring.md §3.4) |
 | LS1* | Loa | 3W 8Ω, đường kính 28–40mm | 1 | Kèm dây và giắc JST-PH 2P |
-| U4* | LCD ST7789 | 1.54" IPS 240×240, SPI, 3.3V, loại 7 hoặc 8 chân | 1 | 8 chân (có CS) → `LCD_ST7789_240X240`; 7 chân → `LCD_ST7789_240X240_7PIN` (SPI mode 3) |
+| U4* | LCD 2.4" SPI module MSP2401 | Driver ST7789, 240×320 (dùng ngang 320×240), SPI 4 dây, không cảm ứng. VCC 3.3–5V (có LDO trên module), logic 3.3V, chân LED bật đèn nền (mức cao = sáng). Header 14 chân 2.54mm: dùng chân 1–8, bỏ trống SDO(MISO) và T_CLK…T_IRQ; khe thẻ SD 4 chân không dùng. PCB 77.2×42.7mm, vùng hiển thị 36.7×49.0mm | 1 | Màn IPS → build `jarvis-helmet` (`LCD_ST7789_240X320`); màn TN (màu bị đảo) → `jarvis-helmet-noips` (`LCD_ST7789_240X320_NO_IPS`). Không dùng bản ILI9341 cùng mã MSP2401 (firmware cấu hình ST7789) |
 | M1, M2* | Servo MG90S | Bánh răng kim loại, 4.8–6V, xung 500–2400µs | 2 | M1 = S0 trái, M2 = S1 phải (lắp đối xứng) |
 | E1, E2* | Module LED mắt cosplay | Loại chạy pin CR2032 3V | 2 (1 cặp) | Tháo pin; mỗi module một điện trở R_EYE khi chạy 5V |
 | – | PCB đục lỗ | 7×9cm, bước 2.54mm, nên dùng loại 2 mặt mạ thiếc | 1 | Mua thêm 1 dự phòng. Bố trí trong `wiring.md` dùng lưới 27×35; **đếm lỗ trước khi mua** (nhiều tấm 7×9 chỉ có 24×30 lỗ) |
-| – | Sạc dự phòng | 5V, dòng ra ≥2.4A, cổng USB-A hoặc USB-C | 1 | Không tự tắt khi tải ~150mA (thử IT1 E14) |
+| – | Sạc dự phòng | 5V, dòng ra ≥2.4A (nên cổng 3A), cổng USB-A hoặc USB-C | 1 | Không tự tắt khi tải ~250mA (thử IT1 E14) |
 | SW2, SW3* | Nút nhấn nhả | Thường hở (momentary), gắn vỏ (ví dụ Ø12mm) hoặc nút 6×6mm | 2 | SW2 = PTT, SW3 = mặt nạ |
 
 ## 2. Nguồn (HW1)
@@ -30,11 +30,12 @@ Ký hiệu có dấu * là ký hiệu không có trong BOM của HW1/HW3: J2, J7
 |---|---|---|---|---|
 | J1 | Domino 2P | Bước 5.08mm, hàn PCB (kiểu KF301-2P) | 1 | Nguồn vào |
 | F1 | Cầu chì tự phục hồi (PPTC) | 2.5A hold, ≥6V, chân cắm bước 5.08mm | 1 | Ví dụ họ MF-R250 / RXEF250 |
+| Q3 | MOSFET kênh P | AO3401A: −30V, −4A, Rds(on) <60mΩ ở Vgs −4.5V, SOT-23 (1 = G, 2 = S, 3 = D) + đế chuyển SOT-23 → 3 chân | 1 | Chống cắm ngược sau F1 (wiring.md §2.9). Thay được bằng Si2301 (sụt gấp đôi) |
 | SW1 | Công tắc gạt | ≥3A, gắn vỏ mũ | 1 | Nối vào PCB qua J2 |
-| D1 | Diode Schottky | SS34 (3A, SMA) hoặc 1N5819 (1A, DO-41) | 1 | 1N5819 chân cắm dễ hàn trên PCB đục lỗ; dòng qua D1 ≤~0.6A |
+| D1 | Diode Schottky | SS34 (3A, SMA) hoặc 1N5819 (1A, DO-41) | 1 | 1N5819 chân cắm dễ hàn trên PCB đục lỗ; dòng qua D1 ≤~0.7A (Wi-Fi + LCD 2.4"). Nối tắt bằng dây nếu devkit đã có diode ở chân 5V (wiring.md §2.3) |
 | C1 | Tụ hóa | 1000µF/10V, Ø10mm, bước chân 5mm | 1 | 16V nếu mua được cùng cỡ; loại 105°C, low-ESR |
 | C3 | Tụ hóa | 470µF/10V, Ø6.3–8mm | 1 | |
-| C5 | Tụ hóa | 220µF/10V, Ø6.3mm | 1 | |
+| C5 | Tụ hóa | 470µF/10V, Ø6.3mm | 1 | Loại Ø8mm không vừa chỗ (chạm D1) |
 | C2, C4, C6, C7 | Tụ gốm | 100nF (104), 50V, bước 2.54 hoặc 5.08mm | 4 | |
 | R1, R2 | Điện trở | 100kΩ **1%**, 1/4W | 2 | Cầu phân áp VSENSE |
 | – | Cáp USB-A | ≤50cm, dây nguồn ≥22AWG | 1 | **Hoặc** mạch USB-C sink có 5.1kΩ ở CC1 và CC2 |
@@ -61,14 +62,15 @@ Ký hiệu có dấu * là ký hiệu không có trong BOM của HW1/HW3: J2, J7
 |---|---|---|---|---|
 | C8, C9* | Tụ gốm chống dội nút | 100nF (104) | 2 | C8 = PTT, C9 = mặt nạ |
 | R9, R10* | Điện trở kéo xuống tín hiệu servo | 10kΩ, 1/4W | 2 | **Tùy chọn**: chỉ lắp nếu servo giật khi ESP32 khởi động |
-| R11* | Điện trở nối tiếp SCL LCD | 33Ω, 1/4W | 1 | **Tùy chọn**: chỉ lắp nếu ảnh LCD nhiễu/sai màu |
+| R11* | Điện trở nối tiếp SCK LCD | 33Ω, 1/4W | 1 | **Tùy chọn**: chỉ lắp nếu ảnh LCD nhiễu/sai màu |
+| R13* | Điện trở chân SD amply | 2.2kΩ, 1/4W | 1 | GPIO12 → SD MAX98357A (wiring.md §3.4). Không cần nếu nối SD thẳng Vin (phương án A) |
 
 ## 5. Đầu nối & đế cắm (HW4)
 
 | Ký hiệu | Linh kiện | Thông số | SL | Ghi chú/thay thế |
 |---|---|---|---|---|
 | J2* | Domino 2P | Bước 5.08mm | 1 | Nối tới SW1; hoặc JST-XH 2P (≥3A) |
-| J7* | Header đực 8P | 2.54mm | 1 | Cáp LCD; hoặc JST-PH 8P |
+| J7* | Header đực 8P | 2.54mm | 1 | Cáp LCD 8 sợi 1:1: J7.n ↔ chân n của U4 (wiring.md §3.5); hoặc JST-PH 8P |
 | J8* | Header đực 5P | 2.54mm | 1 | Cáp mic; hoặc JST-PH 5P. HW4 ghi 4P là thiếu 1 chân |
 | J9* | Header đực 3P | 2.54mm | 1 | Cáp nút (PTT, mặt nạ, GND chung) |
 | J10* | Header đực 2P | 2.54mm | 1 | Loa; hoặc JST-PH 2P |
@@ -127,9 +129,11 @@ Ký hiệu có dấu * là ký hiệu không có trong BOM của HW1/HW3: J2, J7
 | 220Ω | R7, R8 | 2 | 10 |
 | 10kΩ (tùy chọn) | R9, R10 | 2 | 10 |
 | 33Ω (tùy chọn) | R11 | 1 | 10 |
+| 2.2kΩ | R13 | 1 | 10 |
 | R_EYE | R_EYE1, R_EYE2 | 2 | Bộ E24 33–100Ω, 1/4W và 1/2W |
 | 1N5819 | D1 (nếu không dùng SS34), D2 | 2 | 5 |
-| Tụ hóa 1000µF / 470µF / 220µF | C1 / C3 / C5 | 1 / 1 / 1 | 2 mỗi loại |
+| Tụ hóa 1000µF / 470µF | C1 / C3, C5 | 1 / 2 | 2 mỗi loại |
 | AO3400A + đế SOT-23 | Q1, Q2 | 2 | 4 |
+| AO3401A + đế SOT-23 | Q3 | 1 | 2 |
 
 Nên mua dư: 1 INMP441, 1 MAX98357A, 1 servo MG90S, 1 cầu chì PPTC 2.5A.

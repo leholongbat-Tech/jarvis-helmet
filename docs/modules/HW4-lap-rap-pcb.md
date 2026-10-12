@@ -11,19 +11,20 @@
 ```
         cột A ............ H  I ......... S  T ............ AA
 hàng 1  ┌──────────────────────────────────────────────────────┐
-        │ [J7 LCD 8P]   [J8 MIC 4P]    [J9 NÚT 3P]              │  ← cạnh trên: header cáp tín hiệu
-        │                ┌───────────┐                          │
-        │  MAX98357      │           │        Q1 (mắt) R3 R5    │
-        │  + C3 C4       │  ESP32-S3 │        Q2 (dự phòng) R4 R6│
-        │  [J10 LOA]     │  DevKit   │        D2                │
-        │                │ (cắm qua  │        R7 R8             │
-        │  R1 R2 C7      │ hàng rào  │        [J3 S0] [J4 S1]   │
-        │  (VSENSE)      │  cái)     │        C1 1000µF         │
-hàng 24 │                └───────────┘        [J6 MẮT] [J5 DP]  │
-        │  D1  C5 C6          F1        C2                      │
-        │  [J1 NGUỒN VÀO]  ●GND sao   [J2 → SW1 công tắc]       │  ← cạnh dưới: khối nguồn
+        │[J8 MIC 5P][J9 NÚT 3P] (cấm: anten) [J7 LCD 8P 1:1]   │  ← cạnh trên: header cáp tín hiệu
+        │ C3   C8 C9     ┌───────────┐    R2 C7 R1 (VSENSE)    │
+        │ MAX98357A      │           │    Q1 R3 R5  [J6 MẮT]   │
+        │ + C4           │  ESP32-S3 │    D2  [J5 DỰ PHÒNG]    │
+        │ [J10 LOA] R13  │  DevKit   │    Q2 R4 R6             │
+        │                │ (hàng rào │    R7 [J3 S0] C2        │
+        │ D1* C5 C6      │  cái)     │    R8 [J4 S1]           │
+hàng 26 │                └───────────┘    C1 1000µF            │
+        │ F1  Q3   ★ thanh 5V_MAIN / GND_STAR                  │
+        │ [J1 VÀO] [J2 → SW1]                                  │  ← cạnh dưới: khối nguồn
 hàng 35 └──────────────────────────────────────────────────────┘
 ```
+
+Hình phác theo bố trí Rev B. Tọa độ chính thức: `docs/hardware/wiring.md` §5 và `docs/hardware/perfboard-7x9.svg` (sinh bằng `tools/hardware/gen_perfboard.py`).
 
 - Khoảng cách giữa 2 hàng chân devkit phải **đo trên board thật**: DevKitC-1 là 2×22 chân; bản clone có thể khác. Từ đó chốt vị trí cột.
 - Đường 5V_SERVO và GND servo: dùng dây đồng trần 0.8mm hoặc dây 22AWG chạy mặt dưới, đi ngắn nhất từ khối nguồn sang J3/J4. Không đi vòng qua vùng âm thanh.
@@ -35,7 +36,7 @@ hàng 35 └──────────────────────�
 1. **Khối nguồn:** J1, F1, J2, D1, các tụ, điểm GND sao. Cấp điện và đo 5V_MAIN, 5V_ESP. Chưa cắm module nào.
 2. **Hàng rào cái** cho devkit và MAX98357. Đo thông mạch từng chân theo bảng HW2.
 3. **Khối công suất:** Q1, Q2, các điện trở, J3–J6. Đo thông mạch.
-4. **Header cáp:** J7 (LCD), J8 (mic), J9 (nút), J10 (loa).
+4. **Header cáp:** J7 (LCD, cáp 1:1 với chân module), J8 (mic, 5 chân), J9 (nút), J10 (loa).
 5. Khi chưa cắm module, đo điện trở giữa 5V và GND: phải lớn hơn 1kΩ.
 6. Cắm devkit, nạp firmware và chạy lại các bài thử của HW1–HW3.
 

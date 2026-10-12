@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Mục tiêu** | Tạo board riêng `jarvis-helmet` trên nền xiaozhi-esp32 v2.5.0. Mic, loa, LCD 240×240, wake word "Jarvis", WiFi nhiều mạng và địa chỉ server riêng phải chạy được |
+| **Mục tiêu** | Tạo board riêng `jarvis-helmet` trên nền xiaozhi-esp32 v2.5.0. Mic, loa, LCD 2.4" 320×240, wake word "Jarvis", WiFi nhiều mạng và địa chỉ server riêng phải chạy được |
 | **Phụ thuộc** | HW2 (bảng chân) |
 | **Kết quả giao nộp** | Thư mục `firmware/` (mã upstream đưa vào repo) và `firmware/main/boards/jarvis-helmet/` |
 
@@ -15,8 +15,8 @@
 
 | File | Nội dung |
 |---|---|
-| `firmware/main/boards/jarvis-helmet/config.h` | Bảng chân lấy từ HW2. `AUDIO_I2S_METHOD_SIMPLEX`. Audio vào 16 kHz, ra 48 kHz (MAX98357A không hỗ trợ LRCLK 24 kHz; firmware tự chuyển mẫu luồng TTS 24 kHz lên 48 kHz). Thông số LCD lấy từ khối `CONFIG_LCD_ST7789_240X240` (hoặc `_7PIN`) của `bread-compact-wifi-lcd/config.h`. Thêm định nghĩa chân servo, mắt, output, nút, VSENSE |
-| `firmware/main/boards/jarvis-helmet/config.json` | `"type": "jarvis-helmet"`, `"target": "esp32s3"`, `sdkconfig_append`: `CONFIG_LCD_ST7789_240X240=y` (hoặc `_7PIN`) |
+| `firmware/main/boards/jarvis-helmet/config.h` | Bảng chân lấy từ HW2. `AUDIO_I2S_METHOD_SIMPLEX`. Audio vào 16 kHz, ra 48 kHz (MAX98357A không hỗ trợ LRCLK 24 kHz; firmware tự chuyển mẫu luồng TTS 24 kHz lên 48 kHz). LCD: module 2.4" MSP2401 (ST7789, tấm 240×320) dùng ngang 320×240 (`DISPLAY_SWAP_XY` + `DISPLAY_MIRROR_X`), SPI mode 0; `CONFIG_LCD_ST7789_240X320` bật đảo màu (tấm IPS), `_NO_IPS` thì không. Thêm định nghĩa chân servo, mắt, output, nút, VSENSE, chân SD amply (`AUDIO_SPK_SD_GPIO` = GPIO12, Rev B) |
+| `firmware/main/boards/jarvis-helmet/config.json` | `"type": "jarvis-helmet"`, `"target": "esp32s3"`, `sdkconfig_append`: `CONFIG_LCD_ST7789_240X320=y` (hoặc `_NO_IPS`) |
 | `firmware/main/boards/jarvis-helmet/jarvis_helmet_board.cc` | Class `JarvisHelmetBoard : public WifiBoard`, chép từ `bread-compact-wifi-lcd/compact_wifi_board_lcd.cc`: `InitializeSpi`, `InitializeLcdDisplay`, `NoAudioCodecSimplex`, `PwmBacklight`, `SingleLed(GPIO48)`. Có các điểm gắn sẵn để FW2–FW6 thêm controller sau |
 | `firmware/main/boards/jarvis-helmet/README.md` | Hướng dẫn build và nạp |
 | `firmware/main/Kconfig.projbuild` | Thêm `config BOARD_TYPE_JARVIS_HELMET` vào `choice BOARD_TYPE` (`depends on IDF_TARGET_ESP32S3`). Thêm vào điều kiện `depends on` của khối chọn "LCD Type" (dòng ~738) để menuconfig cho chọn kích thước màn |
@@ -37,7 +37,7 @@
 ## 4. Công việc
 - [x] Đưa mã upstream v2.5.0 vào repo (commit `vendor: xiaozhi-esp32 v2.5.0`)
 - [x] Tạo thư mục board, đăng ký ở Kconfig và CMake
-- [x] Build với LCD `_240X240` và với `_240X240_7PIN`; [ ] chọn bản khớp màn thật
+- [ ] Build với LCD `_240X320` và với `_240X320_NO_IPS` (đổi sang màn 2.4" MSP2401, 10/2026; bản 1.54" `_240X240`/`_7PIN` đã build được trước đó); [ ] chọn bản khớp màn thật
 - [ ] Nạp, cấu hình WiFi, thử với server mặc định (P1), rồi với server nhà (P2)
 - [x] Đọc mã `esp-wifi-connect` về nhiều SSID (kết quả ở mục ghi chú); [ ] thử chuyển mạng trên mũ thật
 
@@ -65,7 +65,7 @@ chỗ: ngõ ra I2S 48 kHz (MAX98357A không hỗ trợ LRCLK 24 kHz) và lọc c
 | Kế hoạch | Thực tế | Lý do |
 |---|---|---|
 | Bảng phân vùng 16MB có sẵn | `partitions_jarvis_16m.csv`: thêm `helmet` (NVS 0xC000) và `jsecrets` (NVS 0x4000) ở vùng trống 0x10000–0x1FFFF | D6: cài đặt, hiệu chỉnh, chuỗi đã lưu và bí mật tách khỏi NVS của upstream. Chỉ đổi được bằng cách nạp qua cáp |
-| 1–2 biến thể (LCD 8/7 chân) | 4 biến thể cùng `type` `jarvis-helmet`: `jarvis-helmet`, `-7pin`, `-multinet` (wake word B1), `-mww` (microWakeWord B2) | FW7 |
+| 1–2 biến thể (LCD 8/7 chân) | 4 biến thể cùng `type` `jarvis-helmet`: `jarvis-helmet`, `-noips` (LCD tấm TN), `-multinet` (wake word B1), `-mww` (microWakeWord B2) | FW7 |
 | `SingleLed(GPIO48)` | LED WS2812 ở GPIO48; DevKitC-1 v1.1 đặt LED ở GPIO38 (ghi chú trong `config.h`) | D24 |
 | Cài đặt rải rác | Menu Kconfig "Jarvis Helmet" (`Kconfig.jarvis`): ngưỡng giữ PTT, WebSocket MCP cục bộ + cổng, ngắt bằng wake word, quét Wi-Fi nhanh, microWakeWord, header Cloudflare dự phòng | Gom một chỗ |
 | Kiểm tra nhiều SSID | `esp-wifi-connect` lưu tối đa 10 mạng, không có thứ tự ưu tiên (chọn mạng mạnh nhất khi quét), không tự chuyển khi đang kết nối. Board rút chu kỳ quét lại còn 3 s, tăng dần tới 30 s (`CONFIG_JARVIS_WIFI_FAST_RESCAN`) | Mục tiêu đổi mạng ≤30 s (tiêu chí 5) |

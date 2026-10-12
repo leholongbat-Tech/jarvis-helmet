@@ -46,6 +46,11 @@ public:
     MicProbe mic_probe() const { return mic_probe_.load(std::memory_order_relaxed); }
     static const char* MicProbeName(MicProbe probe);
 
+    // Drives the amplifier's SD_MODE pin from `gpio` (high = on) in step with
+    // EnableOutput(). Call once before the audio service starts. GPIO_NUM_NC: no pin.
+    void SetAmpEnableGpio(gpio_num_t gpio);
+    void EnableOutput(bool enable) override;
+
 protected:
     int Read(int16_t* dest, int samples) override;
     int Write(const int16_t* data, int samples) override;
@@ -72,4 +77,5 @@ private:
     std::atomic<int64_t> input_time_us_{0};
     std::atomic<int64_t> output_time_us_{0};
     std::atomic<MicProbe> mic_probe_{MicProbe::kNotRun};
+    gpio_num_t amp_gpio_ = GPIO_NUM_NC;
 };

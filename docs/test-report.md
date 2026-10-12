@@ -47,14 +47,14 @@ Lấy thông tin: `git rev-parse --short HEAD`; `cd server && docker compose ima
 | Mục | Giá trị |
 |---|---|
 | Commit repo (firmware) | … |
-| Biến thể build (`--name`) | `jarvis-helmet` / `jarvis-helmet-7pin` / `jarvis-helmet-multinet` / `jarvis-helmet-mww` |
+| Biến thể build (`--name`) | `jarvis-helmet` / `jarvis-helmet-noips` / `jarvis-helmet-multinet` / `jarvis-helmet-mww` |
 | Wake word (FW7) | A `wn9_jarvis_tts` / B1 MultiNet / B2 microWakeWord (model: …) |
 | `--language` | `vi-VN` |
 | ESP-IDF | v6.1 (Docker `espressif/idf:v6.1` / EIM) |
 | Option Kconfig khác mặc định | (ví dụ `CONFIG_JARVIS_WAKE_WORD_BARGE_IN=y`, `CONFIG_OTA_URL=...`) |
 | Cách nạp | `idf.py flash` / `esptool write-flash` theo board README / OTA |
 | Module ESP32-S3 | N16R8 (…) |
-| Màn hình | ST7789 240×240 8 chân / 7 chân |
+| Màn hình | LCD 2.4" MSP2401 ST7789 320×240, tấm IPS / TN |
 | Mic / amply / loa | INMP441 / MAX98357A / … |
 | Servo ×2 | (model) |
 | Đèn mắt, output dự phòng | … |
@@ -145,7 +145,7 @@ Mỗi bảng gồm tiêu chí nghiệm thu của các module trong giai đoạn 
 | HW1 #2 | Tải nặng nhất 10 phút: không reset, VSENSE ≥ 4,6 V | Log `esp_reset_reason` + VSENSE | | | | |
 | HW1 #3 | Cắm USB máy tính khi sạc dự phòng đang bật: không dòng ngược | Đo tại cổng USB | | | | |
 | HW3 #1 | Đèn mắt tắt hẳn khi khởi động/reset/nạp code | Quan sát | | | | |
-| HW3 #2 | PWM 0–100 % mượt, không nháy (~5 kHz) | Quan sát / máy hiện sóng | | | | |
+| HW3 #2 | PWM 0–100 % mượt, không nháy, không rít (25 kHz) | Quan sát / máy hiện sóng | | | | |
 | HW3 #3 | Q2 tải 500 mA 10 phút, MOSFET < 50 °C | Nhiệt kế | … °C | | | |
 | HW3 #4 | Servo không rung khi đứng yên, không giật khi khởi động | Quan sát | | | | |
 | FW2 #1 | Hai servo tới đích cùng lúc (lệch < 50 ms), không vượt góc hiệu chỉnh | Video | … ms | | | |

@@ -6,7 +6,7 @@ Mũ giáp kiểu Iron Man có trợ lý ảo **Jarvis**:
 - trả lời bằng giọng nói, giọng nam tiếng Việt (VieNeu-TTS), tiếng Anh tùy chọn bằng Kokoro;
 - điều khiển 2 servo nâng mặt nạ, đèn mắt và một kênh output dự phòng;
 - chạy các tác vụ tùy biến khai báo trong file YAML, kể cả khi mất mạng (nút bấm);
-- hiển thị HUD trên màn hình 240×240.
+- hiển thị HUD trên màn hình 2.4" 320×240.
 
 > Phạm vi repo: **phần điện điều khiển + firmware + server AI**. Phần cơ khí làm riêng.
 
@@ -99,7 +99,7 @@ python tools/tasks_cli.py validate
 
 ## Phần cứng chính
 
-ESP32-S3 N16R8, INMP441 (mic I2S), MAX98357A (amply I2S) + loa 3W 8Ω, LCD ST7789 1.54" 240×240, 2× servo MG90S, module LED mắt cosplay (CR2032), PCB đục lỗ 7×9cm, sạc dự phòng 5V ≥2.4A. Module PCM5102 không dùng trong thiết kế hiện tại.
+ESP32-S3 N16R8, INMP441 (mic I2S), MAX98357A (amply I2S) + loa 3W 8Ω, LCD 2.4" SPI ST7789 320×240 (module MSP2401), 2× servo MG90S, module LED mắt cosplay (CR2032), PCB đục lỗ 7×9cm, sạc dự phòng 5V ≥2.4A. Module PCM5102 không dùng trong thiết kế hiện tại.
 
 ## Mã nguồn mở được dùng
 

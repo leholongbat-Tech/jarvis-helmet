@@ -161,7 +161,7 @@ add('<defs><pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse
     '<pattern id="hatchS" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">'
     '<line x1="0" y1="0" x2="0" y2="7" stroke="#c45a00" stroke-width="1.6" stroke-opacity="0.35"/></pattern></defs>')
 t(30, 38, "Jarvis Helmet – Bố trí PCB đục lỗ 7×9cm (lưới 27×35, nhìn từ mặt linh kiện)", 22, weight="bold", halo=False)
-t(30, 62, "Rev A · 2026-10-06 · tọa độ cột:hàng khớp docs/hardware/wiring.md mục 5 · bản dự kiến, chưa hàn thử", 13, fill=MUTED, halo=False)
+t(30, 62, "Rev B · 2026-10-09 · tọa độ cột:hàng khớp docs/hardware/wiring.md mục 5 · bản dự kiến, chưa hàn thử", 13, fill=MUTED, halo=False)
 t(30, 80, "Cạnh 9cm theo chiều dọc. Hàng 1 = cạnh trên (header cáp), hàng 35 = cạnh dưới (khối nguồn). Bước lỗ 2.54mm.", 13, fill=MUTED, halo=False)
 
 # board
@@ -201,7 +201,8 @@ def pw(pts, c, w=4.0, dash=DASH_P, halo=True):
     poly(pts, c, w, dash, halo)
 # input chain + buses (bare copper)
 pw([("B", 34), ("B", 30)], C5V)
-pw([("D", 30), ("F", 30), ("F", 34)], C5V)
+pw([("D", 30), ("F", 30), ("F", 32)], C5V)                 # F1 out -> Q3 drain
+pw([("E", 32), ("E", 33), ("F", 33), ("F", 34)], C5V)      # Q3 source -> J2.1 (SW1)
 pw([("H", 34), ("H", 31), ("K", 31)], C5V)
 pw([("D", 34), ("D", 35), ("K", 35), ("K", 33)], CGND)
 pw([("K", 31), ("Q", 31)], C5V, 6.5, "12 4")
@@ -223,8 +224,10 @@ def br(pts, c):
     poly(pts, c, 2.2, DASH_B, False)
 br([("D", 23), ("I", 23)], C5V)
 br([("F", 24), ("I", 24)], CGND)
+br([("D", 32), ("D", 34)], CGND)      # Q3 gate -> J1- (reverse-polarity P-FET)
+br([("G", 10), ("E", 10), ("E", 7)], C5V)   # U2 GAIN -> VIN (6 dB)
 br([("F", 3), ("H", 3), ("H", 1)], CGND)
-br([("T", 1), ("T", 4), ("U", 4)], CGND)
+br([("U", 1), ("U", 4), ("T", 4), ("T", 3)], CGND)   # J7.2 GND; T:1 is J7.1 = 3V3
 br([("T", 3), ("R", 3)], CGND)
 br([("R", 6), ("V", 6)], CANA)
 br([("X", 13), ("AA", 13), ("AA", 15)], C5V)
@@ -235,18 +238,18 @@ br([("W", 10), ("X", 10)], CPWM); br([("V", 20), ("W", 20)], CPWM)
 br([("W", 23), ("X", 23)], CPWM); br([("W", 26), ("X", 26)], CPWM)
 # button caps C8/C9 to J9.1/J9.2 (GPIO10/11 wires land on F:2/G:2)
 br([("F", 1), ("F", 2)], CDIG); br([("G", 1), ("G", 2)], CDIG)
-# optional parts: R9/R10 pull-downs on the servo signal side, R11 in series with SCL
+# optional parts: R9/R10 pull-downs on the servo signal side, R11 in series with the LCD SCK
 br([("W", 23), ("W", 24)], CPWM); br([("W", 26), ("W", 27)], CPWM)
-br([("V", 1), ("V", 2)], CSPI)
+br([("Z", 1), ("Z", 2)], CSPI)
 
 # ------------------------------------------------------------------ parts
 # top headers
 header_m("A", "E", 1, "J8 MIC 5P", X("C"), by1 - 30)
 header_m("F", "H", 1, "J9 NÚT 3P", X("G"), by1 - 30)
-header_m("T", "AA", 1, "J7 LCD 8P", X("W") + P/2, by1 - 30)
+header_m("T", "AA", 1, "J7 LCD 8P (= chân 1–8 module)", X("W") + P/2, by1 - 30)
 cap_cer("F", 2, "F", 3); cap_cer("G", 2, "G", 3)
 t(X("F") + P/2, Y(4) + 6, "C8 C9", 12, "middle", "bold")
-res_stand("V", 2, "V", 3, "R11*", X("W") + 2, Y(2.6), "start", optional=True)
+res_stand("Z", 2, "Z", 3, "R11*", X("Y") + 4, Y(2.6), "end", optional=True)
 
 # devkit
 dx1, dx2 = X("H") + P/2, X("R") + P/2
@@ -285,14 +288,15 @@ t(X(2.3), Y(8.3), "U2 MAX98357A", 12, "middle", "bold")
 t(X(2.3), Y(9.0), "thân module", 12, "middle", fill=ORANGE)
 t(X(2.3), Y(9.7), "(dự kiến)", 12, "middle", fill=ORANGE)
 header_m("A", "A", 15, vertical=True, r2=16)
+res_stand("F", 16, "F", 17, "R13", X("F") + 10, Y(16.6), "start")   # GPIO12 -> SD_MODE
 t(X("B") - 2, Y(15.5) + 4, "J10 LOA", 12, "start", "bold")
 t(X("D"), Y(18.6), "VÙNG ÂM THANH", 13, "middle", "bold", "#174a8c")
 t(X("D"), Y(19.35), "(I2S, mic, loa)", 12, "middle", fill="#174a8c")
 # 5V_ESP block
 diode_lay("D", 23, "D", 27, "D1", X("B") + 6, Y(25) + 4, "middle")
-t(X("B") + 6, Y(25.7) + 4, "1N5819", 12, "middle")
+t(X("B") + 6, Y(25.7) + 4, "1N5819*", 12, "middle")
 cap_el("F", 23, "F", 24, 6.3, "C5", None, X("F"), Y(21.75), "middle")
-t(X("F"), Y(21.75) + 14, "220µF", 12, "middle")
+t(X("F"), Y(21.75) + 14, "470µF", 12, "middle")
 cap_cer("H", 23, "H", 24, "C6", X("H"), Y(25.45), "middle")
 
 # right zone – VSENSE
@@ -340,14 +344,15 @@ t(X("C"), Y(33.35), "J1 vào", 12, "middle", "bold", "#0b3b57")
 t(X("B") - 12, Y(34) + 5, "+", 13, "middle", "bold", C5V); t(X("D") + 12, Y(34) + 5, "−", 13, "middle", "bold", CGND)
 rect(X(0.6), Y(29.6), X(5.4) - X(0.6), 0.8*P, fill="#f2c94c", stroke="#9a7b10", sw=1.6, rx=4, op=0.9)
 dot(X("B"), Y(30), "#5a4a10", 3.4); dot(X("D"), Y(30), "#5a4a10", 3.4)
-t(X("B") + 8, Y(31) + 8, "F1 PPTC 2.5A", 12, "start", "bold")   # below F1, clear of the row-29 GND_AUDIO wire
+t(X("A") - 4, Y(29.25) + 4, "F1 PPTC 2.5A", 12, "start", "bold")   # above F1; Q3 sits below it
 domino("F", 34, "H", 34, 5.03, 32.62, 8.97, 35.57, "J2", None)
 t(X("G"), Y(33.35), "J2 → SW1", 12, "middle", "bold", "#0b3b57")
+mosfet("D", 32, "Q3", X("E"), Y(30.3))   # AO3401A: G D:32, S E:32, D F:32
 star(X("N"), Y(32), 9, CGND)
 t(X("N") + 14, Y(32) + 4, "điểm sao", 12, "start", "bold")
 t(X("J") + 4, Y(31) - 9, "5V_MAIN", 12, "end", "bold", C5V)
 t(X("M"), Y(33) + 17, "GND_STAR", 12, "middle", "bold", CGND)
-t(X("B") + 2, Y(32.15), "KHỐI NGUỒN", 12, "start", "bold", "#9b2c22")
+t(X("P") + 2, Y(28.6), "KHỐI NGUỒN", 12, "start", "bold", "#9b2c22")
 
 # route labels
 t(X("B") - 6, Y(22.5), "5V_AUDIO", 12, "middle", "bold", C5V, rot=-90)
@@ -381,7 +386,7 @@ leg_sym(lambda y: (add(f'<line x1="{LX+12}" y1="{y}" x2="{LX+36}" y2="{y}" strok
 leg_sym(lambda y: (add(f'<line x1="{LX+12}" y1="{y}" x2="{LX+36}" y2="{y}" stroke="#1f6fd1" stroke-width="2.2"/>'), rect(LX+19, y-6, 10, 12, fill="#9cc3f0", stroke="#1f5fb0", sw=1.4, rx=4)), "Tụ gốm 100nF", ly); ly += 22
 leg_sym(lambda y: (circ(LX+22, y, 9, fill="#e7ddf5", stroke="#5b3d8a", sw=1.8), dot(LX+17, y, C5V, 3), dot(LX+27, y, CGND, 3)), "Tụ hóa (vòng = đường kính thân; chấm đỏ = cực +)", ly); ly += 22
 leg_sym(lambda y: (rect(LX+8, y-6, 28, 12, fill="#2b2b2b", stroke="#111", sw=1, rx=3), add(f'<rect x="{LX+8}" y="{y-6}" width="5" height="12" fill="#d9d9d9"/>')), "Diode nằm (vạch sáng = catot)", ly); ly += 22
-leg_sym(lambda y: (rect(LX+2, y-10, 40, 18, fill="#1f7a3a", stroke="#0e4d22", sw=1.4, op=0.9)), "AO3400A trên đế SOT-23 (G S D)", ly); ly += 22
+leg_sym(lambda y: (rect(LX+2, y-10, 40, 18, fill="#1f7a3a", stroke="#0e4d22", sw=1.4, op=0.9)), "AO3400A (Q1, Q2) / AO3401A (Q3) trên đế SOT-23 (G S D)", ly); ly += 22
 leg_sym(lambda y: rect(LX+4, y-9, 36, 18, fill="#5aa7d6", stroke="#1e5f86", sw=1.6, op=0.9), "Domino 5.08mm (J1, J2, J5)", ly); ly += 22
 leg_sym(lambda y: star(LX+22, y, 9, CGND), "Điểm sao: thanh 5V_MAIN K:31–Q:31, GND_STAR K:33–Q:33", ly); ly += 22
 leg_sym(lambda y: add(f'<rect x="{LX+2}" y="{y-9}" width="40" height="18" fill="url(#hatch)" stroke="{C5V}" stroke-width="1.2" stroke-dasharray="4 3"/>'), "Vùng cấm dưới anten: không linh kiện, không dây", ly); ly += 22
@@ -413,6 +418,9 @@ for s in ("• Dây tín hiệu GPIO không vẽ: dây có vỏ AWG26–30 mặt
           "• Cổng USB devkit ở hàng ~25–26, cắm cáp từ phía dưới: không",
           "  đặt vật cao ở cột J–Q, hàng 26–35.",
           "• Q1 S (Y:10) về GND_PWR bằng dây riêng tới O:33.",
+          "• Q3 (P-FET): D ← F1, S → J2/SW1, G → J1−: chống cắm ngược.",
+          "• D1*: thay bằng dây nếu devkit đã có diode ở chân 5V.",
+          "• R13 (F:16–F:17): GPIO12 → SD amply; cầu G:10–E:7 = GAIN→VIN.",
           "• R_EYE1/R_EYE2 nằm trên dây đèn mắt, không trên PCB.",
           "• GND_ESP (N:31) và GND_AUDIO (J:31) bắt chéo dây trần 5V:",
           "  dùng dây silicone, lót co nhiệt, không hàn ở chỗ giao."):
@@ -421,7 +429,7 @@ for s in ("• Dây tín hiệu GPIO không vẽ: dây có vỏ AWG26–30 mặt
 svg = (f'<?xml version="1.0" encoding="UTF-8"?>\n'
        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" '
        f'font-family="sans-serif" role="img" aria-labelledby="ttl desc">\n'
-       f'<title id="ttl">Jarvis Helmet – bố trí PCB đục lỗ 7×9cm (Rev A)</title>\n'
+       f'<title id="ttl">Jarvis Helmet – bố trí PCB đục lỗ 7×9cm (Rev B)</title>\n'
        f'<desc id="desc">Lưới 27 cột (A–AA) × 35 hàng, nhìn từ mặt linh kiện. Devkit ở giữa, âm thanh bên trái, '
        f'MOSFET và servo bên phải, khối nguồn và điểm sao ở cạnh dưới. Tọa độ dự kiến theo wiring.md mục 5.</desc>\n'
        + "\n".join(el) + "\n</svg>\n")

@@ -16,7 +16,7 @@
 #
 # Env:
 #   IDF_IMAGE   default espressif/idf:v6.1
-#   FW_VOLUME   default jarvis-fw-work (one volume per parallel build, e.g. jarvis-fw-work-7pin)
+#   FW_VOLUME   default jarvis-fw-work (one volume per parallel build, e.g. jarvis-fw-work-noips)
 #   FW_SRC      firmware tree to build, default <repo>/firmware (e.g. a scratch copy)
 set -euo pipefail
 

@@ -265,7 +265,7 @@ def build_system_info(dev: DeviceIdentity, free_heap: int = 98304) -> dict:
             for label, ptype, sub, addr, size in PARTITIONS
         ],
         "ota": {"label": "ota_0"},
-        "display": {"monochrome": False, "width": 240, "height": 240},
+        "display": {"monochrome": False, "width": 320, "height": 240},
         "board": {
             "type": dev.board_type,
             "name": dev.board_name,
@@ -1212,7 +1212,7 @@ class ToolBox:
                     lambda a: (True, "true"), user_only=True),
             McpTool("self.screen.get_info",
                     "Information about the screen, including width, height, etc.", [],
-                    lambda a: (True, '{"width":240,"height":240,"monochrome":false}'),
+                    lambda a: (True, '{"width":320,"height":240,"monochrome":false}'),
                     user_only=True),
             McpTool("self.screen.snapshot", "Snapshot the screen and upload it to a specific URL",
                     [Property("url", STRING), Property("quality", INTEGER, 80, 1, 100)],

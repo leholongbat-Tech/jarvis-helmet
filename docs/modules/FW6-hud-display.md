@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Mục tiêu** | Giao diện HUD kiểu Iron Man trên ST7789 240×240: trạng thái trợ lý, câu hội thoại có dấu tiếng Việt, thông tin hệ thống, thẻ thông báo |
+| **Mục tiêu** | Giao diện HUD kiểu Iron Man trên LCD 2.4" ST7789 dùng ngang 320×240: trạng thái trợ lý, câu hội thoại có dấu tiếng Việt, thông tin hệ thống, thẻ thông báo |
 | **Phụ thuộc** | FW1 (LCD chạy được). Lấy trạng thái từ FW2, FW3, FW4 |
 | **Kết quả giao nộp** | `jarvis_hud_display.{h,cc}`, font LVGL tiếng Việt, ảnh chụp từng trạng thái |
 
@@ -22,24 +22,26 @@ Cách làm:
 - Phương án dự phòng: cơ chế `glyph_push` (`docs/glyph-push.md`), trong đó server gửi ký tự còn thiếu. Phức tạp hơn nên chỉ dùng khi cách trên không làm được.
 - Chữ số và nhãn tiếng Anh (giờ, "SYS", "PWR") có thể dùng thêm font kiểu kỹ thuật (Orbitron, Rajdhani), chỉ lấy chữ số và chữ hoa.
 
-## 2. Bố cục 240×240
+## 2. Bố cục 320×240 (màn 2.4" nằm ngang)
 
 ```
-┌────────────────────────────────────┐
-│ 14:32   ▂▄▆ LAN    5.02V    ⚠OFF  │  thanh trạng thái 22px
-│                                    │
-│   [MASK]     ╭──────────╮   [EYE]  │
-│   ▲ OPEN    ╱  ╭──────╮  ╲   ● ON  │  vòng arc reactor 130px
-│            │  │ J.A.R. │  │        │  (3 vòng lv_arc xoay
-│            │  │ V.I.S. │  │        │   + vòng sóng âm)
-│             ╲  ╰──────╯  ╱         │
-│               ╰──────────╯         │
-│ ─────────────────────────────────  │
-│ » mở mặt nạ rồi bật đèn mắt        │  câu bạn nói (màu nhạt)
-│ Đã mở mặt nạ và bật đèn mắt, thưa  │  câu Jarvis trả lời (màu sáng,
-│ ngài.                              │  tự cuộn khi dài)
-└────────────────────────────────────┘
+┌──────────────────────────────────────────────────┐
+│ 14:32   ▂▄▆ LAN    5.02V               ⚠OFFLINE  │  thanh trạng thái 22px
+│                                                  │
+│ [MASK]           ╭──────────╮           [EYES]   │
+│ ▲ OPEN          ╱  ╭──────╮  ╲            ● ON   │  vòng arc reactor 128px
+│                │  │ J.A.R. │  │                  │  (3 vòng lv_arc xoay
+│                │  │ V.I.S. │  │                  │   + vòng sóng âm)
+│                 ╲  ╰──────╯  ╱                   │
+│                   ╰──────────╯                   │
+│ ──────────────────────────────────────────────── │
+│ » mở mặt nạ rồi bật đèn mắt                      │  câu bạn nói (màu nhạt)
+│ Đã mở mặt nạ và bật đèn mắt, thưa ngài. Hệ       │  câu Jarvis trả lời (màu sáng,
+│ thống sẵn sàng.                                  │  tự cuộn khi dài)
+└──────────────────────────────────────────────────┘
 ```
+
+Chiều dọc giống bố cục 240×240 ban đầu; chiều ngang dãn theo bề rộng màn (vòng reactor ở giữa, panel EYES và nhãn OFFLINE bám mép phải). Toạ độ pixel thật: [`docs/hud.md`](../hud.md) mục 1.
 
 **Màu:** nền `#00070D`, chính `#00E5FF` (cyan), phụ `#FFB000` (cam), lỗi `#FF3B30`.
 

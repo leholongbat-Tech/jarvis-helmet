@@ -5,7 +5,7 @@
         {
             "name": "jarvis-helmet",
             "sdkconfig_append": [
-                "CONFIG_LCD_ST7789_240X240=y",
+                "CONFIG_LCD_ST7789_240X320=y",
                 "CONFIG_PARTITION_TABLE_CUSTOM=y",
                 "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME=\"main/boards/jarvis-helmet/partitions_jarvis_16m.csv\"",
                 "CONFIG_HTTPD_WS_SUPPORT=y",
@@ -13,9 +13,9 @@
             ]
         },
         {
-            "name": "jarvis-helmet-7pin",
+            "name": "jarvis-helmet-noips",
             "sdkconfig_append": [
-                "CONFIG_LCD_ST7789_240X240_7PIN=y",
+                "CONFIG_LCD_ST7789_240X320_NO_IPS=y",
                 "CONFIG_PARTITION_TABLE_CUSTOM=y",
                 "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME=\"main/boards/jarvis-helmet/partitions_jarvis_16m.csv\"",
                 "CONFIG_HTTPD_WS_SUPPORT=y",
@@ -25,7 +25,7 @@
         {
             "name": "jarvis-helmet-multinet",
             "sdkconfig_append": [
-                "CONFIG_LCD_ST7789_240X240=y",
+                "CONFIG_LCD_ST7789_240X320=y",
                 "CONFIG_PARTITION_TABLE_CUSTOM=y",
                 "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME=\"main/boards/jarvis-helmet/partitions_jarvis_16m.csv\"",
                 "CONFIG_HTTPD_WS_SUPPORT=y",
@@ -40,7 +40,7 @@
         {
             "name": "jarvis-helmet-mww",
             "sdkconfig_append": [
-                "CONFIG_LCD_ST7789_240X240=y",
+                "CONFIG_LCD_ST7789_240X320=y",
                 "CONFIG_PARTITION_TABLE_CUSTOM=y",
                 "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME=\"main/boards/jarvis-helmet/partitions_jarvis_16m.csv\"",
                 "CONFIG_HTTPD_WS_SUPPORT=y",

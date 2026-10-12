@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Phiên bản** | Rev A – 2026-10-06 (bản đầu, chưa cắm thử trên phần cứng thật) |
+| **Phiên bản** | Rev B – 2026-10-09: LCD 2.4" MSP2401 nối bằng 8 dây Dupont, chân SD amply ← GPIO12 qua R13 (W36), GAIN nối VIN (W37), C5 470µF. Rev A (2026-10-06) là bản đầu. Chưa cắm thử bản Rev B |
 | **Mục đích** | Thử từng tính năng trước khi hàn PCB (HW4): P1 (mic, loa, LCD, nói chuyện với server) và P3 (servo, đèn mắt, output dự phòng, nút, đo 5V) |
 | **Phần cứng** | 2 tấm breadboard 63 cột + 3 thanh ray ghép như ảnh, ESP32-S3-DevKitC-1 N16R8 (clone 2 cổng USB-C) đã cắm sẵn |
 | **Bảng chân** | Giữ nguyên [wiring.md](wiring.md) §3.1 (HW2) → firmware `jarvis-helmet` chạy **không sửa `config.h`** |
@@ -43,10 +43,10 @@
 | 44 | `DK-L3` RST | **không nối** (EN/RST) | `DK-R3` RX | **không nối** (UART0 RX, log) |
 | 45 | `DK-L4` GPIO4 | Mic WS (M3) | `DK-R4` GPIO1 | VSENSE (W23) |
 | 46 | `DK-L5` GPIO5 | Mic SCK (M4) | `DK-R5` GPIO2 | trống |
-| 47 | `DK-L6` GPIO6 | Mic SD (M5) | `DK-R6` GPIO42 | LCD BLK (W7) |
+| 47 | `DK-L6` GPIO6 | Mic SD (M5) | `DK-R6` GPIO42 | LCD LED (W7) |
 | 48 | `DK-L7` GPIO7 | Amply DIN (W16) | `DK-R7` GPIO41 | LCD CS (W8) |
 | 49 | `DK-L8` GPIO15 | Amply BCLK (W17) | `DK-R8` GPIO40 | LCD DC (W9) |
-| 50 | `DK-L9` GPIO16 | Amply LRC (W18) | `DK-R9` GPIO39 | LCD RES (W10) |
+| 50 | `DK-L9` GPIO16 | Amply LRC (W18) | `DK-R9` GPIO39 | LCD RESET (W10) |
 | 51 | `DK-L10` GPIO17 | Servo S0 (W34 → R7) | `DK-R10` GPIO38 | trống (DevKitC-1 v1.1: LED RGB) |
 | 52 | `DK-L11` GPIO18 | Servo S1 (W35 → R8) | `DK-R11` GPIO37 | **không nối** (PSRAM octal) |
 | 53 | `DK-L12` GPIO8 | Gate đèn mắt (W26 → R3) | `DK-R12` GPIO36 | **không nối** (PSRAM octal) |
@@ -54,8 +54,8 @@
 | 55 | `DK-L14` GPIO46 | **không nối** (strapping) | `DK-R14` GPIO0 | **không nối** (nút BOOT có sẵn) |
 | 56 | `DK-L15` GPIO9 | Gate output dự phòng (W28 → R4) | `DK-R15` GPIO45 | **không nối** (strapping) |
 | 57 | `DK-L16` GPIO10 | Nút PTT (W19) | `DK-R16` GPIO48 | **không nối** (LED RGB có sẵn) |
-| 58 | `DK-L17` GPIO11 | Nút mặt nạ (W20) | `DK-R17` GPIO47 | LCD SDA (W11) |
-| 59 | `DK-L18` GPIO12 | trống | `DK-R18` GPIO21 | LCD SCL (W12) |
+| 58 | `DK-L17` GPIO11 | Nút mặt nạ (W20) | `DK-R17` GPIO47 | LCD SDI (W11) |
+| 59 | `DK-L18` GPIO12 | SD amply (R13 → W36) | `DK-R18` GPIO21 | LCD SCK (W12) |
 | 60 | `DK-L19` GPIO13 | trống | `DK-R19` GPIO20 | **không nối** (USB D+) |
 | 61 | `DK-L20` GPIO14 | trống | `DK-R20` GPIO19 | **không nối** (USB D−) |
 | 62 | `DK-L21` 5V | 5Vin ← 5V_ESP (W2) | `DK-R21` GND | GND → LCD GND (W13) |
@@ -87,12 +87,12 @@ Dán băng dính ghi "5V" lên ray RT+. Không cắm 5V vào ray RD và không c
 | Mic | Ngoài breadboard, 5 dây vào lỗ trống của J1 | U3, M1–M5 |
 | Nút | Tấm dưới, vắt qua rãnh giữa, cột 15–23 | SW2, SW3 |
 | VSENSE | Tấm dưới f–j, cột 42–45 | R1, R2, C7 |
-| LCD | Tấm dưới hàng j, cột 47–54, cắm đứng | U4 |
+| LCD | Module 2.4" nằm ngoài; 8 dây Dupont cắm vào tấm dưới hàng j, cột 47–54 | U4 |
 | Còn trống | Tấm trên f–j cột 1–38; tấm dưới cột 1–14, 24–41 | Chỗ cho dây bay và mở rộng |
 
 Lý do bố trí:
 
-- **Dây nhanh thì ngắn, dây chậm được phép dài.** SPI của LCD chạy 40MHz: LCD cắm ngay dưới hàng chân J3, dây W7–W12 chỉ vắt qua rãnh (≤2cm). I2S của amply (W16–W18) ≤2.5cm. Dây PWM servo/MOSFET (50Hz, 5kHz) và dây nút được phép dài 10–15cm.
+- **Dây nhanh thì ngắn, dây chậm được phép dài.** SPI của LCD chạy 40MHz: điểm cắm dây LCD ngay dưới hàng chân J3, dây W7–W12 chỉ vắt qua rãnh (≤2cm); 8 dây Dupont tới module 2.4" giữ ≤15cm. I2S của amply (W16–W18) ≤2.5cm. Dây PWM servo/MOSFET (50Hz, 5kHz) và dây nút được phép dài 10–15cm.
 - **Không có 5V trên các dải a–e nằm ngay trên chân devkit** (cột 42–61 tấm trên). Cắm nhầm một dây qua rãnh ở đó không đưa 5V vào GPIO. Dải 5V duy nhất cạnh devkit là cột 62, nằm đúng trên chân 5Vin.
 - **Dòng servo không đi qua dây của devkit** (mục 2.3).
 
@@ -108,6 +108,7 @@ Sạc dự phòng ─ BUSB ─► T.e1 ─ F1 ─► T.c3 ─ W1 ─► ★ RT+@
 | Hạng mục | PCB (HW1, HW4) | Breadboard |
 |---|---|---|
 | Công tắc SW1 | Có | Không. Rút cáp USB-C ở BUSB = tắt |
+| Q3 chống cắm ngược | Có (AO3401A sau F1) | Không: BUSB là mạch USB-C có in sẵn VBUS/GND, không đấu ngược được nếu hàn đúng một lần. Đo cực tính trước khi cắm module (B1) |
 | Cầu chì F1 2.5A | Có | Có (`T.c1`–`T.c3`): chập trên breadboard là chuyện thường gặp |
 | Điểm sao | Thanh 5V/GND 7 lỗ, mỗi nhánh một dây | Đầu vào ở cột 3 của ray RT. Tải xếp theo dòng: servo sát ★, rồi MOSFET, amply, devkit xa nhất. Dòng khởi động 1.5–2A của servo chỉ chạy trên đoạn ray cột 3–10, không chạy qua đoạn ray và dây mà devkit dùng |
 | GND tín hiệu | LCD, mic, nút, VSENSE về chân GND devkit | Giống: LCD (W13), mic (M2), VSENSE (W24) cắm vào chân GND devkit; nút qua ray RD− (W6 từ `DK-R22`). GND tín hiệu chỉ gặp GND công suất ở một chỗ: W3 + W4 (cột 63 → `RT−@60`) |
@@ -130,11 +131,12 @@ Dòng qua mỗi tiếp điểm breadboard nên giữ dưới ~1A. Dây nguồn (
 | B1 | C1 | Tụ hóa | 1000µF/10V | + `RT+@4` · − `RT−@4` | Sát chỗ cắm servo. Bẻ chân cho thân **nằm ngang chìa ra ngoài mép trên**, không che lỗ ray |
 | B1 | C2 | Tụ gốm | 100nF | `RT+@7` – `RT−@7` | Lọc nhiễu chổi than servo |
 | B2 | D1 | Diode Schottky | 1N5819 | A `RT+@61` · K `T.a62` | Vạch (catot) về phía `T.a62`. Chặn 5V của cáp USB máy tính chảy sang ray (wiring.md §2.3) |
-| B2 | C5 | Tụ hóa | 220µF/10V | + `T.c62` · − `T.c63` | Thân nằm ngang về phía cột 59–61 (đang trống), không che `T.e62`, `T.e63` |
+| B2 | C5 | Tụ hóa | 470µF/10V | + `T.c62` · − `T.c63` | Thân nằm ngang về phía cột 59–61 (đang trống), không che `T.e62`, `T.e63` |
 | B2 | C6 | Tụ gốm | 100nF | `T.b62` – `T.b63` |  |
-| B3 | U4 | LCD ST7789 1.54" 240×240 | 8 chân | BLK `D.j47` · CS `D.j48` · DC `D.j49` · RES `D.j50` · SDA `D.j51` · SCL `D.j52` · VCC `D.j53` · GND `D.j54` | Cắm **đứng** ở hàng j, mặt màn quay ra ngoài, chân GND ở cột 54. Màn 7 chân: xem mục 3.3 |
-| B4 | U2 | Amply I2S MAX98357A |  | VIN `T.a36` · GND `T.a37` · SD `T.a38` · GAIN `T.a39` · DIN `T.a40` · BCLK `T.a41` · LRC `T.a42` | Chân ở hàng a, thân nằm đè lên ray RT, cọc loa quay ra mép trên. SD, GAIN để trống (mono, 9 dB) |
+| B3 | U4 | LCD 2.4" ST7789 320×240 (MSP2401) | header 14 chân, dùng 1–8 | LED `D.j47` · CS `D.j48` · DC `D.j49` · RESET `D.j50` · SDI `D.j51` · SCK `D.j52` · VCC `D.j53` · GND `D.j54` | Module 77×43mm nằm ngoài breadboard: 8 dây Dupont cái–đực ≤15cm từ header module tới hàng j, **theo tên chân** (chân 1 = VCC, pad vuông). Bỏ trống SDO(MISO), T_CLK…T_IRQ và khe thẻ SD |
+| B4 | U2 | Amply I2S MAX98357A |  | VIN `T.a36` · GND `T.a37` · SD `T.a38` · GAIN `T.a39` · DIN `T.a40` · BCLK `T.a41` · LRC `T.a42` | Chân ở hàng a, thân nằm đè lên ray RT, cọc loa quay ra mép trên. SD ← GPIO12 qua R13 (W36), GAIN nối VIN (W37, 6 dB) |
 | B4 | C3 | Tụ hóa | 470µF/10V | + `T.c36` · − `T.c37` | Thân nằm ngang về phía cột 38–40 (che hàng b–d, chừa hàng e cho dây I2S) |
+| B4 | R13 | Điện trở chân SD amply | 2.2kΩ | `T.e38` – `T.f38` | Đứng, vắt qua rãnh giữa ở cột 38 (dải SD của U2; `T.b38`–`T.d38` nằm dưới C3). GPIO12 thấp = tắt amply, cao = bật |
 | B4 | C4 | Tụ gốm | 100nF | `T.e36` – `T.e37` |  |
 | B4 | U3 | Mic I2S INMP441 |  | VDD `T.g43` · GND `T.g63` · WS `T.g45` · SCK `T.g46` · SD `T.g47` | Ngoài breadboard, 5 dây Dupont cái–đực ≤20cm bện xoắn (M1–M5). **L/R nối GND ngay trên module mic** |
 | B5 | SW2 | Nút nhấn 6×6 – PTT |  | e21 `D.e21` · e23 `D.e23` · f21 `D.f21` · f23 `D.f23` | GPIO10 vào nửa trên cột 23 (W19), GND vào nửa dưới cột 21 (W21) |
@@ -175,7 +177,7 @@ Dòng qua mỗi tiếp điểm breadboard nên giữ dưới ~1A. Dây nguồn (
 | B2 | W4 | `T.a63` | `RT−@60` | `GND_ESP` | 22AWG lõi đặc | GND của devkit về ray GND |
 | B3 | W5 | `T.f42` | `D.f53` | `3V3` | dây cắm | 3V3 (`DK-L1`) tới VCC của LCD; đi vòng bên phải đầu anten |
 | B3 | W7 | `D.e47` | `D.f47` | `LCD_BLK` | dây cắm |  |
-| B3 | W8 | `D.e48` | `D.f48` | `LCD_CS` | dây cắm | Màn 7 chân: bỏ dây này |
+| B3 | W8 | `D.e48` | `D.f48` | `LCD_CS` | dây cắm |  |
 | B3 | W9 | `D.e49` | `D.f49` | `LCD_DC` | dây cắm |  |
 | B3 | W10 | `D.e50` | `D.f50` | `LCD_RES` | dây cắm |  |
 | B3 | W11 | `D.e58` | `D.f51` | `LCD_MOSI` | dây cắm |  |
@@ -186,6 +188,8 @@ Dòng qua mỗi tiếp điểm breadboard nên giữ dưới ~1A. Dây nguồn (
 | B4 | W16 | `T.e40` | `T.f48` | `I2S_SPK_DIN` | dây cắm |  |
 | B4 | W17 | `T.e41` | `T.f49` | `I2S_SPK_BCLK` | dây cắm |  |
 | B4 | W18 | `T.e42` | `T.f50` | `I2S_SPK_LRC` | dây cắm |  |
+| B4 | W36 | `T.g38` | `T.g59` | `AMP_SD` | dây cắm | GPIO12 (`DK-L18`) → R13; đi sát mép trên devkit |
+| B4 | W37 | `T.e39` | `T.d36` | `AMP_GAIN` | dây cắm | GAIN nối VIN = 6 dB. To hơn: cắm `T.d37` (GND) = 12 dB |
 | B4 | M1 | U3 VDD | `T.g43` | `3V3` | Dupont cái–đực |  |
 | B4 | M2 | U3 GND | `T.g63` | `GND_ESP` | Dupont cái–đực |  |
 | B4 | M3 | U3 WS | `T.g45` | `I2S_MIC_WS` | Dupont cái–đực |  |
@@ -215,12 +219,16 @@ Dòng qua mỗi tiếp điểm breadboard nên giữ dưới ~1A. Dây nguồn (
 
 | Trường hợp | Làm thế nào |
 |---|---|
-| LCD 7 chân (GND, VCC, SCL, SDA, RES, DC, BLK) | Cắm từ `D.j54` (GND) tới `D.j48` (BLK). **Bỏ W8**; W7 đổi thành `D.e47` → `D.f48`. Build `jarvis-helmet-7pin` |
+| LCD tấm TN (nền HUD hiện gần trắng, màu bị đảo) | Không đổi dây; nạp build `jarvis-helmet-noips` |
+| Ảnh LCD ngược 180° hoặc lật gương | Không đổi dây; đảo `DISPLAY_MIRROR_X`/`DISPLAY_MIRROR_Y` trong `config.h` (wiring.md §3.5) |
 | Ảnh LCD nhiễu, sai màu | Thêm R11 33Ω: bỏ W12, cắm dây `D.e59` → `D.f56` và R11 giữa `D.g56` – `D.g52`. Vẫn nhiễu: rút ngắn W5, W13 |
 | Module mắt thật E1, E2 | Đo và chọn R_EYE theo wiring.md §4.2, thay R_EYE1/R_EYE2. Rút BL1 (BL2), cắm dây + của module vào lỗ chân A, dây − vào lỗ chân K của LED vừa rút |
 | Tải thật / tải giả ở output dự phòng (J5) | Dây + vào `RT+@21`, dây − vào `T.e23`, 22AWG ngắn. BL3 để nguyên cũng được |
 | Nút thật gắn vỏ (có dây) | PTT: một dây vào `D.a23`, dây kia vào `D.g21`. Mặt nạ: `D.a17` và `D.g15`. Cắm song song với nút 6×6 được |
-| Đổi tiếng to/nhỏ (GAIN) | Mặc định để trống = 9 dB. 6 dB (rè, quá to): dây `T.e39` → `T.d36` (VIN). 12 dB (nhỏ): `T.e39` → `T.d37` (GND) |
+| Nút cảm ứng TTP223 thay SW2/SW3 | **Hàn nối pad A** (ra mức thấp khi chạm, đúng kiểu nút của firmware), pad B để hở (nhả tay là nhả). **Rút nút 6×6** (ngõ ra TTP223 kiểu đẩy–kéo, bấm nút cơ sẽ chập ngõ ra xuống GND). PTT: VCC → `T.g42` (3V3), I/O → `D.a23`, GND → `D.g21`. Mặt nạ: VCC → `T.f43` (3V3), I/O → `D.a17`, GND → `D.g15`. Cấp **3V3, không cấp 5V**. Không chạm tấm cảm ứng lúc bật nguồn (module tự hiệu chỉnh) |
+| Đổi tiếng to/nhỏ (GAIN) | Mặc định W37 nối VIN = 6 dB. To hơn: đổi đầu W37 từ `T.d36` sang `T.d37` (GND) = 12 dB (như hướng dẫn xiaozhi). Không để GAIN trống: FAQ xiaozhi ghi GAIN hở là nguyên nhân hay gặp của tiếng khàn |
+| SD nối thẳng Vin (phương án A, đang dùng trên breadboard thử) | Bỏ R13 và W36. Một dây từ chân **SD** sang chân **Vin** của module, nối theo chữ in trên module. Amply luôn bật, to bằng phương án GPIO12. **Không nối SD xuống GND**: amply tắt hẳn (wiring.md §3.4) |
+| Firmware cũ (chưa điều khiển GPIO12) | Rút W36 và nối SD lên Vin như dòng trên. Để SD hở thì amply vẫn chạy nhưng nhỏ đi 6 dB |
 
 ## 4. Vật tư thêm cho breadboard
 
@@ -266,7 +274,7 @@ Mạch có tụ lọc (C1 1000µF trên RT, tụ của devkit, LCD và mic trên
 |---|---|---|
 | 1 | Đối chiếu nhãn in trên devkit với bảng mục 1 | Khớp. Ghi phiên bản devkit, chân LED RGB (wiring.md §6.1) |
 | 2 | Thông mạch từng ray đầu–cuối: `RT−@3` ↔ `RT−@61`, `RT+@3` ↔ `RT+@61`, `RD−@3` ↔ `RD−@61` | ≈0Ω. Breadboard dài đôi khi chia đôi ray ở giữa (vạch màu đứt quãng): khi đó nối hai nửa bằng dây ngắn |
-| 3 | Build và nạp `jarvis-helmet` (LCD 7 chân: `jarvis-helmet-7pin`) như README board §2–3, qua cổng USB-C hiện ra là cổng COM (chip USB–UART) của clone | Log có `SKU=jarvis-helmet`. LED RGB nháy xanh dương (chưa có Wi-Fi) |
+| 3 | Build và nạp `jarvis-helmet` (LCD tấm TN: `jarvis-helmet-noips`) như README board §2–3, qua cổng USB-C hiện ra là cổng COM (chip USB–UART) của clone | Log có `SKU=jarvis-helmet`. LED RGB nháy xanh dương (chưa có Wi-Fi) |
 | 4 | Dán nhãn "5V" lên ray RT+ | |
 | 5 | **Chân 5Vin có diode không?** Chỉ cắm USB máy tính. Cắm tạm điện trở 1kΩ giữa `T.f62` (5Vin) và `T.f63` (GND), đo áp `T.f62` so với `T.f63`, rồi rút điện trở | ≈0V: 5Vin chỉ là đầu vào (có diode trên board). ≈4.6–5V: 5Vin nối thẳng VBUS → D1 bắt buộc, và khi máy tính tắt mà còn cắm cáp thì nguồn ngoài cấp ngược ra cổng USB: rút cáp khi không nạp code. Ghi vào wiring.md §6.1 ("Devkit có diode trên VBUS USB?") |
 | 6 | Số tham chiếu: chỉ có devkit, rút mọi nguồn, đo Ω `T.g42` (3V3) ↔ `T.g63` (GND) theo mục 5.0, đợi số đứng yên | Không đứng yên ở ≈0Ω. Ghi lại số đo để so ở các bước sau |
@@ -293,7 +301,7 @@ Lắp D1, C5, C6, W2, W3, W4.
 
 ### B3 – LCD (nghiệm thu HW2 #1)
 
-Lắp W5, U4, W7–W13. Bước này chạy được chỉ với USB máy tính.
+Lắp W5, W7–W13, rồi 8 dây Dupont của U4. Bước này chạy được chỉ với USB máy tính.
 
 | # | Làm | Đạt khi |
 |---|---|---|
@@ -302,7 +310,7 @@ Lắp W5, U4, W7–W13. Bước này chạy được chỉ với USB máy tính.
 
 ### B4 – Âm thanh (P1: nói chuyện với server)
 
-Lắp U2 (SD, GAIN để trống), C3, C4, W14–W18, loa LS1; mic U3 với M1–M5 (L/R nối GND trên module). **Cần nguồn ngoài**: amply lấy 5V từ ray RT.
+Lắp U2, C3, C4, R13, W14–W18, W36, W37, loa LS1; mic U3 với M1–M5 (L/R nối GND trên module). **Cần nguồn ngoài**: amply lấy 5V từ ray RT.
 
 | # | Làm | Đạt khi |
 |---|---|---|
@@ -377,10 +385,11 @@ done
 |---|---|---|
 | Devkit reset khi servo khởi động | Sụt áp ở tiếp điểm breadboard hoặc cáp sạc mảnh | Dây nguồn 22AWG ngắn, cắm sâu; C1 đúng chỗ; thử sạc khác ≥2.4A. Vẫn reset: hàn riêng một cặp dây 22AWG từ BUSB (sau F1) tới J3/J4, bỏ qua ray (đúng cách đi dây của PCB) |
 | 3V3 < 3.2V khi Wi-Fi phát | B0.5 ra ≈0V: devkit có diode sau chân 5Vin, cộng D1 thành hai lần sụt áp, LDO thiếu áp | Thay D1 bằng một dây (diode trên devkit đã chặn dòng từ USB máy tính ra ray). Ghi lại để quyết định D1 cho PCB (wiring.md §2.3) |
-| LCD trắng/đen | Sai loại 7/8 chân, RES/DC đảo, VCC chưa nối | Kiểm tra W5, W7–W13 theo tên chân in trên LCD |
+| LCD trắng/đen | Dây Dupont lệch chân (chân 1 = VCC, pad vuông), RESET/DC đảo, VCC chưa nối | Kiểm tra W5, W7–W13 và 8 dây Dupont theo tên chân in trên LCD |
 | LCD sai màu, sọc nhiễu | SPI 40MHz qua dây cắm | R11 (mục 3.3), dây W11, W12 ngắn nhất có thể |
 | Không đánh thức được | L/R của mic chưa nối GND; WS và SCK đảo; mic sát loa | Kiểm tra M1–M5, đặt mic xa loa |
-| Loa rè | GAIN quá cao; 5V sụt khi to | Đổi GAIN (mục 3.3), đo RT+ khi phát |
+| Loa rè | GAIN quá cao; 5V sụt khi to; thiếu C3 sát VIN amply; dây GND amply lỏng | Đổi GAIN (mục 3.3), đo RT+ khi phát, kiểm tra C3 và W15 |
+| Loa im hẳn | W36/R13 cắm lệch (SD bị giữ ở mức thấp) hoặc firmware cũ | Log có tiếng phát mà loa im: rút W36 thử. Amply kêu lại thì kiểm tra R13 (`T.e38`–`T.f38`) và W36 tới `T.g59` |
 | Đèn mắt lóe khi khởi động | Thiếu R5/R6 hoặc đế MOSFET sai chân | B7 #1–2 |
 | F1 ngắt (nóng, mất 5V) | Chập 5V–GND, D2 cắm ngược, servo kẹt | Tắt nguồn, đo Ω RT+ ↔ RT−, kiểm tra D2 |
 | 3V3 hoặc 5V đo "thông" GND | Thường là tụ đang nạp (mục 5.0). Chập thật: dây cắm lệch một cột, LCD/mic cắm ngược VCC–GND, chân đế MOSFET sai, D2 ngược | Rút nguồn, đo bằng thang Ω. Vẫn ≈0Ω: rút dần theo thứ tự ngược B8 → B3 (với 3V3: W5, rồi M1) và đo lại sau mỗi lần rút; chỗ vừa rút làm số đo vọt lên là chỗ chập. Rút hết mà vẫn chập: rút devkit ra khỏi breadboard, đo trên devkit trần |

@@ -1,6 +1,6 @@
 // Eye lights and spare output (FW3).
 //
-// - LEDC timer 2 (5 kHz, 10-bit): channel 3 drives the eyes (GPIO8), channel 4 the spare
+// - LEDC timer 2 (25 kHz, 10-bit): channel 3 drives the eyes (GPIO8), channel 4 the spare
 //   output (GPIO9). Both start at duty 0 (the MOSFET gate pull-downs keep them off before).
 // - Brightness is perceived percent, mapped to duty through gamma 2.2.
 // - One task ("eyes_fx") owns both channels. API calls post commands to a mutex-protected
@@ -49,7 +49,7 @@
 #define AUX_LEDC_CHANNEL LEDC_CHANNEL_4
 #endif
 #ifndef OUTPUT_LEDC_FREQ_HZ
-#define OUTPUT_LEDC_FREQ_HZ 5000
+#define OUTPUT_LEDC_FREQ_HZ 25000
 #endif
 #ifndef OUTPUT_LEDC_RESOLUTION
 #define OUTPUT_LEDC_RESOLUTION LEDC_TIMER_10_BIT

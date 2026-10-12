@@ -256,6 +256,30 @@ MicProbe MeteredAudioCodec::ProbeMicrophone(gpio_num_t din) {
     return result;
 }
 
+void MeteredAudioCodec::SetAmpEnableGpio(gpio_num_t gpio) {
+    amp_gpio_ = gpio;
+    if (gpio == GPIO_NUM_NC) {
+        return;
+    }
+    gpio_config_t config = {};
+    config.pin_bit_mask = 1ULL << gpio;
+    config.mode = GPIO_MODE_OUTPUT;
+    gpio_config(&config);
+    gpio_set_level(gpio, output_enabled() ? 1 : 0);
+}
+
+void MeteredAudioCodec::EnableOutput(bool enable) {
+    // The amp goes off before the I2S clocks stop and on after they run again, so it
+    // never sees a half-stopped clock (the MAX98357A pops on that).
+    if (!enable && amp_gpio_ != GPIO_NUM_NC) {
+        gpio_set_level(amp_gpio_, 0);
+    }
+    NoAudioCodecSimplex::EnableOutput(enable);
+    if (enable && amp_gpio_ != GPIO_NUM_NC) {
+        gpio_set_level(amp_gpio_, 1);
+    }
+}
+
 int MeteredAudioCodec::Read(int16_t* dest, int samples) {
     int n = NoAudioCodecSimplex::Read(dest, samples);
     if (n > 0) {

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1060" width="1600" height="1060" font-family="sans-serif" role="img" aria-labelledby="ttl desc">
-<title id="ttl">Jarvis Helmet – sơ đồ đấu dây hệ thống (Rev A)</title>
-<desc id="desc">ESP32-S3-DevKitC-1 ở giữa; INMP441, MAX98357A + loa, nút bấm, ST7789, 2 servo, mạch đèn mắt Q1, output dự phòng Q2 và khối nguồn nối hình sao. Bảng chân theo HW2.</desc>
+<title id="ttl">Jarvis Helmet – sơ đồ đấu dây hệ thống (Rev B)</title>
+<desc id="desc">ESP32-S3-DevKitC-1 ở giữa; INMP441, MAX98357A + loa, nút bấm, LCD 2.4" ST7789, 2 servo, mạch đèn mắt Q1, output dự phòng Q2 và khối nguồn nối hình sao. Bảng chân theo HW2.</desc>
 <rect x="0" y="0" width="1600" height="1060" fill="#ffffff"/>
 <text x="30" y="42" font-size="26" text-anchor="start" font-weight="bold" fill="#1d1d1f">Jarvis Helmet – Sơ đồ đấu dây hệ thống</text>
 <text x="30" y="66" font-size="14" text-anchor="start" font-weight="normal" fill="#5f6368">ESP32-S3-DevKitC-1 N16R8 · bảng chân theo HW2 · nguồn sạc dự phòng 5V ≥2.4A nối hình sao (HW1) · công suất theo HW3</text>
-<text x="1570" y="38" font-size="14" text-anchor="end" font-weight="bold" fill="#1d1d1f">Rev A · 2026-10-06</text>
-<text x="1570" y="56" font-size="12" text-anchor="end" font-weight="normal" fill="#5f6368">Bản đầu, chưa đo trên phần cứng thật</text>
+<text x="1570" y="38" font-size="14" text-anchor="end" font-weight="bold" fill="#1d1d1f">Rev B · 2026-10-09</text>
+<text x="1570" y="56" font-size="12" text-anchor="end" font-weight="normal" fill="#5f6368">Chưa đo trên phần cứng thật · thay đổi Rev B: wiring.md đầu file</text>
 <text x="1570" y="72" font-size="12" text-anchor="end" font-weight="normal" fill="#5f6368">Chi tiết, tọa độ PCB: docs/hardware/wiring.md</text>
 <line x1="30" y1="100" x2="58" y2="100" stroke="#d62728" stroke-width="4" stroke-linecap="round"/>
 <text x="64" y="104.5" font-size="13" text-anchor="start" font-weight="normal" fill="#1d1d1f">5V</text>
@@ -57,6 +57,9 @@
 <line x1="630" y1="482" x2="650" y2="482" stroke="#1f6fd1" stroke-width="2.2" stroke-linecap="round"/>
 <circle cx="630" cy="482" r="3.2" fill="#ffffff" stroke="#1f6fd1" stroke-width="1.8"/>
 <text x="660" y="486.5" font-size="13" fill="#1d1d1f">GPIO16 · LRC<tspan fill="#5f6368" font-size="12"> L9</tspan></text>
+<line x1="630" y1="510" x2="650" y2="510" stroke="#1f6fd1" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="630" cy="510" r="3.2" fill="#ffffff" stroke="#1f6fd1" stroke-width="1.8"/>
+<text x="660" y="514.5" font-size="13" fill="#1d1d1f">GPIO12 · SD<tspan fill="#5f6368" font-size="12"> L18</tspan></text>
 <line x1="630" y1="580" x2="650" y2="580" stroke="#0f8f9a" stroke-width="2.2" stroke-linecap="round"/>
 <circle cx="630" cy="580" r="3.2" fill="#ffffff" stroke="#0f8f9a" stroke-width="1.8"/>
 <text x="660" y="584.5" font-size="13" fill="#1d1d1f">GPIO10 · PTT<tspan fill="#5f6368" font-size="12"> L16</tspan></text>
@@ -80,7 +83,7 @@
 <text x="940" y="269.5" font-size="13" text-anchor="end" fill="#1d1d1f"><tspan fill="#5f6368" font-size="12">R17 </tspan>GPIO47 · MOSI</text>
 <line x1="950" y1="290" x2="970" y2="290" stroke="#8e44ad" stroke-width="2.2" stroke-linecap="round"/>
 <circle cx="970" cy="290" r="3.2" fill="#ffffff" stroke="#8e44ad" stroke-width="1.8"/>
-<text x="940" y="294.5" font-size="13" text-anchor="end" fill="#1d1d1f"><tspan fill="#5f6368" font-size="12">R9 </tspan>GPIO39 · RES</text>
+<text x="940" y="294.5" font-size="13" text-anchor="end" fill="#1d1d1f"><tspan fill="#5f6368" font-size="12">R9 </tspan>GPIO39 · RESET</text>
 <line x1="950" y1="315" x2="970" y2="315" stroke="#8e44ad" stroke-width="2.2" stroke-linecap="round"/>
 <circle cx="970" cy="315" r="3.2" fill="#ffffff" stroke="#8e44ad" stroke-width="1.8"/>
 <text x="940" y="319.5" font-size="13" text-anchor="end" fill="#1d1d1f"><tspan fill="#5f6368" font-size="12">R8 </tspan>GPIO40 · DC</text>
@@ -89,7 +92,7 @@
 <text x="940" y="344.5" font-size="13" text-anchor="end" fill="#1d1d1f"><tspan fill="#5f6368" font-size="12">R7 </tspan>GPIO41 · CS</text>
 <line x1="950" y1="365" x2="970" y2="365" stroke="#2a9d3a" stroke-width="2.2" stroke-linecap="round"/>
 <circle cx="970" cy="365" r="3.2" fill="#ffffff" stroke="#2a9d3a" stroke-width="1.8"/>
-<text x="940" y="369.5" font-size="13" text-anchor="end" fill="#1d1d1f"><tspan fill="#5f6368" font-size="12">R6 </tspan>GPIO42 · BLK</text>
+<text x="940" y="369.5" font-size="13" text-anchor="end" fill="#1d1d1f"><tspan fill="#5f6368" font-size="12">R6 </tspan>GPIO42 · LED</text>
 <line x1="950" y1="432" x2="970" y2="432" stroke="#2a9d3a" stroke-width="2.2" stroke-linecap="round"/>
 <circle cx="970" cy="432" r="3.2" fill="#ffffff" stroke="#2a9d3a" stroke-width="1.8"/>
 <text x="940" y="436.5" font-size="13" text-anchor="end" fill="#1d1d1f"><tspan fill="#5f6368" font-size="12">L10 </tspan>GPIO17 · SERVO S0</text>
@@ -106,7 +109,7 @@
 <text x="800" y="400" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">GPIO0 = nút BOOT · GPIO48 = LED RGB</text>
 <text x="800" y="416" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">(DevKitC-1 v1.1: LED ở GPIO38)</text>
 <text x="800" y="540" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">Cấm dùng: 3, 19, 20, 26–37, 43–46</text>
-<text x="800" y="556" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">Còn trống: 2, 12, 13, 14, 38</text>
+<text x="800" y="556" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">Còn trống: 2, 13, 14, 38</text>
 <rect x="380" y="150" width="180" height="165" rx="6" fill="#f6f8fb" stroke="#4a4f57" stroke-width="1.5"/>
 <text x="390" y="170" font-size="14" text-anchor="start" font-weight="bold" fill="#1d1d1f">U3 · INMP441</text>
 <text x="390" y="186" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">mic I2S (qua J8)</text>
@@ -128,7 +131,7 @@
 <polyline points="627,205 595,205 595,195 563,195" fill="none" stroke="#ef7d00" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
 <circle cx="595" cy="195" r="3.6" fill="#ef7d00"/>
 <polyline points="595,195 595,138 1100,138 1100,175 1127,175" fill="none" stroke="#ef7d00" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
-<text x="860" y="133" font-size="12" text-anchor="middle" font-weight="normal" fill="#ef7d00">3V3 → U4 VCC (J7.2)</text>
+<text x="860" y="133" font-size="12" text-anchor="middle" font-weight="normal" fill="#ef7d00">3V3 → U4 VCC (J7.1)</text>
 <polyline points="563,216 574,216 574,237" fill="none" stroke="#333333" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
 <line x1="563" y1="237" x2="574" y2="237" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
 <line x1="574" y1="237" x2="574" y2="243" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
@@ -149,16 +152,16 @@
 <circle cx="560" cy="482" r="3.2" fill="#ffffff" stroke="#1f6fd1" stroke-width="1.8"/>
 <text x="550" y="486.5" font-size="12" text-anchor="end" font-weight="normal" fill="#1d1d1f">LRC</text>
 <line x1="563" y1="482" x2="627" y2="482" stroke="#1f6fd1" stroke-width="2.2" stroke-linecap="round"/>
-<circle cx="560" cy="510" r="3.2" fill="#ffffff" stroke="#5f6368" stroke-width="1.8"/>
-<text x="550" y="514.5" font-size="12" text-anchor="end" font-weight="normal" fill="#5f6368">GAIN · trống = 9 dB</text>
-<line x1="563" y1="510" x2="576" y2="510" stroke="#5f6368" stroke-width="1.6" stroke-linecap="round"/>
-<line x1="572" y1="506" x2="580" y2="514" stroke="#5f6368" stroke-width="1.6" stroke-linecap="round"/>
-<line x1="572" y1="514" x2="580" y2="506" stroke="#5f6368" stroke-width="1.6" stroke-linecap="round"/>
-<circle cx="560" cy="535" r="3.2" fill="#ffffff" stroke="#5f6368" stroke-width="1.8"/>
-<text x="550" y="539.5" font-size="12" text-anchor="end" font-weight="normal" fill="#5f6368">SD · trống (mono)</text>
-<line x1="563" y1="535" x2="576" y2="535" stroke="#5f6368" stroke-width="1.6" stroke-linecap="round"/>
-<line x1="572" y1="531" x2="580" y2="539" stroke="#5f6368" stroke-width="1.6" stroke-linecap="round"/>
-<line x1="572" y1="539" x2="580" y2="531" stroke="#5f6368" stroke-width="1.6" stroke-linecap="round"/>
+<circle cx="560" cy="510" r="3.2" fill="#ffffff" stroke="#1f6fd1" stroke-width="1.8"/>
+<text x="550" y="514.5" font-size="12" text-anchor="end" font-weight="normal" fill="#1d1d1f">SD · bật/tắt</text>
+<line x1="563" y1="510" x2="571" y2="510" stroke="#1f6fd1" stroke-width="2.2" stroke-linecap="round"/>
+<rect x="571" y="504" width="46" height="12" fill="#ffffff" stroke="#1f6fd1" stroke-width="2"/>
+<text x="594.0" y="500" font-size="12" text-anchor="middle" font-weight="normal" fill="#1d1d1f">R13 2.2k</text>
+<line x1="617" y1="510" x2="627" y2="510" stroke="#1f6fd1" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="560" cy="535" r="3.2" fill="#ffffff" stroke="#d62728" stroke-width="1.8"/>
+<text x="550" y="539.5" font-size="12" text-anchor="end" font-weight="normal" fill="#1d1d1f">GAIN = VIN (6 dB)</text>
+<line x1="563" y1="535" x2="578" y2="535" stroke="#d62728" stroke-width="2" stroke-linecap="round"/>
+<text x="582" y="539.5" font-size="11" text-anchor="start" font-weight="normal" fill="#d62728">5V</text>
 <circle cx="380" cy="450" r="3.2" fill="#ffffff" stroke="#d62728" stroke-width="1.8"/>
 <text x="390" y="454.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">VIN</text>
 <circle cx="380" cy="472" r="3.2" fill="#ffffff" stroke="#333333" stroke-width="1.8"/>
@@ -261,24 +264,24 @@
 <line x1="609" y1="764" x2="615" y2="764" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
 <text x="600" y="765" font-size="12" text-anchor="end" font-weight="normal" fill="#5f6368">GND_ESP</text>
 <rect x="1130" y="150" width="200" height="240" rx="6" fill="#f6f8fb" stroke="#4a4f57" stroke-width="1.5"/>
-<text x="1320" y="172" font-size="14" text-anchor="end" font-weight="bold" fill="#1d1d1f">U4 · LCD ST7789</text>
-<text x="1320" y="190" font-size="12" text-anchor="end" font-weight="normal" fill="#5f6368">1.54" 240×240 · SPI</text>
+<text x="1320" y="172" font-size="14" text-anchor="end" font-weight="bold" fill="#1d1d1f">U4 · LCD 2.4"</text>
+<text x="1320" y="190" font-size="12" text-anchor="end" font-weight="normal" fill="#5f6368">ST7789 · MSP2401</text>
 <circle cx="1130" cy="175" r="3.2" fill="#ffffff" stroke="#ef7d00" stroke-width="1.8"/>
-<text x="1140" y="179.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">VCC</text>
+<text x="1140" y="179.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">1 VCC</text>
 <circle cx="1130" cy="200" r="3.2" fill="#ffffff" stroke="#333333" stroke-width="1.8"/>
-<text x="1140" y="204.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">GND</text>
+<text x="1140" y="204.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">2 GND</text>
 <circle cx="1130" cy="240" r="3.2" fill="#ffffff" stroke="#8e44ad" stroke-width="1.8"/>
-<text x="1140" y="244.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">SCL</text>
+<text x="1140" y="244.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">7 SCK</text>
 <circle cx="1130" cy="265" r="3.2" fill="#ffffff" stroke="#8e44ad" stroke-width="1.8"/>
-<text x="1140" y="269.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">SDA</text>
+<text x="1140" y="269.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">6 SDI</text>
 <circle cx="1130" cy="290" r="3.2" fill="#ffffff" stroke="#8e44ad" stroke-width="1.8"/>
-<text x="1140" y="294.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">RES</text>
+<text x="1140" y="294.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">4 RESET</text>
 <circle cx="1130" cy="315" r="3.2" fill="#ffffff" stroke="#8e44ad" stroke-width="1.8"/>
-<text x="1140" y="319.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">DC</text>
+<text x="1140" y="319.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">5 DC</text>
 <circle cx="1130" cy="340" r="3.2" fill="#ffffff" stroke="#8e44ad" stroke-width="1.8"/>
-<text x="1140" y="344.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">CS</text>
+<text x="1140" y="344.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">3 CS</text>
 <circle cx="1130" cy="365" r="3.2" fill="#ffffff" stroke="#2a9d3a" stroke-width="1.8"/>
-<text x="1140" y="369.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">BLK</text>
+<text x="1140" y="369.5" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">8 LED</text>
 <line x1="973" y1="240" x2="1127" y2="240" stroke="#8e44ad" stroke-width="2.2" stroke-linecap="round"/>
 <line x1="973" y1="265" x2="1127" y2="265" stroke="#8e44ad" stroke-width="2.2" stroke-linecap="round"/>
 <line x1="973" y1="290" x2="1127" y2="290" stroke="#8e44ad" stroke-width="2.2" stroke-linecap="round"/>
@@ -291,14 +294,14 @@
 <line x1="1106" y1="210" x2="1118" y2="210" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
 <line x1="1109" y1="214" x2="1115" y2="214" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
 <text x="1050" y="231" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">J7</text>
-<text x="1345" y="214" font-size="12" text-anchor="start" font-weight="bold" fill="#1d1d1f">Màn 8 chân (có CS):</text>
-<text x="1345" y="232" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">LCD_ST7789_240X240, SPI mode 0</text>
-<text x="1345" y="250" font-size="12" text-anchor="start" font-weight="bold" fill="#1d1d1f">Màn 7 chân (không CS): bỏ</text>
-<text x="1345" y="268" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">trống GPIO41, chọn _7PIN,</text>
-<text x="1345" y="286" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">SPI mode 3</text>
-<text x="1345" y="304" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">SCL/SDA là SPI, không phải I2C</text>
-<text x="1345" y="322" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">Ảnh nhiễu: R11 33Ω nối tiếp SCL</text>
-<text x="1345" y="340" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">RES = GPIO39 (thay GPIO45)</text>
+<text x="1345" y="214" font-size="12" text-anchor="start" font-weight="bold" fill="#1d1d1f">J7.n = chân n của module (1:1):</text>
+<text x="1345" y="232" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">dùng 1–8; bỏ trống 9 SDO (MISO),</text>
+<text x="1345" y="250" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">10–14 cảm ứng, khe thẻ SD</text>
+<text x="1345" y="268" font-size="12" text-anchor="start" font-weight="bold" fill="#1d1d1f">Tấm IPS: LCD_ST7789_240X320</text>
+<text x="1345" y="286" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">Tấm TN: _NO_IPS (build -noips)</text>
+<text x="1345" y="304" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">Ngang 320×240, SPI mode 0</text>
+<text x="1345" y="322" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">Ảnh nhiễu: R11 33Ω nối tiếp SCK</text>
+<text x="1345" y="340" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">RESET = GPIO39 (thay GPIO45)</text>
 <line x1="973" y1="432" x2="1000" y2="432" stroke="#2a9d3a" stroke-width="2.2" stroke-linecap="round"/>
 <rect x="1000" y="426" width="46" height="12" fill="#ffffff" stroke="#2a9d3a" stroke-width="2"/>
 <text x="1023.0" y="422" font-size="12" text-anchor="middle" font-weight="normal" fill="#1d1d1f">R7 220Ω</text>
@@ -426,17 +429,25 @@
 <text x="32" y="978" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">← sạc dự phòng 5V ≥2.4A</text>
 <text x="32" y="994" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">USB-A cắt / USB-C sink</text>
 <text x="32" y="1010" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">(5.1kΩ ở CC1 và CC2)</text>
-<line x1="96" y1="890" x2="122" y2="890" stroke="#d62728" stroke-width="2.2" stroke-linecap="round"/>
-<rect x="122" y="882" width="46" height="16" fill="#ffffff" stroke="#d62728" stroke-width="2"/>
-<line x1="128" y1="896" x2="162" y2="884" stroke="#d62728" stroke-width="1.4" stroke-linecap="round"/>
-<text x="145" y="875" font-size="12" text-anchor="middle" font-weight="normal" fill="#1d1d1f">F1 2.5A</text>
-<line x1="168" y1="890" x2="196" y2="890" stroke="#d62728" stroke-width="2.2" stroke-linecap="round"/>
-<circle cx="196" cy="890" r="3" fill="#d62728"/>
-<circle cx="240" cy="890" r="3" fill="#d62728"/>
-<line x1="199" y1="889" x2="236" y2="876" stroke="#d62728" stroke-width="2.4" stroke-linecap="round"/>
-<text x="218" y="868" font-size="12" text-anchor="middle" font-weight="normal" fill="#1d1d1f">SW1 ≥3A</text>
-<text x="218" y="912" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">(qua J2)</text>
-<line x1="240" y1="890" x2="276" y2="890" stroke="#d62728" stroke-width="2.2" stroke-linecap="round"/>
+<text x="32" y="1040" font-size="11" text-anchor="start" font-weight="normal" fill="#5f6368">D1*: nối tắt nếu devkit có diode ở chân 5V</text>
+<line x1="96" y1="890" x2="106" y2="890" stroke="#d62728" stroke-width="2.2" stroke-linecap="round"/>
+<rect x="106" y="882" width="40" height="16" fill="#ffffff" stroke="#d62728" stroke-width="2"/>
+<line x1="111" y1="896" x2="141" y2="884" stroke="#d62728" stroke-width="1.4" stroke-linecap="round"/>
+<text x="126" y="875" font-size="12" text-anchor="middle" font-weight="normal" fill="#1d1d1f">F1 2.5A</text>
+<line x1="146" y1="890" x2="160" y2="890" stroke="#d62728" stroke-width="2.2" stroke-linecap="round"/>
+<rect x="160" y="881" width="30" height="18" fill="#ffffff" stroke="#4a4f57" stroke-width="1.6" rx="2"/>
+<text x="175" y="894" font-size="11" text-anchor="middle" font-weight="bold" fill="#1d1d1f">Q3</text>
+<line x1="175" y1="899" x2="175" y2="936" stroke="#333333" stroke-width="1.6" stroke-linecap="round"/>
+<circle cx="175" cy="936" r="3.6" fill="#333333"/>
+<text x="170" y="912" font-size="11" text-anchor="end" font-weight="normal" fill="#5f6368">AO3401A</text>
+<text x="170" y="926" font-size="11" text-anchor="end" font-weight="normal" fill="#5f6368">chống ngược</text>
+<line x1="190" y1="890" x2="206" y2="890" stroke="#d62728" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="206" cy="890" r="3" fill="#d62728"/>
+<circle cx="244" cy="890" r="3" fill="#d62728"/>
+<line x1="209" y1="889" x2="240" y2="876" stroke="#d62728" stroke-width="2.4" stroke-linecap="round"/>
+<text x="226" y="868" font-size="12" text-anchor="middle" font-weight="normal" fill="#1d1d1f">SW1 ≥3A</text>
+<text x="226" y="912" font-size="12" text-anchor="middle" font-weight="normal" fill="#5f6368">(qua J2)</text>
+<line x1="244" y1="890" x2="276" y2="890" stroke="#d62728" stroke-width="2.2" stroke-linecap="round"/>
 <rect x="276" y="836" width="10" height="74" fill="#d62728"/>
 <text x="270" y="852" font-size="12" text-anchor="end" font-weight="bold" fill="#d62728">★ 5V_MAIN</text>
 <line x1="96" y1="936" x2="276" y2="936" stroke="#333333" stroke-width="2.2" stroke-linecap="round"/>
@@ -485,8 +496,8 @@
 <polyline points="470,985 470,1000 286,1000" fill="none" stroke="#333333" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
 <text x="482" y="905" font-size="12" text-anchor="start" font-weight="bold" fill="#d62728">5V_ESP</text>
 <text x="482" y="920" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">→ U1 5V (L21)</text>
-<text x="482" y="935" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">D1 SS34/1N5819</text>
-<text x="510" y="966" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">C5 220µ</text>
+<text x="482" y="935" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">D1* 1N5819/SS34</text>
+<text x="510" y="966" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">C5 470µ</text>
 <text x="510" y="982" font-size="12" text-anchor="start" font-weight="normal" fill="#1d1d1f">C6 100n</text>
 <text x="478" y="996" font-size="12" text-anchor="start" font-weight="normal" fill="#5f6368">GND_ESP</text>
 <polyline points="286,878 595,878 595,930" fill="none" stroke="#d62728" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>

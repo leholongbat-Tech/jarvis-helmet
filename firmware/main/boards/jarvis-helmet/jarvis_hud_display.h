@@ -1,4 +1,4 @@
-// Iron Man style HUD on the 240x240 ST7789 (FW6).
+// Iron Man style HUD on the 2.4" ST7789 in landscape, 320x240 (FW6).
 //
 // Built on top of the stock SpiLcdDisplay UI: SetupUI() lets the base class create its
 // widgets (other upstream code such as Assets::Apply and SetTheme touch them), hides

@@ -1,7 +1,7 @@
 # Board `jarvis-helmet`
 
 Firmware cho mũ Jarvis (ESP32-S3 **N16R8**: 16 MB flash, 8 MB PSRAM octal) dựa trên xiaozhi-esp32 v2.5.0.
-Phần cứng: mic INMP441 + amply MAX98357A (I2S simplex, vào 16 kHz / ra 48 kHz: MAX98357A không nhận LRCLK 24 kHz), LCD ST7789 1.54" 240×240,
+Phần cứng: mic INMP441 + amply MAX98357A (I2S simplex, vào 16 kHz / ra 48 kHz: MAX98357A không nhận LRCLK 24 kHz), LCD 2.4" SPI MSP2401 (ST7789, dùng ngang 320×240),
 2 servo nâng mặt nạ, MOSFET đèn mắt + 1 output dự phòng, nút PTT, nút mặt nạ, cầu phân áp đo 5V.
 Bảng chân đầy đủ ở `config.h` (theo `docs/modules/HW2-dau-noi-tin-hieu.md`).
 
@@ -9,7 +9,8 @@ Bảng chân đầy đủ ở `config.h` (theo `docs/modules/HW2-dau-noi-tin-hie
 |---|---|
 | Mic WS / SCK / SD | 4 / 5 / 6 |
 | Loa DIN / BCLK / LRC | 7 / 15 / 16 |
-| LCD MOSI / SCLK / DC / CS / RST / BLK | 47 / 21 / 40 / 41 (bản 7 chân: không có) / **39** / 42 |
+| Amply SD (bật/tắt, qua R13 2.2kΩ) | 12 |
+| LCD MOSI / SCLK / DC / CS / RST / LED (đèn nền) | 47 / 21 / 40 / 41 / **39** / 42 |
 | Servo trái S0 / phải S1 | 17 / 18 |
 | Đèn mắt / output dự phòng | 8 / 9 |
 | Nút PTT / nút mặt nạ / BOOT | 10 / 11 / 0 |
@@ -22,8 +23,8 @@ Bảng chân đầy đủ ở `config.h` (theo `docs/modules/HW2-dau-noi-tin-hie
 
 | `--name` | Dùng khi | Ghi chú |
 |---|---|---|
-| `jarvis-helmet` | LCD 8 chân (có CS) – **mặc định** | `CONFIG_LCD_ST7789_240X240=y` |
-| `jarvis-helmet-7pin` | LCD 7 chân (không có CS) | `CONFIG_LCD_ST7789_240X240_7PIN=y` (SPI mode 3) |
+| `jarvis-helmet` | LCD 2.4" tấm IPS – **mặc định** | `CONFIG_LCD_ST7789_240X320=y` (bật đảo màu) |
+| `jarvis-helmet-noips` | LCD 2.4" tấm TN: với bản mặc định nền HUD hiện gần trắng (màu bị đảo) | `CONFIG_LCD_ST7789_240X320_NO_IPS=y` |
 | `jarvis-helmet-multinet` | Wake word MultiNet "jia wei si" + "guan jia" (phương án B1, FW7) | Build **không** có `--wake-word` |
 | `jarvis-helmet-mww` | WakeNet "Jarvis" + microWakeWord "Hàu ơi" (phương án B2, FW7, D33); model train bằng `tools/wakeword` (mục 9), không commit | `CONFIG_JARVIS_MICRO_WAKE_WORD=y`, ngưỡng 97 / cửa sổ 5 |
 
@@ -43,8 +44,8 @@ Từ thư mục gốc repo (Git Bash trên Windows):
 
 ```bash
 tools/fw_build_docker.sh jarvis-helmet --name jarvis-helmet --language vi-VN --wake-word wn9_jarvis_tts
-# LCD 7 chân:
-tools/fw_build_docker.sh jarvis-helmet --name jarvis-helmet-7pin --language vi-VN --wake-word wn9_jarvis_tts
+# LCD tấm TN (màu bị đảo với bản mặc định):
+tools/fw_build_docker.sh jarvis-helmet --name jarvis-helmet-noips --language vi-VN --wake-word wn9_jarvis_tts
 # MultiNet (không có --wake-word):
 tools/fw_build_docker.sh jarvis-helmet --name jarvis-helmet-multinet --language vi-VN
 # microWakeWord (B2, thử nghiệm; với model placeholder bộ nhận tự tắt):

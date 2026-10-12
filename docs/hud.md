@@ -1,33 +1,37 @@
 # HUD Iron Man (FW6) — bố cục, trạng thái, nguồn dữ liệu
 
 Tài liệu này mô tả giao diện HUD mà `JarvisHudDisplay`
-(`firmware/main/boards/jarvis-helmet/jarvis_hud_display.{h,cc}`) vẽ trên màn ST7789 240×240,
+(`firmware/main/boards/jarvis-helmet/jarvis_hud_display.{h,cc}`) vẽ trên màn 2.4" ST7789 dùng ngang 320×240,
 cách nó lấy dữ liệu, và cách chụp ảnh màn hình thật để nghiệm thu. Kế hoạch gốc:
 [`docs/modules/FW6-hud-display.md`](modules/FW6-hud-display.md).
 
 > Ảnh chụp từng trạng thái sẽ được bổ sung khi có phần cứng (mục 12). Các hình dưới đây là sơ
 > đồ đúng toạ độ pixel của code.
 
-## 1. Bố cục 240×240
+## 1. Bố cục 320×240 (màn 2.4" nằm ngang)
+
+Chiều dọc cố định theo hằng số trong code (thanh trạng thái, reactor, hội thoại); chiều ngang lấy
+theo bề rộng màn: reactor ở giữa, panel `EYES` và nhãn `OFFLINE` bám mép phải, dòng chữ và thẻ
+trải hết bề rộng.
 
 ```
- x: 0        46  65     112           178      239
- y ┌──────────────────────────────────────────────┐
- 0 │ 14:32   ◔  LAN    5.02V           [OFFLINE] │ thanh trạng thái (22 px)
-22 ├──────────────────────────────────────────────┤ vạch mảnh
-28 │ MASK                  · · ·             EYES │ panel trái / phải (góc trên,
-   │ CLOSED            ·  ╭────╮  ·        ON 80% │ cạnh phần hẹp của vòng tròn)
-   │ ▬▬▬▬▬▬           ·  ╱ ╭──╮ ╲  ·        ▬▬▬▬▬ │
-   │                 ·  │ │J.A.R.│ │ ·            │ arc reactor 128 px, tâm (120, 88):
-   │                 ·  │ │V.I.S.│ │ ·            │  32 vạch sóng âm, 3 vòng lv_arc,
-   │                  ·  ╲ ╰──╯ ╱  ·             │  lõi tròn 54 px
-   │                   ·  ╰────╯  ·              │
-152│               Đang lắng nghe...              │ dòng trạng thái (14 px, giữa)
-172├──────────────────────────────────────────────┤ vạch mảnh
-173│ » mở mặt nạ rồi bật đèn mắt                  │ câu người dùng (14 px, nhạt)
-193│ Đã mở mặt nạ và bật đèn mắt, thưa            │ câu Jarvis trả lời (16 px, sáng,
-   │ ngài.                                        │  2 dòng, tự cuộn dọc khi dài)
-239└──────────────────────────────────────────────┘
+ x: 0        46  65       112     160                252       319
+ y ┌──────────────────────────────────────────────────────────────┐
+  0│ 14:32   ◔  LAN       5.02V                        [OFFLINE]  │ thanh trạng thái (22 px)
+ 22├──────────────────────────────────────────────────────────────┤ vạch mảnh
+ 28│ MASK                        · · ·                       EYES │ panel trái / phải (góc trên,
+   │ CLOSED                  ·  ╭────╮  ·                  ON 80% │ hai bên vòng tròn)
+   │ ▬▬▬▬▬▬                 ·  ╱ ╭──╮ ╲  ·                  ▬▬▬▬▬ │
+   │                       ·  │ │J.A.R.│ │ ·                      │ arc reactor 128 px, tâm (160, 88):
+   │                       ·  │ │V.I.S.│ │ ·                      │  32 vạch sóng âm, 3 vòng lv_arc,
+   │                        ·  ╲ ╰──╯ ╱  ·                        │  lõi tròn 54 px
+   │                         ·  ╰────╯  ·                         │
+152│                       Đang lắng nghe...                      │ dòng trạng thái (14 px, giữa)
+172├──────────────────────────────────────────────────────────────┤ vạch mảnh
+173│ » mở mặt nạ rồi bật đèn mắt                                  │ câu người dùng (14 px, nhạt)
+193│ Đã mở mặt nạ và bật đèn mắt, thưa ngài. Hệ                   │ câu Jarvis trả lời (16 px, sáng,
+   │ thống sẵn sàng.                                              │  2 dòng, tự cuộn dọc khi dài)
+239└──────────────────────────────────────────────────────────────┘
 ```
 
 | Vùng | Toạ độ (x, y, rộng × cao) | Font |
@@ -36,15 +40,15 @@ cách nó lấy dữ liệu, và cách chụp ảnh màn hình thật để nghi
 | Icon Wi-Fi | (46, 3), 16 px | `font_material_symbols_16_4` |
 | `LAN` / `WAN` | (65, 3) | HUD |
 | Điện áp 5V `5.02V` | (112, 3) | HUD |
-| Nhãn `OFFLINE` | (178, 3), 58 × 16, nền đỏ | HUD |
+| Nhãn `OFFLINE` | (258, 3), 58 × 16, nền đỏ | HUD |
 | Panel `MASK` | (4, 28), 64 px | HUD + icon mũi tên |
-| Panel `EYES` | (172, 28), 64 px, căn phải | HUD |
-| Arc reactor | (56, 24), 128 × 128 | — |
+| Panel `EYES` | (252, 28), 64 px, căn phải | HUD |
+| Arc reactor | (96, 24), 128 × 128 | — |
 | Chữ lõi `J.A.R.` / `V.I.S.` hoặc icon cảm xúc | giữa lõi | HUD / `font_material_symbols_30_4` |
-| Dòng trạng thái | (4, 152), 232 × 20 | `font_jarvis_vi_14_4` |
-| Câu người dùng | (4, 173), 232 × 20 | `font_jarvis_vi_14_4` |
-| Câu trả lời | (4, 193), 232 × 46 (2 dòng) | `font_jarvis_vi_16_4` |
-| Thẻ thông tin | (2, 239 − cao), 236 × 68…136 | tiêu đề 16 px, nội dung 14 px |
+| Dòng trạng thái | (4, 152), 312 × 20 | `font_jarvis_vi_14_4` |
+| Câu người dùng | (4, 173), 312 × 20 | `font_jarvis_vi_14_4` |
+| Câu trả lời | (4, 193), 312 × 46 (2 dòng) | `font_jarvis_vi_16_4` |
+| Thẻ thông tin | (2, 239 − cao), 316 × 68…136 | tiêu đề 16 px, nội dung 14 px |
 
 Kích thước vòng arc reactor:
 
@@ -133,7 +137,7 @@ Dữ liệu lấy từ `MaskController::GetState()` và `OutputController::GetSt
 
 ## 6. Vùng hội thoại
 
-- **Câu người dùng**: `» ` + nội dung, một dòng màu nhạt; dài hơn 232 px thì chạy ngang vòng
+- **Câu người dùng**: `» ` + nội dung, một dòng màu nhạt; dài hơn 312 px thì chạy ngang vòng
   tròn (`LV_LABEL_LONG_MODE_SCROLL_CIRCULAR`, 35 px/s).
 - **Câu Jarvis**: mỗi lần server gửi một câu (`tts sentence_start`) thì thay câu cũ, giống phụ
   đề. Hiện 2 dòng; câu dài hơn thì **tự cuộn dọc**: giữ 2,5 s → cuộn xuống 11 px/s (khớp tốc độ
