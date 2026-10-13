@@ -54,7 +54,9 @@ jobs:
     container: espressif/idf:v6.1
     steps:
       - uses: actions/checkout@v4
+      # cmake and ninja live in the IDF tools: the job shell does not load them by itself
       - run: |
+          . "$IDF_PATH/export.sh"
           cmake -S firmware/tests/host -B build-host -G Ninja
           cmake --build build-host
           ctest --test-dir build-host --output-on-failure
