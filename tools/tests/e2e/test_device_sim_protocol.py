@@ -796,7 +796,7 @@ def test_task_steps_check_accepts_defaults_and_merges():
 class ScriptedServer:
     """Minimal xiaozhi stand-in on 127.0.0.1 (own thread + event loop): OTA + WebSocket."""
 
-    def __init__(self, auth_key="unit-key", wake_words=("Jarvis", "Quản gia")):
+    def __init__(self, auth_key="unit-key", wake_words=("Jarvis", "Hàu ơi")):
         self.auth_key = auth_key
         self.wake_words = set(wake_words)  # answered with nothing (wake_no_echo patch)
         self.texts, self.audio, self.ota_requests, self.tool_pages = [], [], [], []
@@ -948,7 +948,7 @@ def turn_wake_echo(summary, index=0):
 
 
 def test_cli_e12_wake_word_must_get_no_answer(capsys):
-    """tests-tools-3: 'Quản gia' missing from wakeup_words is answered like a question."""
+    """tests-tools-3: 'Hàu ơi' missing from wakeup_words is answered like a question."""
     argv_tail = ["--scenario", "E12", "--input", "text"]
     with ScriptedServer() as srv:
         code, summary = run_cli(capsys, ["--ws-url", srv.ws_url, "--auth-key", srv.auth_key] + argv_tail)
@@ -957,7 +957,7 @@ def test_cli_e12_wake_word_must_get_no_answer(capsys):
         code, summary = run_cli(capsys, ["--ws-url", srv.ws_url, "--auth-key", srv.auth_key] + argv_tail)
     assert code == 1
     assert [a["name"] for a in summary["assertions"] if not a["ok"]] == ["wake_word_silent"]
-    assert turn_wake_echo(summary)["stt"] == ["Quản gia"]
+    assert turn_wake_echo(summary)["stt"] == ["Hàu ơi"]
 
 
 def test_wake_echo_in_audio_mode_is_what_arrives_before_end_of_speech():

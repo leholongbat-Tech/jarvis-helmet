@@ -60,7 +60,7 @@ commands:
     calls:
       - one_of: [{tool: task_close_mask}, {tool: self_mask_close}]
   - id: close_mixed_e12
-    text: "Quản gia, close the mask"
+    text: "Hàu ơi, close the mask"
     note: "Kịch bản E12"
     calls:
       - one_of: [{tool: task_close_mask}, {tool: self_mask_close}]

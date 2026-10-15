@@ -17,7 +17,7 @@ configs:
   - name: large-v3+vi+prompt
     url: http://127.0.0.1:9000/v1/audio/transcriptions
     language: vi
-    prompt: "Jarvis, quản gia, open mask, close mask, mặt nạ, đèn mắt, combat mode, stealth mode, thưa ngài."
+    prompt: "Hàu ơi, Jarvis, open mask, close mask, mặt nạ, đèn mắt, combat mode, stealth mode, thưa ngài."
 
   # Optional: auto-detect restricted to Vietnamese/English.
   # - name: large-v3+vi,en

@@ -217,7 +217,7 @@ Chi tiết phương pháp và bảng số liệu: `docs/wakeword-report.md`. Ở
 | FW7 #3 | Nói xong wake word → phản hồi < 500 ms | Video | … ms | | | |
 | FW7 #4 | Không vấp audio; RAM internal trống ≥ 30 KB | `heap_trend.py` (`minimal_sram`) | … KB | | | |
 | E8 | Gọi "Jarvis" khi đang nói | scenarios.md E8 | | | | Mặc định: GIỚI HẠN (D12) |
-| E12 | "Quản gia, close the mask" | scenarios.md E12 | | | | |
+| E12 | "Hàu ơi, close the mask" | scenarios.md E12 | | | | |
 
 ### P8 – Dùng ngoài trời và nghiệm thu (SV7, IT1)
 
@@ -279,7 +279,7 @@ Chi tiết phương pháp và bảng số liệu: `docs/wakeword-report.md`. Ở
 | E9 | Tắt server, dùng nút mặt nạ / nhấn giữ | N/A | | OFFLINE hiển thị: có/không | | | |
 | E10 | Tắt Wi-Fi nhà (hotspot đang bật) | (đường Cloudflare) | | … s | | | |
 | E11 | Câu hiển thị đủ dấu tiếng Việt | | | | | | |
-| E12 | "Quản gia, close the mask" | | | | | | Phương án wake word: … |
+| E12 | "Hàu ơi, close the mask" | | | | | | Phương án wake word: … |
 | E13 | 50 lệnh liên tiếp | | | …/50; heap … B/giờ | | | |
 | E14 | 2 giờ liên tục bằng sạc dự phòng | N/A | | uptime …, VSENSE min … mV | | | |
 

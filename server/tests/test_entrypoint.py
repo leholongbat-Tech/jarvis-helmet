@@ -316,7 +316,7 @@ def test_template_static_contract_keys():
     assert cfg["prompt_template"] == "prompts/jarvis-prompt.txt"
     assert "thưa ngài" in cfg["system_error_response"]
     assert cfg["end_prompt"]["enable"] is True and cfg["end_prompt"]["prompt"].strip()
-    assert "J.A.R.V.I.S" in cfg["prompt"]
+    assert "Hàu" in cfg["prompt"] and "Jarvis" in cfg["prompt"]  # D34: Vietnamese / English name
     assert cfg["selected_module"] == {
         "VAD": "SileroVAD",
         "ASR": "OpenaiASR",

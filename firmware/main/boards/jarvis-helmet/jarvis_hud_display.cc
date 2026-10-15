@@ -625,7 +625,8 @@ void JarvisHudDisplay::Impl::BuildReactor(int width) {
     lv_obj_set_style_bg_opa(core, LV_OPA_COVER, 0);
     lv_obj_set_style_border_width(core, 2, 0);
 
-    core_text = MakeLabel(core, hud16->font(), kColorCyan, "J.A.R.\nV.I.S.");
+    // Vietnamese name of the assistant (D34; English name Jarvis). The Vietnamese font has the À.
+    core_text = MakeLabel(core, vi16->font(), kColorCyan, "HÀU");
     lv_obj_set_style_text_align(core_text, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_center(core_text);
 

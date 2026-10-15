@@ -24,7 +24,7 @@
 #                   Tối đa 64 bước và 60 giây ước tính (mask = cả hành trình 800*100/speed ms,
 #                   eyes effect = duration_ms đã thay mặc định, breathe = 0, servo = duration_ms, delay = giá trị).
 #   quick_phrases   tùy chọn: câu khớp nhanh, chạy ngay không qua LLM. So CẢ CÂU sau khi chuẩn hóa
-#                   (chữ thường, bỏ dấu câu, bỏ "Jarvis"/"Quản gia"/"Giắc vít" ở đầu câu), ngưỡng 90/100,
+#                   (chữ thường, bỏ dấu câu, bỏ "Hàu ơi"/"Jarvis"/"Giắc vít"/"Quản gia" ở đầu câu), ngưỡng 90/100,
 #                   so cả bản có dấu và bản bỏ dấu. Câu có nhiều lệnh ("... rồi ...") luôn đi qua LLM.
 #   reply           tùy chọn: câu trả lời cố định; hoặc {vi: "...", en: "..."}. Không có thì LLM tự nói.
 #   sync_to_device  tùy chọn: true -> khi mũ kết nối, server lưu chuỗi vào NVS của mũ

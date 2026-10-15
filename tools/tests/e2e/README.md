@@ -66,7 +66,7 @@ Giả lập dùng MAC `02:4a:48:4d:00:01` (đổi bằng `--mac`, `--uuid`), kh�
 - **Âm thanh**: `--wav <file>` (lặp lại được), `--wav-dir <thư mục>` (quay vòng), hoặc tự lấy `audio/<ID>.wav`, `audio/<ID>_<n>.wav`
   khi có (`--input auto`); `--input audio` bắt buộc dùng WAV, `--input text` bắt buộc dùng chữ. File không phải WAV 16 bit được
   chuyển bằng PyAV. Điểm kết thúc lời nói trong WAV lấy theo năng lượng, hoặc `--speech-end-ms`.
-- **Wake word**: mặc định gửi trước chữ wake word của kịch bản (`Jarvis`, E12 là `Quản gia`); đổi bằng `--wake`, bỏ bằng `--no-wake`.
+- **Wake word**: mặc định gửi trước chữ wake word của kịch bản (`Jarvis`, E12 là `Hàu ơi`); đổi bằng `--wake`, bỏ bằng `--no-wake`.
 - **Chế độ nghe** `--mode`: `auto` (VAD của server cắt câu; sau WAV gửi thêm tối đa `--tail-ms` = 4000 ms im lặng), `manual` (giống
   nhấn giữ PTT: gửi `listen stop` ngay sau khung cuối, trễ thêm `--ptt-release-ms`), `realtime`.
 - **Nhiều lượt**: `--repeat N`, `--pause-ms` (mặc định 1000) giữa các lượt, `--reconnect` mở WebSocket mới mỗi lượt.
@@ -86,7 +86,7 @@ Giả lập dùng MAC `02:4a:48:4d:00:01` (đổi bằng `--mac`, `--uuid`), kh�
 | E7 | kể cho tôi nghe một câu chuyện thật dài về Iron Man (`abort` sau 1500 ms) | `max:abort_to_tts_stop_ms:300`, `max:abort_to_last_audio_ms:500` | `glyphs` |
 | E8 | như E7, `abort` lý do `wake_word_detected` | `max:abort_to_tts_stop_ms:300` | `glyphs` |
 | E11 | hãy đọc nguyên văn câu này: Ừ, đã bật chế độ chiến đấu – tôi sẵn sàng, thưa ngài! | `reply`, `glyphs`, `vi_diacritics` | – |
-| E12 | close the mask (wake word `Quản gia`) | `wake_word_silent`, `actions:mask_close` | `glyphs` |
+| E12 | close the mask (wake word `Hàu ơi`) | `wake_word_silent`, `actions:mask_close` | `glyphs` |
 | E13 | mở mặt nạ / đóng mặt nạ / bật đèn mắt / tắt đèn mắt, 50 lượt | `all_completed`, `each_turn_responds` | – |
 
 Mọi lần chạy còn có kiểm tra `no_errors` (không lỗi giao thức/lượt). E9, E10, E14 không giả lập được (mạng, nút bấm, nguồn).
@@ -273,7 +273,7 @@ Kiểm tra: `enough_samples`, `no_steady_decrease` (trượt khi **cả** mức 
 # Tổng hợp câu của mọi kịch bản qua tts-router (chạy compose kèm docker-compose.debug.yml) vào tools/tests/e2e/audio/
 .venv/Scripts/python tools/tests/e2e/make_wavs.py tts --tts-url http://127.0.0.1:8880/v1/audio/speech
 .venv/Scripts/python tools/tests/e2e/make_wavs.py tts --tts-url http://127.0.0.1:8880/v1/audio/speech --scenario E4 --scenario E13
-.venv/Scripts/python tools/tests/e2e/make_wavs.py tts --tts-url ... --text "Quản gia, close the mask" --name E12
+.venv/Scripts/python tools/tests/e2e/make_wavs.py tts --tts-url ... --text "Hàu ơi, close the mask" --name E12
 
 # Chuyển file ghi âm giọng thật (m4a, mp3, ogg, flac, wav...) sang WAV 16 kHz mono (in vị trí lời nói)
 .venv/Scripts/python tools/tests/e2e/make_wavs.py convert ghi_am/E13_1.m4a ghi_am/E13_2.m4a

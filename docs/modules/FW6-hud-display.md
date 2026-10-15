@@ -30,8 +30,8 @@ Cách làm:
 │                                                  │
 │ [MASK]           ╭──────────╮           [EYES]   │
 │ ▲ OPEN          ╱  ╭──────╮  ╲            ● ON   │  vòng arc reactor 128px
-│                │  │ J.A.R. │  │                  │  (3 vòng lv_arc xoay
-│                │  │ V.I.S. │  │                  │   + vòng sóng âm)
+│                │  │  HÀU   │  │                  │  (3 vòng lv_arc xoay
+│                │  │        │  │                  │   + vòng sóng âm)
 │                 ╲  ╰──────╯  ╱                   │
 │                   ╰──────────╯                   │
 │ ──────────────────────────────────────────────── │

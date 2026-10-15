@@ -1,8 +1,8 @@
-# FW7 – Wake word "Jarvis" + "Quản gia"
+# FW7 – Wake word "Hàu ơi" + "Jarvis"
 
 | | |
 |---|---|
-| **Mục tiêu** | Đánh thức trợ lý bằng "Jarvis" và "Quản gia", xử lý ngay trên ESP32, ít kích nhầm |
+| **Mục tiêu** | Đánh thức trợ lý bằng tên tiếng Việt "Hàu ơi" và tên tiếng Anh "Jarvis" (D34), xử lý ngay trên ESP32, ít kích nhầm. Kế hoạch ban đầu dùng "Quản gia" (các mục dưới giữ lại lịch sử đó) |
 | **Phụ thuộc** | FW1. SV4 (VieNeu-TTS) dùng để tạo dữ liệu train. Server RTX 5090 dùng để train |
 | **Kết quả giao nộp** | Cấu hình wake word đã chọn; nếu chọn phương án B2 thì thêm `micro_wake_word.{h,cc}` + model `.tflite`; thư mục `tools/wakeword/` (script train); báo cáo so sánh các phương án |
 

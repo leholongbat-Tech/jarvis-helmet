@@ -39,7 +39,7 @@
 
 ## 3. Tính cách
 
-`prompts/jarvis-prompt.txt` (thay `agent-base-prompt.txt` mặc định, D16): quản gia J.A.R.V.I.S lịch lãm, gọi "thưa ngài"/"Sir", trả lời 1–3 câu văn bản thuần (không markdown, không emoji), trả lời theo ngôn ngữ người dùng (câu trộn → tiếng Việt, giữ thuật ngữ tiếng Anh), luôn gọi tool khi điều khiển mũ và không nói đã làm khi chưa gọi, không bịa trạng thái (gọi `self.system.get_status`), câu cần kiến thức sâu → `ask_expert`, đoán ý khi ASR sai gần âm, không tự nói wake word. Giữ `{{current_time}}`; không dùng `{{language}}`, thời tiết, vị trí, âm lịch.
+`prompts/jarvis-prompt.txt` (thay `agent-base-prompt.txt` mặc định, D16): quản gia lịch lãm tên Hàu (tiếng Anh: Jarvis, D34), gọi "thưa ngài"/"Sir", trả lời 1–3 câu văn bản thuần (không markdown, không emoji), trả lời theo ngôn ngữ người dùng (câu trộn → tiếng Việt, giữ thuật ngữ tiếng Anh), luôn gọi tool khi điều khiển mũ và không nói đã làm khi chưa gọi, không bịa trạng thái (gọi `self.system.get_status`), câu cần kiến thức sâu → `ask_expert`, đoán ý khi ASR sai gần âm, không tự nói wake word. Giữ `{{current_time}}`; không dùng `{{language}}`, thời tiết, vị trí, âm lịch.
 
 ## 4. Khử vọng phía server (ngắt lời bằng giọng nói)
 - Khử vọng phía server của v0.9.7 chỉ có với kết nối MQTT + UDP; mũ dùng WebSocket nên **không dùng được**. Ngắt lời bằng giọng nói vì vậy là giới hạn đã biết: firmware mặc định tắt nhận wake word khi đang nói (`CONFIG_JARVIS_WAKE_WORD_BARGE_IN=n`, D12), nút PTT luôn ngắt được (D8).

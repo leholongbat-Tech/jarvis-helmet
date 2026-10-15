@@ -31,7 +31,7 @@
 | E9 | Tắt server, bấm nút mặt nạ / nhấn giữ | Mặt nạ và đèn vẫn chạy; HUD hiện OFFLINE |
 | E10 | Tắt WiFi nhà (hotspot đang bật) | Tự chuyển sang hotspot ≤30 giây, dùng tiếp qua Cloudflare |
 | E11 | Câu hiển thị có đủ dấu tiếng Việt | Không thiếu ký tự |
-| E12 | "Quản gia, close the mask" | Wake word thứ hai hoạt động, mặt nạ đóng |
+| E12 | "Hàu ơi, close the mask" | Wake word tiếng Việt hoạt động, mặt nạ đóng |
 | E13 | 50 lệnh liên tiếp (script phát file âm thanh) | Không treo, heap của thiết bị không giảm dần (log `esp_get_free_heap_size`) |
 | E14 | Đội mũ dùng liên tục 2 giờ bằng sạc dự phòng | Không reset, sạc không tự tắt, VSENSE ≥4.6V |
 

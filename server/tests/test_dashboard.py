@@ -355,7 +355,7 @@ def test_pages_need_the_password(tmp_path):
             assert client.get(path, headers=auth("jarvis", "wrong")).status_code == 401
             assert client.get(path, headers=auth("admin", "s3cret")).status_code == 401
         page = client.get("/", headers=auth("jarvis", "s3cret"))
-        assert page.status_code == 200 and "Jarvis Dashboard" in page.text
+        assert page.status_code == 200 and "Hàu · Jarvis – Dashboard" in page.text
         assert page.headers["x-frame-options"] == "DENY" and page.headers["cache-control"] == "no-store"
         data = client.get("/api/status", headers=auth("jarvis", "s3cret")).json()
     assert set(data) >= {"now", "services", "devices", "turns", "events", "log", "llm"}

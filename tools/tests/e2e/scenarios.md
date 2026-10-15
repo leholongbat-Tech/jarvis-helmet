@@ -197,18 +197,17 @@ trong phân vùng `jsecrets`). Log serial khi cần: `idf.py -p COM5 monitor | t
 - **Đạt khi**: phần tự động PASS; ảnh HUD không thiếu ký tự nào.
 - **Bằng chứng**: ảnh HUD (cả hai bước), `summary.json`.
 
-## E12 – "Quản gia, close the mask"
+## E12 – "Hàu ơi, close the mask"
 
-- **Kỳ vọng (IT1)**: wake word thứ hai hoạt động, mặt nạ đóng.
-- **Tự động**: `$SIM --ota-url $OTA --scenario E12` – giả lập gửi chữ wake word "Quản gia" rồi câu lệnh. Bắt buộc:
+- **Kỳ vọng (IT1)**: wake word tiếng Việt (tên chính thức "Hàu", D34) hoạt động, mặt nạ đóng.
+- **Tự động**: `$SIM --ota-url $OTA --scenario E12` – giả lập gửi chữ wake word "Hàu ơi" rồi câu lệnh. Bắt buộc:
   `wake_word_silent` (sau wake word – 800 ms khi chèn chữ, hoặc tới lúc nói xong câu lệnh khi phát WAV – server không gửi
-  `stt`, câu đáp, âm thanh hay emotion nào: nó nhận "Quản gia" là wake word trong `wakeup_words`, chứ không coi là câu hỏi) và
+  `stt`, câu đáp, âm thanh hay emotion nào: nó nhận "Hàu ơi" là wake word trong `wakeup_words`, chứ không coi là câu hỏi) và
   `actions:mask_close`.
-- **Mũ thật**: cần biến thể firmware nhận được "Quản gia": phương án A (`wn9_jarvis_tts`) chỉ có "Jarvis"; B1
-  (`jarvis-helmet-multinet`, "jia wei si" + "guan jia") hoặc B2 (`jarvis-helmet-mww`, model microWakeWord đã train) – theo quyết định
-  trong `docs/wakeword-report.md`. Mặt nạ mở sẵn; nói "Quản gia", rồi "close the mask" (hoặc liền một hơi).
-  Với B2 từ tiếng Việt là **"Hàu ơi"** (D33): nói "Hàu ơi, close the mask"; server nhận "Hàuơi" trong `wakeup_words`.
-- **Đạt khi**: mũ thức dậy với "Quản gia" và mặt nạ đóng. Độ nhạy (≥ 18/20) và kích nhầm đo theo `docs/wakeword-report.md`.
+- **Mũ thật**: cần biến thể `jarvis-helmet-mww` (B2, model microWakeWord "Hàu ơi" đã train, D33); phương án A
+  (`wn9_jarvis_tts`) chỉ có "Jarvis", B1 (`jarvis-helmet-multinet`) chỉ có "jia wei si" + "guan jia" ("Quản gia", tên cũ).
+  Mặt nạ mở sẵn; nói "Hàu ơi", rồi "close the mask" (hoặc liền một hơi); server nhận "Hàuơi" trong `wakeup_words`.
+- **Đạt khi**: mũ thức dậy với "Hàu ơi" và mặt nạ đóng. Độ nhạy (≥ 18/20) và kích nhầm đo theo `docs/wakeword-report.md`.
 - **Bằng chứng**: `summary.json`, video, biến thể firmware đã dùng.
 
 ## E13 – 50 lệnh liên tiếp

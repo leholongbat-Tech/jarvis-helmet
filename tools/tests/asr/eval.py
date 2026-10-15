@@ -33,7 +33,7 @@ import asrlib  # noqa: E402
 HERE = Path(__file__).resolve().parent
 DEFAULT_URL = "http://127.0.0.1:9000/v1/audio/transcriptions"
 DEFAULT_PROMPT = (
-    "Jarvis, quản gia, open mask, close mask, mặt nạ, đèn mắt, combat mode, stealth mode, thưa ngài."
+    "Hàu ơi, Jarvis, open mask, close mask, mặt nạ, đèn mắt, combat mode, stealth mode, thưa ngài."
 )
 # SV2 acceptance thresholds.
 KW_TARGET, WER_MIXED_TARGET, WER_VI_TARGET, LATENCY_TARGET_MS = 0.95, 0.15, 0.10, 300.0

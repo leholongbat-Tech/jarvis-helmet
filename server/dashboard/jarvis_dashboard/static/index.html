@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Jarvis Dashboard</title>
+<title>Hàu · Jarvis – Dashboard</title>
 <style>
   :root {
     --bg: #0a0f1a;
@@ -90,7 +90,7 @@
 </head>
 <body>
 <header>
-  <h1><span>JARVIS</span> · Trạng thái hệ thống</h1>
+  <h1><span>HÀU</span> · Trạng thái hệ thống</h1>
   <span class="pill" id="live"><span class="dot"></span><span id="conn">Đang tải…</span></span>
 </header>
 <main>
@@ -173,7 +173,7 @@ function meter(label, db) {
 function deviceCard(d, now) {
   const card = el("article", "card");
   const title = el("div", "card-title");
-  title.append(el("strong", "", d.virtual ? "Thiết bị giả lập" : "Mũ Jarvis"),
+  title.append(el("strong", "", d.virtual ? "Thiết bị giả lập" : "Mũ Hàu"),
                el("span", "sub", [d.id, d.ip].filter(Boolean).join(" · ")));
   card.append(title);
 

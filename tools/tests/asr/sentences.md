@@ -8,7 +8,7 @@ Có 63 câu chia 3 nhóm; mã câu cho biết nhóm:
 - `E..` = câu **tiếng Anh thuần** (nhóm `en`)
 
 Cách đọc:
-- Đọc tự nhiên như khi ra lệnh cho mũ, **đúng nguyên văn** (kể cả "Jarvis", "Quản gia" ở đầu câu).
+- Đọc tự nhiên như khi ra lệnh cho mũ, **đúng nguyên văn** (kể cả "Hàu ơi", "Jarvis" ở đầu câu).
 - Câu cố tình không có chữ số để việc chấm WER không phụ thuộc cách viết số ("50" hay "năm mươi").
 - Nếu đọc nhầm, đọc lại cả câu; công cụ ghép bản ghi (`capture_to_manifest.py`) sẽ chọn bản khớp nhất.
 - Các script (`make_synthetic.py`, `capture_to_manifest.py`, `eval.py`) đọc trực tiếp các bảng bên dưới:
@@ -24,7 +24,7 @@ Cách đọc:
 | M04 | Bật combat mode ngay. |
 | M05 | Jarvis, chuyển sang stealth mode. |
 | M06 | Open the mask rồi tắt đèn mắt. |
-| M07 | Quản gia, close the mask. |
+| M07 | Hàu ơi, close the mask. |
 | M08 | Cho đèn mắt chạy hiệu ứng breathe. |
 | M09 | Jarvis, eyes on với độ sáng tối đa. |
 | M10 | Tắt eye lights đi. |
@@ -36,7 +36,7 @@ Cách đọc:
 | M16 | Jarvis, status hệ thống thế nào? |
 | M17 | Mở mặt nạ rồi power up đèn mắt. |
 | M18 | Jarvis, fade out đèn mắt rồi close mask. |
-| M19 | Quản gia, open mask nhanh lên. |
+| M19 | Hàu ơi, open mask nhanh lên. |
 | M20 | Cho tôi xem battery level của mũ. |
 | M21 | Jarvis, stop sequence ngay. |
 | M22 | Bật đèn mắt chế độ flicker. |
@@ -62,7 +62,7 @@ Cách đọc:
 | V12 | Thủ đô của nước Úc là thành phố nào? |
 | V13 | Một năm có bao nhiêu ngày? |
 | V14 | Hãy giới thiệu bản thân đi. |
-| V15 | Quản gia, hôm nay tôi có nên mang ô không? |
+| V15 | Hàu ơi, hôm nay tôi có nên mang ô không? |
 | V16 | Từ Hà Nội đến Đà Nẵng bao xa? |
 | V17 | Cảm ơn nhé, thế là đủ rồi. |
 | V18 | Giải thích ngắn gọn trí tuệ nhân tạo là gì. |

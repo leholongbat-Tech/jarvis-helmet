@@ -193,7 +193,7 @@ Tham số (đã đối chiếu `--help`):
 | `--manifest` (bắt buộc) | – | Manifest JSONL |
 | `--configs` | – | File YAML/JSON danh sách cấu hình; không có → 3 cấu hình mặc định trên `--url` |
 | `--url` | `http://127.0.0.1:9000/v1/audio/transcriptions` | Endpoint cho cấu hình mặc định |
-| `--prompt` | "Jarvis, quản gia, open mask, close mask, mặt nạ, đèn mắt, combat mode, stealth mode, thưa ngài." | Câu mồi của cấu hình `+prompt` mặc định |
+| `--prompt` | "Hàu ơi, Jarvis, open mask, close mask, mặt nạ, đèn mắt, combat mode, stealth mode, thưa ngài." | Câu mồi của cấu hình `+prompt` mặc định |
 | `--keywords` | `keywords.txt` | Danh sách từ khóa |
 | `--out` | `tools/tests/asr/RESULTS.md` | Báo cáo Markdown |
 | `--details-dir` | `<thư mục manifest>/eval_details` | Chi tiết từng câu, mỗi cấu hình một file `<tên>.jsonl` |

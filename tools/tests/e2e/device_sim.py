@@ -2194,7 +2194,7 @@ SCENARIOS = {
                      "thưa ngài!"],
                     checks=("reply", "glyphs", "vi_diacritics"), soft_checks=(),
                     manual_part="ảnh chụp HUD: không có ô vuông"),
-    "E12": Scenario("E12", "Wake word thứ hai 'Quản gia'", ["close the mask"], wake="Quản gia",
+    "E12": Scenario("E12", "Wake word tiếng Việt 'Hàu ơi'", ["close the mask"], wake="Hàu ơi",
                     checks=("wake_word_silent", "actions:mask_close"),
                     manual_part="nhận wake word bằng giọng thật: cần mũ thật (FW7)"),
     "E13": Scenario("E13", "50 lệnh liên tiếp",

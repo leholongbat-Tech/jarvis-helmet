@@ -22,14 +22,14 @@ trải hết bề rộng.
  28│ MASK                        · · ·                       EYES │ panel trái / phải (góc trên,
    │ CLOSED                  ·  ╭────╮  ·                  ON 80% │ hai bên vòng tròn)
    │ ▬▬▬▬▬▬                 ·  ╱ ╭──╮ ╲  ·                  ▬▬▬▬▬ │
-   │                       ·  │ │J.A.R.│ │ ·                      │ arc reactor 128 px, tâm (160, 88):
-   │                       ·  │ │V.I.S.│ │ ·                      │  32 vạch sóng âm, 3 vòng lv_arc,
+   │                       ·  │ │ HÀU  │ │ ·                      │ arc reactor 128 px, tâm (160, 88):
+   │                       ·  │ │      │ │ ·                      │  32 vạch sóng âm, 3 vòng lv_arc,
    │                        ·  ╲ ╰──╯ ╱  ·                        │  lõi tròn 54 px
    │                         ·  ╰────╯  ·                         │
 152│                       Đang lắng nghe...                      │ dòng trạng thái (14 px, giữa)
 172├──────────────────────────────────────────────────────────────┤ vạch mảnh
 173│ » mở mặt nạ rồi bật đèn mắt                                  │ câu người dùng (14 px, nhạt)
-193│ Đã mở mặt nạ và bật đèn mắt, thưa ngài. Hệ                   │ câu Jarvis trả lời (16 px, sáng,
+193│ Đã mở mặt nạ và bật đèn mắt, thưa ngài. Hệ                   │ câu Hàu trả lời (16 px, sáng,
    │ thống sẵn sàng.                                              │  2 dòng, tự cuộn dọc khi dài)
 239└──────────────────────────────────────────────────────────────┘
 ```
@@ -44,7 +44,7 @@ trải hết bề rộng.
 | Panel `MASK` | (4, 28), 64 px | HUD + icon mũi tên |
 | Panel `EYES` | (252, 28), 64 px, căn phải | HUD |
 | Arc reactor | (96, 24), 128 × 128 | — |
-| Chữ lõi `J.A.R.` / `V.I.S.` hoặc icon cảm xúc | giữa lõi | HUD / `font_material_symbols_30_4` |
+| Chữ lõi `HÀU` (tên tiếng Việt, D34) hoặc icon cảm xúc | giữa lõi | `font_jarvis_vi_16_4` / `font_material_symbols_30_4` |
 | Dòng trạng thái | (4, 152), 312 × 20 | `font_jarvis_vi_14_4` |
 | Câu người dùng | (4, 173), 312 × 20 | `font_jarvis_vi_14_4` |
 | Câu trả lời | (4, 193), 312 × 46 (2 dòng) | `font_jarvis_vi_16_4` |
@@ -71,7 +71,7 @@ Mỗi vòng gồm một "rãnh" mờ đủ 360° và một đoạn sáng (indica
 | Cam (phụ) | `#FFB000` | trạng thái "đang nghĩ", mặt nạ đang chạy, tin nhắn hệ thống, thẻ thông tin |
 | Đỏ (lỗi) | `#FF3B30` | lỗi / offline, nhãn `OFFLINE`, điện áp rất thấp |
 | Cyan tối | `#0E5866` | vạch kẻ, rãnh thanh tiến độ, vạch sóng khi không nói |
-| Chữ sáng | `#D6FAFF` | câu trả lời của Jarvis, nội dung thẻ |
+| Chữ sáng | `#D6FAFF` | câu trả lời của Hàu, nội dung thẻ |
 | Chữ nhạt | `#5FA4B2` | câu người dùng, nhãn panel, dòng trạng thái lúc chờ |
 
 ## 3. Trạng thái và hiệu ứng
@@ -139,7 +139,7 @@ Dữ liệu lấy từ `MaskController::GetState()` và `OutputController::GetSt
 
 - **Câu người dùng**: `» ` + nội dung, một dòng màu nhạt; dài hơn 312 px thì chạy ngang vòng
   tròn (`LV_LABEL_LONG_MODE_SCROLL_CIRCULAR`, 35 px/s).
-- **Câu Jarvis**: mỗi lần server gửi một câu (`tts sentence_start`) thì thay câu cũ, giống phụ
+- **Câu Hàu trả lời**: mỗi lần server gửi một câu (`tts sentence_start`) thì thay câu cũ, giống phụ
   đề. Hiện 2 dòng; câu dài hơn thì **tự cuộn dọc**: giữ 2,5 s → cuộn xuống 11 px/s (khớp tốc độ
   đọc của TTS) → giữ 2,5 s ở cuối → quay lên nhanh → lặp lại. Không mất chữ nào.
 - **Tin nhắn hệ thống** (`role = "system"`, ví dụ chuỗi phiên bản lúc khởi động, mã kích hoạt,
@@ -164,7 +164,7 @@ Dữ liệu lấy từ `MaskController::GetState()` và `OutputController::GetSt
 ## 8. Cảm xúc (`SetEmotion`)
 
 Không dùng bộ emoji ảnh. Cảm xúc tô màu vòng trong + viền lõi (trừ khi đang Nghĩ hoặc Lỗi, vì
-màu khi đó mang ý nghĩa trạng thái) và có thể thay chữ `J.A.R.V.I.S.` bằng một icon nhỏ:
+màu khi đó mang ý nghĩa trạng thái) và có thể thay chữ `HÀU` bằng một icon nhỏ:
 
 | Cảm xúc | Màu | Icon ở lõi |
 |---|---|---|
@@ -313,7 +313,7 @@ sách tool được phép, D27: nó tải dữ liệu lên một URL bất kỳ)
    | Trạng thái | Cách tạo |
    |---|---|
    | Chờ | để yên sau khi khởi động xong |
-   | Đang nghe | gọi "Jarvis" hoặc bấm PTT; chụp khi đang nói vào mic |
+   | Đang nghe | gọi "Hàu ơi" / "Jarvis" hoặc bấm PTT; chụp khi đang nói vào mic |
    | Đang nghĩ | chụp ngay sau khi nói xong câu dài (trước khi Jarvis trả lời) |
    | Đang nói | hỏi một câu có câu trả lời dài (kiểm tra cả tự cuộn) |
    | Lỗi / offline | tắt server hoặc rút Wi-Fi router, chờ nhãn `OFFLINE` |
